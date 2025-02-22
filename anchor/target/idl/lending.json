@@ -53,7 +53,7 @@
             "seeds": [
               {
                 "kind": "account",
-                "path": "bank_collateral"
+                "path": "mint_collateral"
               }
             ]
           }

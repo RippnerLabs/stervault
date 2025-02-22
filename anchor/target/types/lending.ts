@@ -59,7 +59,7 @@ export type Lending = {
             "seeds": [
               {
                 "kind": "account",
-                "path": "bankCollateral"
+                "path": "mintCollateral"
               }
             ]
           }

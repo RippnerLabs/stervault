@@ -24,7 +24,7 @@ pub struct Borrow<'info> {
     
     #[account(
         mut,
-        seeds=[bank_collateral.key().as_ref()],
+        seeds=[mint_collateral.key().as_ref()],
         bump,
     )]
     pub bank_collateral: Account<'info, Bank>,
