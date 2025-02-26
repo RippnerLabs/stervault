@@ -595,6 +595,9 @@ export type Lending = {
           "name": "mintBorrow"
         },
         {
+          "name": "mintCollateral"
+        },
+        {
           "name": "bankBorrow",
           "writable": true,
           "pda": {
@@ -703,9 +706,6 @@ export type Lending = {
               ]
             }
           }
-        },
-        {
-          "name": "mintCollateral"
         },
         {
           "name": "bankCollateral",
@@ -830,11 +830,11 @@ export type Lending = {
           "name": "pythNetworkFeedIdCollateralToken"
         },
         {
-          "name": "tokenProgram"
-        },
-        {
           "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
@@ -916,6 +916,9 @@ export type Lending = {
           "name": "mintBorrow"
         },
         {
+          "name": "mintCollateral"
+        },
+        {
           "name": "bankBorrow",
           "writable": true,
           "pda": {
@@ -1024,9 +1027,6 @@ export type Lending = {
               ]
             }
           }
-        },
-        {
-          "name": "mintCollateral"
         },
         {
           "name": "bankCollateral",
@@ -1151,11 +1151,11 @@ export type Lending = {
           "name": "pythNetworkFeedIdCollateralToken"
         },
         {
-          "name": "tokenProgram"
-        },
-        {
           "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",

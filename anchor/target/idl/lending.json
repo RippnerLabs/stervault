@@ -589,6 +589,9 @@
           "name": "mint_borrow"
         },
         {
+          "name": "mint_collateral"
+        },
+        {
           "name": "bank_borrow",
           "writable": true,
           "pda": {
@@ -697,9 +700,6 @@
               ]
             }
           }
-        },
-        {
-          "name": "mint_collateral"
         },
         {
           "name": "bank_collateral",
@@ -824,11 +824,11 @@
           "name": "pyth_network_feed_id_collateral_token"
         },
         {
-          "name": "token_program"
-        },
-        {
           "name": "associated_token_program",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_program"
         },
         {
           "name": "system_program",
@@ -910,6 +910,9 @@
           "name": "mint_borrow"
         },
         {
+          "name": "mint_collateral"
+        },
+        {
           "name": "bank_borrow",
           "writable": true,
           "pda": {
@@ -1018,9 +1021,6 @@
               ]
             }
           }
-        },
-        {
-          "name": "mint_collateral"
         },
         {
           "name": "bank_collateral",
@@ -1145,11 +1145,11 @@
           "name": "pyth_network_feed_id_collateral_token"
         },
         {
-          "name": "token_program"
-        },
-        {
           "name": "associated_token_program",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_program"
         },
         {
           "name": "system_program",

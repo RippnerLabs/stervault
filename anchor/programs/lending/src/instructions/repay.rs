@@ -115,8 +115,10 @@ pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
     bank_borrow.total_borrowed -= amount;
     bank_borrow.total_borrowed_shares -= shares_to_remove;
 
-    user_borrow.borrowed_shares -= shares_to_remove;
-    user_borrow.borrowed -= amount;
+    user_borrow.borrowed_shares = user_borrow.borrowed_shares.checked_sub(shares_to_remove).unwrap();
+    msg!("User borrowed shares: {}", user_borrow.borrowed_shares);
+    user_borrow.borrowed = user_borrow.borrowed.checked_sub(amount).unwrap();
+    msg!("User borrowed: {}", user_borrow.borrowed);
     user_borrow.last_updated_borrowed = Clock::get()?.unix_timestamp;
 
     Ok(())

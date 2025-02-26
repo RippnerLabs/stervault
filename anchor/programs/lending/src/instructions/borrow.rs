@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token_interface::{ Mint, TokenAccount, TokenInterface, TransferChecked, transfer_checked };
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
+use crate::constants::MAXIMUM_AGE;
 use crate::state::*;
 use crate::error::ErrorCode;
 
@@ -125,7 +126,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("Getting collateral token price from Pyth oracle");
     // Get current price of collateral token from Pyth oracle
     let collateral_token_feed_id = get_feed_id_from_hex(pyth_network_feed_id_collateral_token.feed_id.as_str()).unwrap();
-    let collateral_token_price = price_update_collateral_token.get_price_no_older_than(&Clock::get()?, 100, &collateral_token_feed_id).unwrap();
+    let collateral_token_price = price_update_collateral_token.get_price_no_older_than(&Clock::get()?, MAXIMUM_AGE, &collateral_token_feed_id).unwrap();
     let total_collateral_value_in_usd = (collateral_token_price.price as u64).checked_mul(user_collateral_value).unwrap();
     msg!("Total collateral value in USD: {}", total_collateral_value_in_usd);
 
@@ -147,7 +148,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("Getting borrow token price from Pyth oracle");
     // Get current price of borrow token from Pyth oracle
     let borrow_token_feed_id = get_feed_id_from_hex(pyth_network_feed_id_borrow_token.feed_id.as_str()).unwrap();
-    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, 100, &borrow_token_feed_id).unwrap();
+    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, MAXIMUM_AGE, &borrow_token_feed_id).unwrap();
     
     // Convert borrowed amount to USD value
     let total_borrowed_value_in_usd = (borrow_token_price.price as f64).mul(user_borrowed_value as f64);
@@ -221,6 +222,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("Updating user state");
     // Update user's borrowed shares and timestamp
     user_borrow.borrowed_shares = user_borrow.borrowed_shares.checked_add(new_borrowed_shares).unwrap();
+    user_borrow.borrowed = user_borrow.borrowed.checked_add(amount).unwrap();
     user_borrow.last_updated_borrowed = Clock::get()?.unix_timestamp;
     
     msg!("Borrow process completed successfully");

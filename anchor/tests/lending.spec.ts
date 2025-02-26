@@ -30,7 +30,7 @@ describe('Lending Smart Contract Tests', () => {
   let pythSolanaReceiver: PythSolanaReceiver;
   const SOL_PRICE_FEED_ID = '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d';
   const USDC_PRICE_FEED_ID = '0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a';
-    
+
   beforeAll(async () => {
     const pyth = new PublicKey('pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT');
     const devnetConnection = new Connection('https://api.devnet.solana.com');
@@ -51,22 +51,22 @@ describe('Lending Smart Contract Tests', () => {
     connection = bankrunContextWrapper.connection.toConnection();
 
     pythSolanaReceiver = new PythSolanaReceiver({
-    connection,
+      connection,
       wallet: provider.wallet,
     });
 
-      
+
     solUsdPriceFeedAccount = pythSolanaReceiver
       .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID)
       .toBase58();
-      
+
     solUsdPriceFeedAccountPubkey = new PublicKey(solUsdPriceFeedAccount);
     const solFeedAccountInfo = await devnetConnection.getAccountInfo(
-        solUsdPriceFeedAccountPubkey
-      );
-      
+      solUsdPriceFeedAccountPubkey
+    );
+
     context.setAccount(solUsdPriceFeedAccountPubkey, solFeedAccountInfo);
-      
+
 
     usdcUsdPriceFeedAccount = pythSolanaReceiver
       .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID)
@@ -283,24 +283,13 @@ describe('Lending Smart Contract Tests', () => {
       program.programId
     );
 
-    // Fetch the account data
-    const solPythNetworkFeedIdAccountInfo = await connection.getAccountInfo(solPythNetworkFeedId);
-    const usdcPythNetworkFeedIdAccountInfo = await connection.getAccountInfo(usdcPythNetworkFeedId);
-    console.log('solPythNetworkFeedIdAccountInfo', solPythNetworkFeedIdAccountInfo);
-    console.log('usdcPythNetworkFeedIdAccountInfo', usdcPythNetworkFeedIdAccountInfo);
-    
-    console.log('SOL_PRICE_FEED_ID', pythSolanaReceiver
-      .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58());
-    console.log('USDC_PRICE_FEED_ID', pythSolanaReceiver
-      .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58());
-
     const accounts = {
       signer: signer.publicKey,
       mintBorrow: mintSOL,
       mintCollateral: mintUSDC,
 
       priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
-      .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
       pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
 
       priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
@@ -314,8 +303,77 @@ describe('Lending Smart Contract Tests', () => {
       .borrow(new BN(1000000))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
-      console.log('borrowSOL', borrowSOL);
+    console.log('borrowSOL', borrowSOL);
     expect(borrowSOL).toBeTruthy();
+  });
+
+  it('Test Repay', async () => {
+    // derive PythNetworkFeedId account
+    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("SOL")],
+      program.programId
+    );
+    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("USDC")],
+      program.programId
+    );
+
+    const accounts = {
+      signer: signer.publicKey,
+      mintBorrow: mintSOL,
+      mintCollateral: mintUSDC,
+
+      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
+
+      tokenProgram: TOKEN_PROGRAM_ID,
+    };
+
+
+    const repaySOL = await program.methods
+      .repay(new BN(1000000))
+      .accounts(accounts)
+      .rpc({ commitment: 'confirmed', skipPreflight: true });
+    expect(repaySOL).toBeTruthy();
+  });
+
+  it('Test Withdraw', async () => {
+    // derive PythNetworkFeedId account
+    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("SOL")],
+      program.programId
+    );
+    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("USDC")],
+      program.programId
+    );
+
+    const accounts = {
+      signer: signer.publicKey,
+      mintBorrow: mintSOL,
+      mintCollateral: mintUSDC,
+
+      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
+
+      tokenProgram: TOKEN_PROGRAM_ID,
+    };
+
+    const withdrawSOL = await program.methods
+      .withdraw(new BN(1000000))
+      .accounts(accounts)
+      .rpc({ commitment: 'confirmed', skipPreflight: true });
+    expect(withdrawSOL).toBeTruthy();
   });
 
 

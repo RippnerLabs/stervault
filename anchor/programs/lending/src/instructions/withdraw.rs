@@ -1,3 +1,5 @@
+use std::ops::{Div, Mul};
+
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token_interface::{TokenAccount, Mint, TokenInterface, TransferChecked, transfer_checked}};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
@@ -92,7 +94,14 @@ pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     let bank_borrow = &mut ctx.accounts.bank_borrow;
     let user_borrow = &mut ctx.accounts.user_borrow_account;
     let bank_borrow_current_value_with_interest = bank_borrow.total_borrowed.checked_mul(bank_borrow.interest_rate.pow(Clock::get()?.unix_timestamp.checked_sub(user_borrow.last_updated_borrowed).unwrap()as u32)).unwrap();
-    let bank_borrow_value_per_share = bank_borrow_current_value_with_interest.checked_div(bank_borrow.total_borrowed_shares).unwrap();
+    
+    // Handle division by zero for borrow value per share
+    let bank_borrow_value_per_share = if bank_borrow.total_borrowed_shares == 0 {
+        0
+    } else {
+        bank_borrow_current_value_with_interest.checked_div(bank_borrow.total_borrowed_shares).unwrap()
+    };
+    
     let user_borrow_value_with_interest = bank_borrow_value_per_share.checked_mul(user_borrow.borrowed_shares).unwrap();
 
     // get borrowed amount in usd
@@ -114,7 +123,7 @@ pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     let requested_amount_in_usd = (amount as u64).checked_mul(borrow_token_price.price as u64).unwrap();
 
     // check if requested amount is less than or equal to the total collateral value
-    if requested_amount_in_usd + borrowed_amount_in_usd > bank_borrow.max_ltv.checked_mul(collateral_token_value_in_usd).unwrap() {
+    if requested_amount_in_usd.checked_add(borrowed_amount_in_usd).unwrap() as f64 > (bank_borrow.max_ltv as f64).div(100 as f64).mul(collateral_token_value_in_usd as f64) {
         return Err(ErrorCode::WithdrawAmountExceedsCollateralValue.into());
     }
 
@@ -138,12 +147,22 @@ pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
 
     // update collateral bank account
     let bank_collateral = &mut ctx.accounts.bank_collateral;
-    let shares_to_remove = amount.checked_mul(bank_collateral.total_deposited_shares).unwrap().checked_div(bank_collateral.total_deposited).unwrap();
+    
+    // Handle division by zero for shares calculation
+    let shares_to_remove = if bank_collateral.total_deposited == 0 {
+        0
+    } else {
+        amount
+            .checked_mul(bank_collateral.total_deposited_shares)
+            .unwrap_or(0)
+            .checked_div(bank_collateral.total_deposited)
+            .unwrap_or(0)
+    };
+    
     bank_collateral.total_deposited = bank_collateral.total_deposited.checked_sub(amount).unwrap();
     bank_collateral.total_deposited_shares = bank_collateral.total_deposited_shares.checked_sub(shares_to_remove).unwrap();
     user_collateral_account.deposited = user_collateral_account.deposited.checked_sub(amount).unwrap();
     user_collateral_account.deposited_shares = user_collateral_account.deposited_shares.checked_sub(shares_to_remove).unwrap();
 
-    
     Ok(())
 }
