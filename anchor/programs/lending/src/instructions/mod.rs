@@ -12,3 +12,5 @@ pub mod repay;
 pub use repay::*;
 pub mod liquidate;
 pub use liquidate::*;
+pub mod store_symbol_feed_id;
+pub use store_symbol_feed_id::*;

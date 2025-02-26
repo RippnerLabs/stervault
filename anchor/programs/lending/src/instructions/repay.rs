@@ -1,87 +1,112 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token_interface::{TokenInterface, Mint, TokenAccount, TransferChecked, transfer_checked}};
-use crate::state::{Bank, User};
+use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
+use crate::state::{Bank, PythNetworkFeedId, UserTokenState};
 use crate::error::{ErrorCode};
-
 
 #[derive(Accounts)]
 pub struct Repay<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    pub mint: InterfaceAccount<'info, Mint>,
+    pub mint_borrow: InterfaceAccount<'info, Mint>,
     #[account(
-        mut,
-        seeds = [mint.key().as_ref()],
+        mut, 
+        seeds = [mint_borrow.key().as_ref()],
         bump,
     )]
-    pub bank: Account<'info, Bank>,
-
+    pub bank_borrow: Account<'info, Bank>,
     #[account(
-        mut,
-        token::mint = mint,
-        token::authority = signer,
-        seeds = [b"treasury", mint.key().as_ref()],
-        bump
+        mut, 
+        seeds = [b"treasury", mint_borrow.key().as_ref()],
+        bump, 
     )]
-    pub bank_token_account: InterfaceAccount<'info, TokenAccount>,
-
+    pub bank_borrow_token_account: InterfaceAccount<'info, TokenAccount>,
     #[account(
-        mut,
-        seeds = [signer.key().as_ref()],
+        mut, 
+        seeds = [signer.key().as_ref(), mint_borrow.key().as_ref()],
         bump,
     )]
-    pub user_account: Account<'info, User>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint,
+    pub user_borrow_account: Account<'info, UserTokenState>,
+    #[account( 
+        init_if_needed, 
+        payer = signer,
+        associated_token::mint = mint_borrow, 
         associated_token::authority = signer,
         associated_token::token_program = token_program,
     )]
-    pub user_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub user_borrow_token_account: InterfaceAccount<'info, TokenAccount>, 
+    pub mint_collateral: InterfaceAccount<'info, Mint>,
+    #[account(
+        mut, 
+        seeds = [mint_collateral.key().as_ref()],
+        bump,
+    )]  
+    pub bank_collateral: Account<'info, Bank>,
+    #[account(
+        mut, 
+        seeds = [b"treasury", mint_collateral.key().as_ref()],
+        bump, 
+    )]  
+    pub bank_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
+    #[account(
+        mut, 
+        seeds = [signer.key().as_ref(), mint_collateral.key().as_ref()],
+        bump,
+    )]  
+    pub user_collateral_account: Account<'info, UserTokenState>,
+    #[account( 
+        init_if_needed, 
+        payer = signer,
+        associated_token::mint = mint_collateral, 
+        associated_token::authority = signer,
+        associated_token::token_program = token_program,
+    )]
+    pub user_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
 
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub price_update_borrow_token: Account<'info, PriceUpdateV2>,
+    pub pyth_network_feed_id_borrow_token: Account<'info, PythNetworkFeedId>,
+    
+    pub price_update_collateral_token: Account<'info, PriceUpdateV2>,
+    pub pyth_network_feed_id_collateral_token: Account<'info, PythNetworkFeedId>,
+
     pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
+
+// get the outstanding loan / borrowed amount with interest
+//  check if the amount is less than or equal to the outstanding loan / borrowed amount with interest
+// transfer the amount to the bank
+// update the user borrow account
+// update the bank borrow account
 pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
-    let user = &mut ctx.accounts.user_account;
-    let bank = &mut ctx.accounts.bank;
-    
-    let borrowed_amount;
-    if ctx.accounts.mint.to_account_info().key() == user.usdc_address {
-        borrowed_amount = user.borrowed_usdc;
-    } else {
-        borrowed_amount = user.borrowed_sol;
-    }
-    let time_diff = Clock::get()?.unix_timestamp - user.last_updated_borrowed;
-    let borrowed_amount_with_interest = borrowed_amount * (bank.interest_rate.pow(time_diff as u32));
-    
-    if amount > borrowed_amount_with_interest {
+    let bank_borrow = &mut ctx.accounts.bank_borrow;
+    let user_borrow = &mut ctx.accounts.user_borrow_account;
+    let bank_borrow_current_value_with_interest = bank_borrow.total_borrowed.checked_mul(bank_borrow.interest_rate.pow(Clock::get()?.unix_timestamp.checked_sub(user_borrow.last_updated_borrowed).unwrap()as u32)).unwrap();
+    let bank_borrow_value_per_share = bank_borrow_current_value_with_interest.checked_div(bank_borrow.total_borrowed_shares).unwrap();
+    let user_borrow_value_with_interest = bank_borrow_value_per_share.checked_mul(user_borrow.borrowed_shares).unwrap();
+
+    if amount > user_borrow_value_with_interest {
         return Err(ErrorCode::OverRepayRequest.into());
     }
 
-    let transfer_checked_accounts = TransferChecked {
-        from: ctx.accounts.user_token_account.to_account_info(),
-        to: ctx.accounts.bank_token_account.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
+    let transfer_checked_accounts = TransferChecked{
         authority: ctx.accounts.signer.to_account_info(),
+        from: ctx.accounts.user_borrow_token_account.to_account_info(),
+        mint: ctx.accounts.mint_borrow.to_account_info(),
+        to: ctx.accounts.bank_borrow_token_account.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), transfer_checked_accounts);
-    let _transfer_checked_res = transfer_checked(cpi_ctx, amount, ctx.accounts.mint.decimals)?;
+    let _transfer_checked_res = transfer_checked(cpi_ctx, amount, ctx.accounts.mint_borrow.decimals)?;
 
-    let shares_to_remove = (amount / bank.total_borrowed) * bank.total_borrowed_shares;
-    bank.total_borrowed -= amount;
-    bank.total_borrowed_shares -= shares_to_remove;
+    let shares_to_remove = (amount / bank_borrow.total_borrowed) * bank_borrow.total_borrowed_shares;
+    bank_borrow.total_borrowed -= amount;
+    bank_borrow.total_borrowed_shares -= shares_to_remove;
 
-    if ctx.accounts.mint.to_account_info().key() == user.usdc_address {
-        user.borrowed_usdc_shares -= shares_to_remove;
-        user.borrowed_usdc -= amount;
-    } else {
-        user.borrowed_sol_shares -= shares_to_remove;
-        user.borrowed_sol -= amount;
-    }
+    user_borrow.borrowed_shares -= shares_to_remove;
+    user_borrow.borrowed -= amount;
+    user_borrow.last_updated_borrowed = Clock::get()?.unix_timestamp;
 
     Ok(())
 }

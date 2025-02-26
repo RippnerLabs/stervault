@@ -32,9 +32,6 @@
           "name": "mint_collateral"
         },
         {
-          "name": "price_update"
-        },
-        {
           "name": "bank_borrow",
           "writable": true,
           "pda": {
@@ -42,18 +39,6 @@
               {
                 "kind": "account",
                 "path": "mint_borrow"
-              }
-            ]
-          }
-        },
-        {
-          "name": "bank_collateral",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "mint_collateral"
               }
             ]
           }
@@ -84,13 +69,17 @@
           }
         },
         {
-          "name": "user_account",
+          "name": "user_borrow_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
                 "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_borrow"
               }
             ]
           }
@@ -153,11 +142,133 @@
           }
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "bank_collateral",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bank_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "price_update_borrow_token"
+        },
+        {
+          "name": "pyth_network_feed_id_borrow_token"
+        },
+        {
+          "name": "price_update_collateral_token"
+        },
+        {
+          "name": "pyth_network_feed_id_collateral_token"
         },
         {
           "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "system_program",
@@ -237,6 +348,10 @@
               {
                 "kind": "account",
                 "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
               }
             ]
           }
@@ -389,7 +504,19 @@
           "type": "u64"
         },
         {
+          "name": "liquidation_bonus",
+          "type": "u64"
+        },
+        {
+          "name": "liquidation_close_factor",
+          "type": "u64"
+        },
+        {
           "name": "max_ltv",
+          "type": "u64"
+        },
+        {
+          "name": "interest_rate",
           "type": "u64"
         }
       ]
@@ -420,6 +547,10 @@
               {
                 "kind": "account",
                 "path": "signer"
+              },
+              {
+                "kind": "arg",
+                "path": "mint_address"
               }
             ]
           }
@@ -431,251 +562,10 @@
       ],
       "args": [
         {
-          "name": "usdc_address",
+          "name": "mint_address",
           "type": "pubkey"
         }
       ]
-    },
-    {
-      "name": "liquidate",
-      "discriminator": [
-        223,
-        179,
-        226,
-        125,
-        48,
-        46,
-        39,
-        74
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "borrow_mint"
-        },
-        {
-          "name": "collateral_mint"
-        },
-        {
-          "name": "price_update"
-        },
-        {
-          "name": "borrow_bank",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "borrow_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "borrowed_bank_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "borrow_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "collateral_bank",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "collateral_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "collateral_bank_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "collateral_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "user_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "user_borrow_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "borrow_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "user_collateral_token_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "collateral_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "token_program"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
     },
     {
       "name": "repay",
@@ -696,22 +586,22 @@
           "signer": true
         },
         {
-          "name": "mint"
+          "name": "mint_borrow"
         },
         {
-          "name": "bank",
+          "name": "bank_borrow",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "bank_token_account",
+          "name": "bank_borrow_token_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -730,25 +620,29 @@
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "user_borrow_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
                 "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "user_token_account",
+          "name": "user_borrow_token_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -762,7 +656,7 @@
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ],
             "program": {
@@ -805,11 +699,136 @@
           }
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "mint_collateral"
+        },
+        {
+          "name": "bank_collateral",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bank_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "price_update_borrow_token"
+        },
+        {
+          "name": "pyth_network_feed_id_borrow_token"
+        },
+        {
+          "name": "price_update_collateral_token"
+        },
+        {
+          "name": "pyth_network_feed_id_collateral_token"
         },
         {
           "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "system_program",
@@ -820,6 +839,52 @@
         {
           "name": "amount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "store_symbol_feed_id",
+      "discriminator": [
+        224,
+        95,
+        242,
+        15,
+        105,
+        51,
+        148,
+        80
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pyth_network_feed_id",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "symbol"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "feed_id",
+          "type": "string"
         }
       ]
     },
@@ -842,22 +907,22 @@
           "signer": true
         },
         {
-          "name": "mint"
+          "name": "mint_borrow"
         },
         {
-          "name": "bank",
+          "name": "bank_borrow",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "bank_token_account",
+          "name": "bank_borrow_token_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -876,25 +941,29 @@
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "user_account",
+          "name": "user_borrow_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
                 "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_borrow"
               }
             ]
           }
         },
         {
-          "name": "user_token_account",
+          "name": "user_borrow_token_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -908,7 +977,7 @@
               },
               {
                 "kind": "account",
-                "path": "mint"
+                "path": "mint_borrow"
               }
             ],
             "program": {
@@ -949,6 +1018,131 @@
               ]
             }
           }
+        },
+        {
+          "name": "mint_collateral"
+        },
+        {
+          "name": "bank_collateral",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bank_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_collateral_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint_collateral"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "price_update_borrow_token"
+        },
+        {
+          "name": "pyth_network_feed_id_borrow_token"
+        },
+        {
+          "name": "price_update_collateral_token"
+        },
+        {
+          "name": "pyth_network_feed_id_collateral_token"
         },
         {
           "name": "token_program"
@@ -998,44 +1192,77 @@
       ]
     },
     {
-      "name": "User",
+      "name": "PythNetworkFeedId",
       "discriminator": [
-        159,
-        117,
-        95,
-        227,
-        239,
-        151,
-        58,
-        236
+        50,
+        224,
+        20,
+        128,
+        253,
+        204,
+        37,
+        153
+      ]
+    },
+    {
+      "name": "UserTokenState",
+      "discriminator": [
+        10,
+        49,
+        14,
+        140,
+        170,
+        251,
+        43,
+        197
       ]
     }
   ],
   "errors": [
     {
       "code": 6000,
+      "name": "BorrowAmountTooLarge",
+      "msg": "Borrow Amount Too Large"
+    },
+    {
+      "code": 6001,
+      "name": "WithdrawAmountExceedsCollateralValue",
+      "msg": "Withdraw Amount Exceeds Collateral Value"
+    },
+    {
+      "code": 6002,
       "name": "OverWithdrawRequest",
       "msg": "Over Withdraw request"
     },
     {
-      "code": 6001,
+      "code": 6003,
       "name": "MathOverflow",
       "msg": "MathOverflow"
     },
     {
-      "code": 6002,
+      "code": 6004,
       "name": "OverBorrowRequest",
       "msg": "Over Borrow Request"
     },
     {
-      "code": 6003,
+      "code": 6005,
       "name": "OverRepayRequest",
       "msg": "Over Repay Request"
     },
     {
-      "code": 6004,
+      "code": 6006,
       "name": "HealthyAccount",
       "msg": "Healthy Account"
+    },
+    {
+      "code": 6007,
+      "name": "OverBorrowableAmount",
+      "msg": "Over Borrowable Amount"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidPriceFeed",
+      "msg": "Invalid Price Feed"
     }
   ],
   "types": [
@@ -1085,12 +1312,16 @@
             "type": "u64"
           },
           {
-            "name": "last_updated",
+            "name": "interest_rate",
+            "type": "u64"
+          },
+          {
+            "name": "last_updated_deposited",
             "type": "i64"
           },
           {
-            "name": "interest_rate",
-            "type": "u64"
+            "name": "last_updated_borrowed",
+            "type": "i64"
           }
         ]
       }
@@ -1204,7 +1435,23 @@
       }
     },
     {
-      "name": "User",
+      "name": "PythNetworkFeedId",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "feed_id",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserTokenState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1213,39 +1460,23 @@
             "type": "pubkey"
           },
           {
-            "name": "usdc_address",
+            "name": "mint_address",
             "type": "pubkey"
           },
           {
-            "name": "deposited_sol",
+            "name": "deposited",
             "type": "u64"
           },
           {
-            "name": "deposited_sol_shares",
+            "name": "deposited_shares",
             "type": "u64"
           },
           {
-            "name": "deposited_usdc",
+            "name": "borrowed",
             "type": "u64"
           },
           {
-            "name": "deposited_usdc_shares",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed_sol",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed_sol_shares",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed_usdc",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed_usdc_shares",
+            "name": "borrowed_shares",
             "type": "u64"
           },
           {

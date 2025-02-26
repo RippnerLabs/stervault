@@ -1,7 +1,6 @@
-use std::{ops::{Div, Mul}};
-
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token_interface::{TokenAccount, Mint, TokenInterface, TransferChecked, transfer_checked}};
+use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use crate::state::*;
 use crate::error::ErrorCode;
 
@@ -9,39 +8,66 @@ use crate::error::ErrorCode;
 pub struct Withdraw<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-
-    pub mint: InterfaceAccount<'info, Mint>,
-
+    pub mint_borrow: InterfaceAccount<'info, Mint>,
     #[account(
-        mut,
-        seeds = [mint.key().as_ref()],
+        mut, 
+        seeds = [mint_borrow.key().as_ref()],
         bump,
     )]
-    pub bank: Account<'info, Bank>,
-
+    pub bank_borrow: Account<'info, Bank>,
     #[account(
-        mut,
-        token::mint = mint,
-        token::authority = bank_token_account,
-        seeds = [b"treasury", mint.key().as_ref()],
-        bump
+        mut, 
+        seeds = [b"treasury", mint_borrow.key().as_ref()],
+        bump, 
     )]
-    pub bank_token_account: InterfaceAccount<'info, TokenAccount>,
-
+    pub bank_borrow_token_account: InterfaceAccount<'info, TokenAccount>,
     #[account(
-        mut,
-        seeds=[signer.key().as_ref()],
+        mut, 
+        seeds = [signer.key().as_ref(), mint_borrow.key().as_ref()],
         bump,
     )]
-    pub user_account: Account<'info, User>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint,
+    pub user_borrow_account: Account<'info, UserTokenState>,
+    #[account( 
+        init_if_needed, 
+        payer = signer,
+        associated_token::mint = mint_borrow, 
         associated_token::authority = signer,
         associated_token::token_program = token_program,
     )]
-    pub user_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub user_borrow_token_account: InterfaceAccount<'info, TokenAccount>, 
+    pub mint_collateral: InterfaceAccount<'info, Mint>,
+    #[account(
+        mut, 
+        seeds = [mint_collateral.key().as_ref()],
+        bump,
+    )]  
+    pub bank_collateral: Account<'info, Bank>,
+    #[account(
+        mut, 
+        seeds = [b"treasury", mint_collateral.key().as_ref()],
+        bump, 
+    )]  
+    pub bank_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
+    #[account(
+        mut, 
+        seeds = [signer.key().as_ref(), mint_collateral.key().as_ref()],
+        bump,
+    )]  
+    pub user_collateral_account: Account<'info, UserTokenState>,
+    #[account( 
+        init_if_needed, 
+        payer = signer,
+        associated_token::mint = mint_collateral, 
+        associated_token::authority = signer,
+        associated_token::token_program = token_program,
+    )]
+    pub user_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    pub price_update_borrow_token: Account<'info, PriceUpdateV2>,
+    pub pyth_network_feed_id_borrow_token: Account<'info, PythNetworkFeedId>,
+    
+    pub price_update_collateral_token: Account<'info, PriceUpdateV2>,
+    pub pyth_network_feed_id_collateral_token: Account<'info, PythNetworkFeedId>,
 
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -49,63 +75,62 @@ pub struct Withdraw<'info> {
 }
 
 pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-    let bank = &mut ctx.accounts.bank;
+    // get the outstanding loan / borrowed amount against the collateral
+    let bank_borrow = &mut ctx.accounts.bank_borrow;
+    let user_borrow = &mut ctx.accounts.user_borrow_account;
+    let bank_borrow_current_value_with_interest = bank_borrow.total_borrowed.checked_mul(bank_borrow.interest_rate.pow(Clock::get()?.unix_timestamp.checked_sub(user_borrow.last_updated_borrowed).unwrap()as u32)).unwrap();
+    let bank_borrow_value_per_share = bank_borrow_current_value_with_interest.checked_div(bank_borrow.total_borrowed_shares).unwrap();
+    let user_borrow_value_with_interest = bank_borrow_value_per_share.checked_mul(user_borrow.borrowed_shares).unwrap();
 
-    let user = &mut ctx.accounts.user_account;
-    let user_shares;
-    if user.usdc_address ==  ctx.accounts.mint.to_account_info().key() {
-        user_shares = user.deposited_usdc_shares;
-    } else {
-        user_shares = user.deposited_sol_shares;
+    // get borrowed amount in usd
+    let price_update_borrow_token = &mut ctx.accounts.price_update_borrow_token;
+    let pyth_network_feed_id_borrow_token = &mut ctx.accounts.pyth_network_feed_id_borrow_token;
+    let borrow_token_price_feed_id = get_feed_id_from_hex(pyth_network_feed_id_borrow_token.feed_id.as_str()).unwrap();
+    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, 60, &borrow_token_price_feed_id).unwrap();
+    let borrowed_amount_in_usd = (borrow_token_price.price as u64).checked_mul(user_borrow_value_with_interest as u64).unwrap();
+
+    // get collateral value in usd
+    let price_update_collateral_token = &mut ctx.accounts.price_update_collateral_token;
+    let pyth_network_feed_id_collateral_token = &mut ctx.accounts.pyth_network_feed_id_collateral_token;
+    let collateral_token_price_feed_id = get_feed_id_from_hex(pyth_network_feed_id_collateral_token.feed_id.as_str()).unwrap();
+    let collateral_token_price = price_update_collateral_token.get_price_no_older_than(&Clock::get()?, 60, &collateral_token_price_feed_id).unwrap();
+    let user_collateral_account = &mut ctx.accounts.user_collateral_account;
+    let collateral_token_value_in_usd = (collateral_token_price.price as u64).checked_mul(user_collateral_account.deposited as u64).unwrap();
+
+    //  get requested amount to withdraw in usd
+    let requested_amount_in_usd = (amount as u64).checked_mul(borrow_token_price.price as u64).unwrap();
+
+    // check if requested amount is less than or equal to the total collateral value
+    if requested_amount_in_usd + borrowed_amount_in_usd > bank_borrow.max_ltv.checked_mul(collateral_token_value_in_usd).unwrap() {
+        return Err(ErrorCode::WithdrawAmountExceedsCollateralValue.into());
     }
-    let time_diff = Clock::get()?.unix_timestamp - user.last_updated_deposited;
-    let bank_deposits_curr_val = (bank.total_deposited as f64).mul(
-        (bank.interest_rate as f32).powf(time_diff as f32) as f64
-    );
-    let value_per_share = bank_deposits_curr_val.div(bank.total_deposited_shares as f64);
-    let user_shares_curr_value = (user_shares as f64).mul(value_per_share as f64);
 
-    if user_shares_curr_value < amount as f64 {
-        return Err(ErrorCode::OverWithdrawRequest.into());
-    }
-
-    let transfer_checked_cpi = TransferChecked {
-        authority: ctx.accounts.bank_token_account.to_account_info(),
-        from: ctx.accounts.bank_token_account.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
-        to: ctx.accounts.user_token_account.to_account_info(),
+    // transfer the requested amount to the user
+    let transfer_checked_accounts = TransferChecked{
+        authority: ctx.accounts.bank_collateral_token_account.to_account_info(),
+        from: ctx.accounts.bank_collateral_token_account.to_account_info(),
+        mint: ctx.accounts.mint_collateral.to_account_info(),
+        to: ctx.accounts.user_collateral_token_account.to_account_info(),
     };
-    let mint_key = ctx.accounts.mint.key();
+    let mint_collateral_key = ctx.accounts.mint_collateral.key();
     let signer_seeds: &[&[&[u8]]] = &[
         &[
             b"treasury",
-            mint_key.as_ref(),
-            &[ctx.bumps.bank_token_account]
+            mint_collateral_key.as_ref(),
+            &[ctx.bumps.bank_collateral_token_account],
         ]
     ];
-    let cpi_context = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        transfer_checked_cpi,
-        signer_seeds,
-    );
-    transfer_checked(cpi_context, amount, ctx.accounts.mint.decimals);
+    let cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), transfer_checked_accounts, signer_seeds);
+    transfer_checked(cpi_ctx, amount, ctx.accounts.mint_collateral.decimals)?;
 
-    let user_shares_to_remove = amount
-        .checked_div(bank.total_deposited)
-        .ok_or(ErrorCode::MathOverflow)?
-        .checked_mul(bank.total_deposited_shares)
-        .ok_or(ErrorCode::MathOverflow)?;
+    // update collateral bank account
+    let bank_collateral = &mut ctx.accounts.bank_collateral;
+    let shares_to_remove = amount.checked_mul(bank_collateral.total_deposited_shares).unwrap().checked_div(bank_collateral.total_deposited).unwrap();
+    bank_collateral.total_deposited = bank_collateral.total_deposited.checked_sub(amount).unwrap();
+    bank_collateral.total_deposited_shares = bank_collateral.total_deposited_shares.checked_sub(shares_to_remove).unwrap();
+    user_collateral_account.deposited = user_collateral_account.deposited.checked_sub(amount).unwrap();
+    user_collateral_account.deposited_shares = user_collateral_account.deposited_shares.checked_sub(shares_to_remove).unwrap();
 
-    if user.usdc_address == ctx.accounts.mint.to_account_info().key() {
-        user.deposited_usdc_shares -= user_shares_to_remove;
-        user.deposited_usdc -= amount;
-    } else {
-        user.deposited_sol_shares -= user_shares_to_remove;
-        user.deposited_sol -= amount;
-    }
-
-    bank.total_deposited -= amount;
-    bank.total_deposited_shares -= user_shares_to_remove;
-
+    
     Ok(())
 }

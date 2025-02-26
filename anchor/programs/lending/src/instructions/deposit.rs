@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token_interface::{Mint, TokenAccount, TokenInterface, TransferChecked, transfer_checked}};
 use crate::state::Bank;
 
-use crate::state::User;
+use crate::state::UserTokenState;
 
 #[derive(Accounts)]
 pub struct Deposit<'info> {
@@ -30,10 +30,10 @@ pub struct Deposit<'info> {
 
     #[account(
         mut,
-        seeds = [signer.key().as_ref()],
+        seeds = [signer.key().as_ref(), mint.key().as_ref()],
         bump
     )]
-    pub user_account: Account<'info, User>,
+    pub user_account: Account<'info, UserTokenState>,
 
     #[account(
         mut,
@@ -64,26 +64,22 @@ pub fn process_deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
 
     let bank = &mut ctx.accounts.bank;
     let user = &mut ctx.accounts.user_account;
-    let mint = &mut ctx.accounts.mint;
-    if bank.total_deposited == 0 {
-        bank.total_deposited = amount;
-        bank.total_deposited_shares = amount;
+    let deposited_shares = if bank.total_deposited == 0 {
+        amount
     } else {
-        let deposit_ratio = amount.checked_div(bank.total_deposited).unwrap();
-        let user_shares = bank.total_deposited_shares.checked_mul(deposit_ratio).unwrap();
+        (amount as u128)
+        .checked_div(bank.total_deposited as u128)
+        .unwrap()
+        .checked_mul(bank.total_deposited_shares as u128)
+        .unwrap() as u64
+    };
 
-        if mint.key() == user.usdc_address {
-            user.deposited_usdc += amount;
-            user.deposited_usdc_shares += user_shares;
-        } else {
-            user.deposited_sol += amount;
-            user.deposited_sol_shares += user_shares;
-        }
+    bank.total_deposited = bank.total_deposited.checked_add(amount).unwrap();
+    bank.total_deposited_shares = bank.total_deposited_shares.checked_add(deposited_shares).unwrap();
 
-        bank.total_deposited += amount;
-        bank.total_deposited_shares += user_shares;
-    }
-
+    user.deposited = user.deposited.checked_add(amount).unwrap();
+    user.deposited_shares = user.deposited_shares.checked_add(deposited_shares).unwrap();
     user.last_updated_deposited = Clock::get()?.unix_timestamp;
+
     Ok(())
 }

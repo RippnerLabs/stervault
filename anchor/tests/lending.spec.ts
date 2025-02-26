@@ -1,247 +1,317 @@
-import { describe, it } from 'node:test';
 import { BN, Program } from '@coral-xyz/anchor';
 import { BankrunProvider } from 'anchor-bankrun';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { createAccount, createMint, mintTo } from 'spl-token-bankrun';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
-
 import { startAnchor, BanksClient, ProgramTestContext } from 'solana-bankrun';
-
 import { PublicKey, Keypair, Connection } from '@solana/web3.js';
-
-// @ts-ignore
 import IDL from '../target/idl/lending.json';
 import { Lending } from '../target/types/lending';
 import { BankrunContextWrapper } from './bankrun-utils/bankrunConnection';
 
-import { writeFileSync } from 'node:fs';
-
-function logToFile(message: string, filePath: string = "log.log") {
-  const timestamp = new Date().toISOString();
-  const logMessage = `${timestamp} - ${message}\n`;
-  writeFileSync(filePath, logMessage, { flag: 'a' }); // Append to the file
-}
-
-
-describe('Lending Smart Contract Tests', async () => {
+describe('Lending Smart Contract Tests', () => {
   let signer: Keypair;
   let usdcBankAccount: PublicKey;
   let solBankAccount: PublicKey;
-
-  let solTokenAccount: PublicKey;
+  let solBankTokenAccount: PublicKey;
+  let usdcBankTokenAccount: PublicKey;
   let provider: BankrunProvider;
   let program: Program<Lending>;
   let banksClient: BanksClient;
   let context: ProgramTestContext;
   let bankrunContextWrapper: BankrunContextWrapper;
+  let mintUSDC: PublicKey;
+  let mintSOL: PublicKey;
+  let solUsdPriceFeedAccountPubkey: PublicKey;
+  let usdcUsdPriceFeedAccountPubkey: PublicKey;
+  let connection: Connection;
+  let solUsdPriceFeedAccount: string;
+  let usdcUsdPriceFeedAccount: string;
+  let pythSolanaReceiver: PythSolanaReceiver;
+  const SOL_PRICE_FEED_ID = '0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d';
+  const USDC_PRICE_FEED_ID = '0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a';
+    
+  beforeAll(async () => {
+    const pyth = new PublicKey('pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT');
+    const devnetConnection = new Connection('https://api.devnet.solana.com');
+    const accountInfo = await devnetConnection.getAccountInfo(pyth);
 
+    context = await startAnchor(
+      '',
+      [{ name: 'lending', programId: new PublicKey(IDL.address) }],
+      [
+        {
+          address: pyth,
+          info: accountInfo,
+        },
+      ]
+    );
+    provider = new BankrunProvider(context);
+    bankrunContextWrapper = new BankrunContextWrapper(context);
+    connection = bankrunContextWrapper.connection.toConnection();
 
-  const pyth = new PublicKey('7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE');
-
-  const devnetConnection = new Connection('https://api.devnet.solana.com');
-  const accountInfo = await devnetConnection.getAccountInfo(pyth);
-  context = await startAnchor(
-    '',
-    [{ name: 'lending', programId: new PublicKey(IDL.address) }],
-    [
-      {
-        address: pyth,
-        info: accountInfo,
-      },
-    ]
-  );
-  provider = new BankrunProvider(context);
-
-  bankrunContextWrapper = new BankrunContextWrapper(context);
-
-  const connection = bankrunContextWrapper.connection.toConnection();
-
-  const pythSolanaReceiver = new PythSolanaReceiver({
+    pythSolanaReceiver = new PythSolanaReceiver({
     connection,
-    wallet: provider.wallet,
+      wallet: provider.wallet,
+    });
+
+      
+    solUsdPriceFeedAccount = pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID)
+      .toBase58();
+      
+    solUsdPriceFeedAccountPubkey = new PublicKey(solUsdPriceFeedAccount);
+    const solFeedAccountInfo = await devnetConnection.getAccountInfo(
+        solUsdPriceFeedAccountPubkey
+      );
+      
+    context.setAccount(solUsdPriceFeedAccountPubkey, solFeedAccountInfo);
+      
+
+    usdcUsdPriceFeedAccount = pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID)
+      .toBase58();
+
+    usdcUsdPriceFeedAccountPubkey = new PublicKey(usdcUsdPriceFeedAccount);
+    const usdcFeedAccountInfo = await devnetConnection.getAccountInfo(
+      usdcUsdPriceFeedAccountPubkey
+    );
+
+    context.setAccount(usdcUsdPriceFeedAccountPubkey, usdcFeedAccountInfo);
+
+    console.log('pricefeed:', solUsdPriceFeedAccount);
+    console.log('Pyth Account Info:', accountInfo);
+
+    program = new Program<Lending>(IDL as Lending, provider);
+    banksClient = context.banksClient;
+    signer = provider.wallet.payer;
+
+    mintUSDC = await createMint(
+      // @ts-ignore
+      banksClient,
+      signer,
+      signer.publicKey,
+      null,
+      2
+    );
+
+    mintSOL = await createMint(
+      // @ts-ignore
+      banksClient,
+      signer,
+      signer.publicKey,
+      null,
+      2
+    );
+
+    [usdcBankAccount] = PublicKey.findProgramAddressSync(
+      [mintUSDC.toBuffer()],
+      program.programId
+    );
+
+    [usdcBankTokenAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from('treasury'), mintUSDC.toBuffer()],
+      program.programId
+    );
+
+    [solBankAccount] = PublicKey.findProgramAddressSync(
+      [mintSOL.toBuffer()],
+      program.programId
+    );
+
+    [solBankTokenAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from('treasury'), mintSOL.toBuffer()],
+      program.programId
+    );
+
+    console.log('USDC Bank Account', usdcBankAccount.toBase58());
+    console.log('SOL Bank Account', solBankAccount.toBase58());
+    console.log('SOL Bank Token Account', solBankTokenAccount.toBase58());
+    console.log('USDC Bank Token Account', usdcBankTokenAccount.toBase58());
+  }, 30000);
+
+  it('Test store symbol feed id', async () => {
+    const storeSymbolFeedIdTx = await program.methods
+      .storeSymbolFeedId('SOL', SOL_PRICE_FEED_ID)
+      .accounts({
+        signer: signer.publicKey,
+      })
+      .rpc({ commitment: 'confirmed' });
+
+    expect(storeSymbolFeedIdTx).toBeTruthy();
+
+    const storeSymbolFeedIdTx2 = await program.methods
+      .storeSymbolFeedId('USDC', USDC_PRICE_FEED_ID)
+      .accounts({
+        signer: signer.publicKey,
+      })
+      .rpc({ commitment: 'confirmed' });
+
+    expect(storeSymbolFeedIdTx2).toBeTruthy();
   });
 
-  const SOL_PRICE_FEED_ID = "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
+  it('Test Init User', async () => {
+    const initUserUsdcTx = await program.methods
+      .initUser(mintUSDC)
+      .accounts({
+        signer: signer.publicKey,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-  const solUsdPriceFeedAccount = await pythSolanaReceiver
-    .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID)
-    .toBase58();
+    const initUserSolTx = await program.methods
+      .initUser(mintSOL)
+      .accounts({
+        signer: signer.publicKey,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-  const solUsdPriceFeedAccountPubkey = new PublicKey(solUsdPriceFeedAccount);
-  const feedAccountInfo = await devnetConnection.getAccountInfo(
-    solUsdPriceFeedAccountPubkey
-  );
+    expect(initUserUsdcTx).toBeTruthy();
+    expect(initUserSolTx).toBeTruthy();
+  });
 
-  context.setAccount(solUsdPriceFeedAccountPubkey, feedAccountInfo);
+  it('Test Init and Fund USDC Bank', async () => {
+    const initUSDCBankTx = await program.methods
+      .initBank(
+        new BN(5),
+        new BN(5),
+        new BN(50),
+        new BN(75),
+        new BN(5)
+      )
+      .accounts({
+        signer: signer.publicKey,
+        mint: mintUSDC,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-  logToFile(`pricefeed: ${solUsdPriceFeedAccount}`);
-  logToFile(`Pyth Account Info: ${JSON.stringify(accountInfo, null, 2)}`);
+    expect(initUSDCBankTx).toBeTruthy();
 
-  program = new Program<Lending>(IDL as Lending, provider);
+    const amount = 10_000 * 10 ** 9;
+    const mintTx = await mintTo(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintUSDC,
+      usdcBankTokenAccount,
+      signer,
+      amount
+    );
 
-  banksClient = context.banksClient;
+    expect(mintTx).toBeTruthy();
+  });
 
-  signer = provider.wallet.payer;
+  it('Test Init and Fund SOL Bank', async () => {
+    const initSOLBankTx = await program.methods
+      .initBank(
+        new BN(5),
+        new BN(5),
+        new BN(50),
+        new BN(75),
+        new BN(5)
+      )
+      .accounts({
+        signer: signer.publicKey,
+        mint: mintSOL,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-  const mintUSDC = await createMint(
-    // @ts-ignore
-    banksClient,
-    signer,
-    signer.publicKey,
-    null,
-    2
-  );
+    expect(initSOLBankTx).toBeTruthy();
 
-  const mintSOL = await createMint(
-    // @ts-ignore
-    banksClient,
-    signer,
-    signer.publicKey,
-    null,
-    2
-  );
+    const amount = 10_000 * 10 ** 9;
+    const mintSOLTx = await mintTo(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintSOL,
+      solBankTokenAccount,
+      signer,
+      amount
+    );
 
-  [usdcBankAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('treasury'), mintUSDC.toBuffer()],
-    program.programId
-  );
+    expect(mintSOLTx).toBeTruthy();
+  });
 
-  [solBankAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('treasury'), mintSOL.toBuffer()],
-    program.programId
-  );
+  it('Create and Fund Token Account', async () => {
+    const USDCTokenAccount = await createAccount(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintUSDC,
+      signer.publicKey
+    );
 
-  [solTokenAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from('treasury'), mintSOL.toBuffer()],
-    program.programId
-  );
+    expect(USDCTokenAccount).toBeTruthy();
 
-  logToFile('USDC Bank Account' + usdcBankAccount.toBase58());
-  logToFile('SOL Bank Account' + solBankAccount.toBase58());
+    const amount = 10_000 * 10 ** 9;
+    const mintUSDCTx = await mintTo(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintUSDC,
+      USDCTokenAccount,
+      signer,
+      amount
+    );
 
-  const initUserTx = await program.methods
-    .initUser(mintUSDC)
-    .accounts({
-      signer: signer.publicKey,
-    })
-    .rpc({ commitment: 'confirmed' });
+    expect(mintUSDCTx).toBeTruthy();
+  });
 
-  logToFile('Create User Account' + JSON.stringify(initUserTx));
+  it('Test Deposit', async () => {
+    const depositUSDC = await program.methods
+      .deposit(new BN(100000000000))
+      .accounts({
+        signer: signer.publicKey,
+        mint: mintUSDC,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-  const initUSDCBankTx = await program.methods
-    .initBank(new BN(1), new BN(1))
-    .accounts({
-      signer: signer.publicKey,
-      mint: mintUSDC,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc({ commitment: 'confirmed' });
+    expect(depositUSDC).toBeTruthy();
+  });
 
-  logToFile('Create USDC Bank Account'+ JSON.stringify(initUSDCBankTx));
+  it('Test Borrow', async () => {
+    // derive PythNetworkFeedId account
+    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("SOL")],
+      program.programId
+    );
 
-  let amount = 10_000 * 10 ** 9;
-  let mintTx = await mintTo(
-    // @ts-ignores
-    banksClient,
-    signer,
-    mintUSDC,
-    usdcBankAccount,
-    signer,
-    amount
-  );
+    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("USDC")],
+      program.programId
+    );
 
-  logToFile('Mint to USDC Bank Signature:'+ JSON.stringify(mintTx));
+    // Fetch the account data
+    const solPythNetworkFeedIdAccountInfo = await connection.getAccountInfo(solPythNetworkFeedId);
+    const usdcPythNetworkFeedIdAccountInfo = await connection.getAccountInfo(usdcPythNetworkFeedId);
+    console.log('solPythNetworkFeedIdAccountInfo', solPythNetworkFeedIdAccountInfo);
+    console.log('usdcPythNetworkFeedIdAccountInfo', usdcPythNetworkFeedIdAccountInfo);
+    
+    console.log('SOL_PRICE_FEED_ID', pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58());
+    console.log('USDC_PRICE_FEED_ID', pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58());
 
-  const initSOLBankTx = await program.methods
-    .initBank(new BN(1), new BN(1))
-    .accounts({
-      signer: signer.publicKey,
-      mint: mintSOL,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc({ commitment: 'confirmed' });
-
-  logToFile('Create SOL Bank Account'+ JSON.stringify(initSOLBankTx));
-
-  amount = 10_000 * 10 ** 9;
-  let mintSOLTx = await mintTo(
-    // @ts-ignores
-    banksClient,
-    signer,
-    mintSOL,
-    solBankAccount,
-    signer,
-    amount
-  );
-
-  logToFile('Mint to SOL Bank Signature:' + JSON.stringify(mintSOLTx));
-
-  let USDCTokenAccount = await createAccount(
-    // @ts-ignores
-    banksClient,
-    signer,
-    mintUSDC,
-    signer.publicKey
-  );
-
-  logToFile('USDC Token Account Created:' + JSON.stringify(USDCTokenAccount));
-
-  amount = 10_000 * 10 ** 9;
-  let mintUSDCTx = await mintTo(
-    // @ts-ignores
-    banksClient,
-    signer,
-    mintUSDC,
-    USDCTokenAccount,
-    signer,
-    amount
-  );
-
-  logToFile('Mint to USDC Bank Signature:' + JSON.stringify(mintUSDCTx));
-
-  const depositUSDC = await program.methods
-    .deposit(new BN(100000000000))
-    .accounts({
-      signer: signer.publicKey,
-      mint: mintUSDC,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc({ commitment: 'confirmed' });
-
-  logToFile('Deposit USDC' + JSON.stringify(depositUSDC));
-
-  const borrowSOL = await program.methods
-    .borrow(new BN(1))
-    .accounts({
+    const accounts = {
       signer: signer.publicKey,
       mintBorrow: mintSOL,
       mintCollateral: mintUSDC,
+      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+      .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+      pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
       tokenProgram: TOKEN_PROGRAM_ID,
-      priceUpdate: solUsdPriceFeedAccount,
-    })
-    .rpc({ commitment: 'confirmed' });
-
-  logToFile('Borrow SOL' + borrowSOL);
-
-  const repaySOL = await program.methods
-    .repay(new BN(1))
-    .accounts({
-      signer: signer.publicKey,
-      mint: mintSOL,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc({ commitment: 'confirmed' });
-
-  logToFile('Repay SOL' + repaySOL);
-
-  const withdrawUSDC = await program.methods
-    .withdraw(new BN(100))
-    .accounts({
-      signer: signer.publicKey,
-      mint: mintUSDC,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .rpc({ commitment: 'confirmed' });
-
-  logToFile('Withdraw USDC' + withdrawUSDC);
+    };
+    console.log('accounts', JSON.stringify(accounts, null, 2));
+    const borrowSOL = await program.methods
+      .borrow(new BN(10000000000))
+      .accounts(accounts)
+      .rpc({ commitment: 'confirmed', skipPreflight: true });
+      console.log('borrowSOL', borrowSOL);
+    expect(borrowSOL).toBeTruthy();
+  });
 });
