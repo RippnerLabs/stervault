@@ -8,72 +8,83 @@ use crate::error::{ErrorCode};
 pub struct Repay<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    pub mint_borrow: InterfaceAccount<'info, Mint>,
+
+    pub mint_borrow: Box<InterfaceAccount<'info, Mint>>,
+    pub mint_collateral: Box<InterfaceAccount<'info, Mint>>,
+
     #[account(
         mut, 
         seeds = [mint_borrow.key().as_ref()],
         bump,
-    )]
-    pub bank_borrow: Account<'info, Bank>,
+    )]  
+    pub bank_borrow: Box<Account<'info, Bank>>,
+
     #[account(
         mut, 
+        token::mint = mint_borrow,
+        token::authority = bank_borrow_token_account,
         seeds = [b"treasury", mint_borrow.key().as_ref()],
         bump, 
-    )]
-    pub bank_borrow_token_account: InterfaceAccount<'info, TokenAccount>,
+    )]  
+    pub bank_borrow_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
     #[account(
         mut, 
-        seeds = [signer.key().as_ref(), mint_borrow.key().as_ref()],
-        bump,
-    )]
-    pub user_borrow_account: Account<'info, UserTokenState>,
-    #[account( 
-        init_if_needed, 
-        payer = signer,
-        associated_token::mint = mint_borrow, 
-        associated_token::authority = signer,
-        associated_token::token_program = token_program,
-    )]
-    pub user_borrow_token_account: InterfaceAccount<'info, TokenAccount>, 
-    pub mint_collateral: InterfaceAccount<'info, Mint>,
-    #[account(
-        mut, 
-        seeds = [mint_collateral.key().as_ref()],
+        seeds = [signer.clone().key().as_ref(), mint_borrow.key().as_ref()],
         bump,
     )]  
-    pub bank_collateral: Account<'info, Bank>,
+    pub user_borrow_account: Box<Account<'info, UserTokenState>>,
+
+    #[account(
+        init_if_needed, 
+        payer = signer.clone().as_ref(),
+        associated_token::mint = mint_borrow, 
+        associated_token::authority = signer.clone().as_ref(),
+        associated_token::token_program = token_program,
+    )]
+    pub user_borrow_token_account: Box<InterfaceAccount<'info, TokenAccount>>, 
+
     #[account(
         mut, 
+        seeds = [mint_collateral.clone().key().as_ref()],
+        bump,
+    )]  
+    pub bank_collateral: Box<Account<'info, Bank>>,
+
+    #[account(
+        mut,
+        token::mint = mint_collateral,
+        token::authority = bank_collateral_token_account,
         seeds = [b"treasury", mint_collateral.key().as_ref()],
         bump, 
-    )]  
-    pub bank_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
+    )]
+    pub bank_collateral_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
     #[account(
         mut, 
-        seeds = [signer.key().as_ref(), mint_collateral.key().as_ref()],
+        seeds = [signer.clone().key().as_ref(), mint_collateral.clone().key().as_ref()],
         bump,
     )]  
-    pub user_collateral_account: Account<'info, UserTokenState>,
-    #[account( 
-        init_if_needed, 
+    pub user_collateral_account: Box<Account<'info, UserTokenState>>,
+
+    #[account(
+        init_if_needed,
         payer = signer,
-        associated_token::mint = mint_collateral, 
+        associated_token::mint = mint_collateral,
         associated_token::authority = signer,
         associated_token::token_program = token_program,
     )]
-    pub user_collateral_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub user_collateral_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    pub price_update_borrow_token: Account<'info, PriceUpdateV2>,
-    pub pyth_network_feed_id_borrow_token: Account<'info, PythNetworkFeedId>,
-    
-    pub price_update_collateral_token: Account<'info, PriceUpdateV2>,
-    pub pyth_network_feed_id_collateral_token: Account<'info, PythNetworkFeedId>,
+    pub price_update_borrow_token: Box<Account<'info, PriceUpdateV2>>,
+    pub pyth_network_feed_id_borrow_token: Box<Account<'info, PythNetworkFeedId>>,
+    pub price_update_collateral_token: Box<Account<'info, PriceUpdateV2>>,
+    pub pyth_network_feed_id_collateral_token: Box<Account<'info, PythNetworkFeedId>>,
 
-    pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
-
 
 // get the outstanding loan / borrowed amount with interest
 //  check if the amount is less than or equal to the outstanding loan / borrowed amount with interest

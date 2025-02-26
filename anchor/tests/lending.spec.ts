@@ -298,20 +298,26 @@ describe('Lending Smart Contract Tests', () => {
       signer: signer.publicKey,
       mintBorrow: mintSOL,
       mintCollateral: mintUSDC,
+
       priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
       .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
-      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
-      .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
       pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
       pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
+
       tokenProgram: TOKEN_PROGRAM_ID,
     };
     console.log('accounts', JSON.stringify(accounts, null, 2));
     const borrowSOL = await program.methods
-      .borrow(new BN(10000000000))
+      .borrow(new BN(1000000))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
       console.log('borrowSOL', borrowSOL);
     expect(borrowSOL).toBeTruthy();
   });
+
+
+
 });

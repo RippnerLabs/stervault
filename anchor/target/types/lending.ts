@@ -270,11 +270,11 @@ export type Lending = {
           "name": "pythNetworkFeedIdCollateralToken"
         },
         {
-          "name": "tokenProgram"
-        },
-        {
           "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
