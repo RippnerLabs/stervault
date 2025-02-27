@@ -17,22 +17,39 @@
     "@pythnetwork/price-service-client": "^1.9.0",
     "@pythnetwork/pyth-solana-receiver": "^0.8.0",
     "@solana/spl-token": "^0.4.8",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "daisyui": "^4.12.10",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/web3.js": "1.94.0",
+    "@tabler/icons-react": "^3.30.0",
+    "@tanstack/react-query": "^5.66.9",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@tanstack/react-query-next-experimental": "^5.66.9",
     "anchor-bankrun": "^0.4.0",
+    "autoprefixer": "^10.4.17",
     "fs": "^0.0.1-security",
+    "jotai": "^2.12.1",
+    "next": "14.1.0",
+    "postcss": "^8.4.35",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.5.2",
     "rpc-websockets": "7.11.0",
     "solana-bankrun": "^0.2.0",
-    "spl-token-bankrun": "0.2.5"
+    "spl-token-bankrun": "0.2.5",
+    "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
+    "@types/react": "^18.2.55",
+    "@types/react-dom": "^18.2.19",
     "chai": "^4.3.4",
-    "mocha": "^11.1.0",
+    "mocha": "^10.3.0",
     "prettier": "^2.6.2",
     "ts-mocha": "^10.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "^5.3.3"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
