@@ -1,5 +1,5 @@
 {
-  "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
+  "address": "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G",
   "metadata": {
     "name": "lending",
     "version": "0.1.0",
@@ -517,6 +517,26 @@
         },
         {
           "name": "interest_rate",
+          "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "deposit_fee",
+          "type": "u64"
+        },
+        {
+          "name": "withdrawal_fee",
+          "type": "u64"
+        },
+        {
+          "name": "min_deposit",
           "type": "u64"
         }
       ]
@@ -1322,6 +1342,34 @@
           {
             "name": "last_updated_borrowed",
             "type": "i64"
+          },
+          {
+            "name": "apr",
+            "type": "f64"
+          },
+          {
+            "name": "apy",
+            "type": "f64"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "deposit_fee",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawal_fee",
+            "type": "u64"
+          },
+          {
+            "name": "min_deposit",
+            "type": "u64"
           }
         ]
       }

@@ -176,7 +176,12 @@ describe('Lending Smart Contract Tests', () => {
         new BN(5),
         new BN(50),
         new BN(75),
-        new BN(5)
+        new BN(5),
+        Buffer.from("USDC Bank"),
+        Buffer.from("USDC Bank Description"),
+        new BN(5),
+        new BN(5),
+        new BN(10000)
       )
       .accounts({
         signer: signer.publicKey,
@@ -208,7 +213,12 @@ describe('Lending Smart Contract Tests', () => {
         new BN(5),
         new BN(50),
         new BN(75),
-        new BN(5)
+        new BN(5),
+        Buffer.from("SOL Bank"),
+        Buffer.from("SOL Bank Description"),
+        new BN(5),
+        new BN(5),
+        new BN(10000)
       )
       .accounts({
         signer: signer.publicKey,

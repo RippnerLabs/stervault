@@ -6,14 +6,14 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-lending = "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF"
+lending = "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "localnet"
+wallet = "./keys/signer.json"
 
 [scripts]
 test = "jest --preset ts-jest"

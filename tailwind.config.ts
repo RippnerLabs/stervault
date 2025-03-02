@@ -10,7 +10,7 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: ["class"],
+  darkMode: "class",
   theme: {
   	extend: {
   		borderRadius: {

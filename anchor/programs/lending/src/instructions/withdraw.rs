@@ -108,7 +108,7 @@ pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     let price_update_borrow_token = &mut ctx.accounts.price_update_borrow_token;
     let pyth_network_feed_id_borrow_token = &mut ctx.accounts.pyth_network_feed_id_borrow_token;
     let borrow_token_price_feed_id = get_feed_id_from_hex(pyth_network_feed_id_borrow_token.feed_id.as_str()).unwrap();
-    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, 60, &borrow_token_price_feed_id).unwrap();
+    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, 600, &borrow_token_price_feed_id).unwrap();
     let borrowed_amount_in_usd = (borrow_token_price.price as u64).checked_mul(user_borrow_value_with_interest as u64).unwrap();
 
     // get collateral value in usd

@@ -5,7 +5,7 @@ mod state;
 mod error;
 mod constants;
 
-declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
+declare_id!("EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G");
 
 #[program]
 pub mod lending {
@@ -20,8 +20,18 @@ pub mod lending {
     return process_init_user(ctx, mint_address);
   }
 
-  pub fn init_bank(ctx: Context<InitBank>, liquidation_threshold: u64, liquidation_bonus: u64, liquidation_close_factor: u64, max_ltv: u64, interest_rate: u64) -> Result<()> {
-    return process_init_bank(ctx, liquidation_threshold, liquidation_bonus, liquidation_close_factor, max_ltv, interest_rate);
+  pub fn init_bank(ctx: Context<InitBank>,     liquidation_threshold: u64,
+    liquidation_bonus: u64,
+    liquidation_close_factor: u64,
+    max_ltv: u64,
+    interest_rate: u64,
+    name: String,
+    description: String,
+    deposit_fee: u64,
+    withdrawal_fee: u64,
+    min_deposit: u64,
+) -> Result<()> {
+    return process_init_bank(ctx, liquidation_threshold, liquidation_bonus, liquidation_close_factor, max_ltv, interest_rate, name, description, deposit_fee, withdrawal_fee, min_deposit);
   }
 
   pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {

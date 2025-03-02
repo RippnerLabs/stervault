@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/lending.json`.
  */
 export type Lending = {
-  "address": "coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF",
+  "address": "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G",
   "metadata": {
     "name": "lending",
     "version": "0.1.0",
@@ -523,6 +523,26 @@ export type Lending = {
         },
         {
           "name": "interestRate",
+          "type": "u64"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "depositFee",
+          "type": "u64"
+        },
+        {
+          "name": "withdrawalFee",
+          "type": "u64"
+        },
+        {
+          "name": "minDeposit",
           "type": "u64"
         }
       ]
@@ -1328,6 +1348,34 @@ export type Lending = {
           {
             "name": "lastUpdatedBorrowed",
             "type": "i64"
+          },
+          {
+            "name": "apr",
+            "type": "f64"
+          },
+          {
+            "name": "apy",
+            "type": "f64"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "depositFee",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawalFee",
+            "type": "u64"
+          },
+          {
+            "name": "minDeposit",
+            "type": "u64"
           }
         ]
       }

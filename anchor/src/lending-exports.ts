@@ -8,20 +8,24 @@ import type { Lending } from '../target/types/lending'
 export { Lending, LendingIDL }
 
 // The programId is imported from the program IDL.
-export const LENDING_PROGRAM_ID = new PublicKey(LendingIDL.address)
+export const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G')
 
 // This is a helper function to get the Lending Anchor program.
 export function getLendingProgram(provider: AnchorProvider, address?: PublicKey) {
-  return new Program({ ...LendingIDL, address: address ? address.toBase58() : LendingIDL.address } as Lending, provider)
+  // Always use the provided address if available, otherwise use the LENDING_PROGRAM_ID
+  const programId = address || LENDING_PROGRAM_ID;
+  console.log('Using program ID in getLendingProgram:', programId.toString());
+  return new Program({ ...LendingIDL, address: programId.toBase58() } as Lending, provider)
 }
 
 // This is a helper function to get the program ID for the Lending program depending on the cluster.
 export function getLendingProgramId(cluster: Cluster) {
   switch (cluster) {
     case 'devnet':
+      return new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G')
     case 'testnet':
-      // This is the program ID for the Lending program on devnet and testnet.
-      return new PublicKey('coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF')
+      // This is the program ID for the Lending program on testnet.
+      return new PublicKey('')
     case 'mainnet-beta':
     default:
       return LENDING_PROGRAM_ID
