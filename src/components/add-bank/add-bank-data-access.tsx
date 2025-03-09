@@ -10,10 +10,13 @@ import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from '@coral-xyz/anchor'
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+
+// SPL Token Program ID
+const SPL_TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
 export function useBankProgram() {
   const { connection } = useConnection()
@@ -54,24 +57,28 @@ export function useBankProgram() {
       liquidationBonus,
       liquidationCloseFactor,
       maxLtv,
-      interestRate,
+      depositInterestRate,
+      borrowInterestRate,
       name,
       description,
       depositFee,
       withdrawalFee,
       minDeposit,
+      interestAccrualPeriod,
     }: {
       tokenMint: PublicKey
       liquidationThreshold: number
       liquidationBonus: number
       liquidationCloseFactor: number
       maxLtv: number
-      interestRate: number
+      depositInterestRate: number
+      borrowInterestRate: number
       name: string
       description: string
       depositFee: number
       withdrawalFee: number
       minDeposit: number
+      interestAccrualPeriod: number
     }) => {
       try {
         console.log('Initializing bank with params:', {
@@ -80,14 +87,28 @@ export function useBankProgram() {
           liquidationBonus,
           liquidationCloseFactor,
           maxLtv,
-          interestRate,
+          depositInterestRate,
+          borrowInterestRate,
           name,
           description,
           depositFee,
           withdrawalFee,
           minDeposit,
+          interestAccrualPeriod,
           programId: programId.toString(),
           wallet: provider.publicKey?.toString()
+        });
+        
+        // Verify if the mint account exists
+        const mintInfo = await connection.getAccountInfo(tokenMint);
+        if (!mintInfo) {
+          throw new Error(`Mint account ${tokenMint.toString()} does not exist on chain`);
+        }
+        console.log('Mint account info:', {
+          owner: mintInfo.owner.toString(),
+          data: mintInfo.data.length,
+          executable: mintInfo.executable,
+          lamports: mintInfo.lamports,
         });
 
         // Find the PDA for the bank account
@@ -111,18 +132,23 @@ export function useBankProgram() {
             new BN(liquidationBonus),
             new BN(liquidationCloseFactor),
             new BN(maxLtv),
-            new BN(interestRate),
+            new BN(depositInterestRate),
+            new BN(borrowInterestRate),
             name,
             description,
             new BN(depositFee),
             new BN(withdrawalFee),
-            new BN(minDeposit)
+            new BN(minDeposit),
+            new BN(interestAccrualPeriod)
           )
           .accounts({
             signer: provider.publicKey,
             mint: tokenMint,
-            tokenProgram: TOKEN_PROGRAM_ID,
-          })
+            bank: bankPDA,
+            bankTokenAccount: bankTokenAccountPDA,
+            tokenProgram: SPL_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          } as any)
           .rpc({ commitment: 'confirmed' });
         
         console.log('Bank initialization transaction:', tx);
@@ -139,9 +165,11 @@ export function useBankProgram() {
           // Check for specific error codes
           const errorMessage = error.message;
           if (errorMessage.includes('custom program error: 0x1004')) {
-            throw new Error('Error 4100: This could be due to a bank already existing for this token or insufficient funds.');
+            throw new Error('Error 4100: The declared program ID does not match the actual program ID. This has been fixed, please try again.');
+          } else if (errorMessage.includes('AccountOwnedByWrongProgram') || errorMessage.includes('3007')) {
+            throw new Error('The token mint account is not a valid SPL token or is owned by the wrong program. Please use a valid token mint address.');
           } else if (errorMessage.includes('account not found')) {
-            throw new Error('Required account not found. Make sure the token mint exists.');
+            throw new Error('Required account not found. Make sure the token mint exists on the blockchain.');
           } else if (errorMessage.includes('insufficient funds')) {
             throw new Error('Insufficient funds to complete the transaction.');
           }

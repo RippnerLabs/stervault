@@ -26,7 +26,7 @@ export default bundleAnalyzer(
     reactStrictMode: true,
     experimental: {
       serverComponentsExternalPackages: ["pino", "three"],
-      optimizeCss: true,
+      // Remove optimizeCss since it requires critters package
       scrollRestoration: true,
     },
     swcMinify: true,

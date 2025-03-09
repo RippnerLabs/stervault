@@ -28,6 +28,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-hot-toast";
 import { WalletButton } from "../solana/solana-provider";
+import { useConnection } from "@solana/wallet-adapter-react";
 
 // Token interface based on tokens.json structure
 interface Token {
@@ -76,10 +77,15 @@ const bankFormSchema = z.object({
     }).max(100, {
         message: "Max LTV cannot exceed 100%.",
     }),
-    interestRate: z.coerce.number().min(0, {
-        message: "Interest rate must be a positive number.",
+    depositInterestRate: z.coerce.number().min(0, {
+        message: "Deposit interest rate must be a positive number.",
     }).max(100, {
-        message: "Interest rate cannot exceed 100%.",
+        message: "Deposit interest rate cannot exceed 100%.",
+    }),
+    borrowInterestRate: z.coerce.number().min(0, {
+        message: "Borrow interest rate must be a positive number.",
+    }).max(100, {
+        message: "Borrow interest rate cannot exceed 100%.",
     }),
     depositFee: z.coerce.number().min(0, {
         message: "Deposit fee must be a positive number.",
@@ -93,6 +99,9 @@ const bankFormSchema = z.object({
     }),
     minDeposit: z.coerce.number().min(0, {
         message: "Minimum deposit must be a positive number.",
+    }),
+    interestAccrualPeriod: z.coerce.number().min(1, {
+        message: "Interest accrual period must be at least 1 second.",
     }),
 });
 
@@ -108,10 +117,12 @@ const defaultValues: Partial<BankFormValues> = {
     liquidationBonus: 5,
     liquidationCloseFactor: 50,
     maxLtv: 75,
-    interestRate: 5,
+    depositInterestRate: 5,
+    borrowInterestRate: 10,
     depositFee: 0,
     withdrawalFee: 0.1,
     minDeposit: 0.1,
+    interestAccrualPeriod: 86400, // 1 day in seconds
 };
 
 // Token selector dropdown component
@@ -233,14 +244,17 @@ function AddBank() {
     const [tokens, setTokens] = useState<Token[]>([]);
     const [isLoadingTokens, setIsLoadingTokens] = useState(true);
     const [selectedTokenDecimals, setSelectedTokenDecimals] = useState<number | null>(null);
+    const [isCreatingToken, setIsCreatingToken] = useState(false);
+    const [createdTokenMint, setCreatedTokenMint] = useState<string | null>(null);
     const { initBank, initUser } = useBankProgram();
     const { connected } = useWallet();
+    const { connection } = useConnection();
     
     // Fetch tokens from tokens.json
     useEffect(() => {
         const fetchTokens = async () => {
             try {
-                const response = await fetch('/tokens.json');
+                const response = await fetch('/tokens_localnet.json');
                 const data = await response.json();
                 setTokens(data);
             } catch (error) {
@@ -259,6 +273,46 @@ function AddBank() {
         defaultValues,
     });
 
+    // Function to check if a token is a valid SPL token
+    const validateToken = async (tokenAddress: string): Promise<boolean> => {
+        try {
+            if (!tokenAddress) return false;
+            
+            const tokenMint = new PublicKey(tokenAddress);
+            console.log("tokenMint", tokenMint.toString());
+            const mintInfo = await connection.getAccountInfo(tokenMint, {
+                commitment: 'confirmed'
+            });
+            console.log("mintInfo", mintInfo);
+            if (!mintInfo) {
+                toast.error("Token mint does not exist on the blockchain.");
+                return false;
+            }
+            
+            // SPL Token Program ID
+            const SPL_TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+            
+            // // Skip SPL token program check in localnet
+            // if (process.env.NEXT_PUBLIC_CLUSTER !== 'localnet' && !mintInfo.owner.equals(SPL_TOKEN_PROGRAM_ID)) {
+            //     toast.error("This address is not a valid SPL token mint.");
+            //     return false;
+            // }
+            
+            // Check data length - SPL token mints have specific data lengths
+            console.log("mintInfo.data.length", mintInfo.data.length);
+            if (mintInfo.data.length < 82) {
+                toast.error("Invalid SPL token mint data structure.");
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error("Error validating token:", error);
+            toast.error("Invalid token address format.");
+            return false;
+        }
+    };
+
     // Handle form submission
     async function onSubmit(data: BankFormValues) {
         if (!connected) {
@@ -276,6 +330,12 @@ function AddBank() {
             
             if (!selectedToken) {
                 throw new Error("Selected token not found");
+            }
+
+            // Validate the token is a valid SPL token on the blockchain
+            const isValidToken = await validateToken(data.tokenAddress);
+            if (!isValidToken) {
+                throw new Error("Token validation failed. Please make sure you're using a valid SPL token mint address on the devnet.");
             }
 
             // Convert token address string to PublicKey
@@ -299,12 +359,14 @@ function AddBank() {
                 liquidationBonus: Math.floor(data.liquidationBonus),
                 liquidationCloseFactor: Math.floor(data.liquidationCloseFactor),
                 maxLtv: Math.floor(data.maxLtv),
-                interestRate: Math.floor(data.interestRate),
+                depositInterestRate: Math.floor(data.depositInterestRate),
+                borrowInterestRate: Math.floor(data.borrowInterestRate),
                 name: data.name,
                 description: data.description,
-                depositFee: Math.floor(data.depositFee * 100),
-                withdrawalFee: Math.floor(data.withdrawalFee * 100),
-                minDeposit: Math.floor(data.minDeposit * (10 ** (selectedToken.decimals || 0))),
+                depositFee: Math.floor(data.depositFee * 100), // Convert percentage to basis points
+                withdrawalFee: Math.floor(data.withdrawalFee * 100), // Convert percentage to basis points
+                minDeposit: Math.floor(data.minDeposit * (10 ** (selectedToken.decimals || 0))), // Convert to token's smallest unit
+                interestAccrualPeriod: Math.floor(data.interestAccrualPeriod),
             });
 
             const tx = await initBank.mutateAsync({
@@ -313,12 +375,14 @@ function AddBank() {
                 liquidationBonus: Math.floor(data.liquidationBonus),
                 liquidationCloseFactor: Math.floor(data.liquidationCloseFactor),
                 maxLtv: Math.floor(data.maxLtv),
-                interestRate: Math.floor(data.interestRate),
+                depositInterestRate: Math.floor(data.depositInterestRate),
+                borrowInterestRate: Math.floor(data.borrowInterestRate),
                 name: data.name,
                 description: data.description,
                 depositFee: Math.floor(data.depositFee * 100), // Convert percentage to basis points
                 withdrawalFee: Math.floor(data.withdrawalFee * 100), // Convert percentage to basis points
                 minDeposit: Math.floor(data.minDeposit * (10 ** (selectedToken.decimals || 0))), // Convert to token's smallest unit
+                interestAccrualPeriod: Math.floor(data.interestAccrualPeriod),
             });
 
             console.log("Bank created with transaction:", tx);
@@ -555,13 +619,13 @@ function AddBank() {
                                     )}
                                 />
 
-                                {/* Interest Rate */}
+                                {/* Deposit Interest Rate */}
                                 <FormField
                                     control={form.control}
-                                    name="interestRate"
+                                    name="depositInterestRate"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Interest Rate (%)</FormLabel>
+                                            <FormLabel>Deposit Interest Rate (%)</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <Input type="number" step="0.1" {...field} />
@@ -571,13 +635,38 @@ function AddBank() {
                                                 </div>
                                             </FormControl>
                                             <FormDescription>
-                                                Base interest rate for borrowing.
+                                                Interest rate for deposits.
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
+                                {/* Borrow Interest Rate */}
+                                <FormField
+                                    control={form.control}
+                                    name="borrowInterestRate"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Borrow Interest Rate (%)</FormLabel>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <Input type="number" step="0.1" {...field} />
+                                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                        <IconPercentage className="h-4 w-4 text-neutral-400" />
+                                                    </div>
+                                                </div>
+                                            </FormControl>
+                                            <FormDescription>
+                                                Interest rate for borrowing.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Max LTV */}
                                 <FormField
                                     control={form.control}
@@ -600,9 +689,7 @@ function AddBank() {
                                         </FormItem>
                                     )}
                                 />
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Deposit Fee */}
                                 <FormField
                                     control={form.control}
@@ -643,6 +730,44 @@ function AddBank() {
                                             </FormControl>
                                             <FormDescription>
                                                 Fee charged on withdrawals.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Min Deposit */}
+                                <FormField
+                                    control={form.control}
+                                    name="minDeposit"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Minimum Deposit</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" step={selectedTokenDecimals == null || selectedTokenDecimals === 0 ? 1 : 10 ** -selectedTokenDecimals} {...field} />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Minimum amount required to deposit.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* Interest Accrual Period */}
+                                <FormField
+                                    control={form.control}
+                                    name="interestAccrualPeriod"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Interest Accrual Period (seconds)</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" min="1" {...field} />
+                                            </FormControl>
+                                            <FormDescription>
+                                                How often interest is accrued (in seconds). Default: 86400 (1 day)
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>

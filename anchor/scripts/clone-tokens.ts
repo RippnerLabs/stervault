@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { getExplorerLink } from "@solana-developers/helpers";
 import { Connection, Keypair } from '@solana/web3.js';
-import { createAssociatedTokenAccount, mintTo } from '@solana/spl-token';
+import { createAccount, createAssociatedTokenAccount, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
 
 async function main() {
     // Load signer keypair directly
@@ -61,19 +61,29 @@ async function main() {
                     commitment: "confirmed"
                 });
 
-            // mint 100000 into the associated token account
-            const mintAmount = 100000 * (10 ** token.decimals);
-            const mintTransaction = await mintTo(
-                connection, 
-                user, 
-                toWeb3JsPublicKey(mint.publicKey), 
-                associatedTokenAccount, // Use the created ATA as destination
-                user, 
-                mintAmount, 
-                [], 
-                { commitment: "confirmed" }
+            const tokenAccount = await getAssociatedTokenAddress(
+              toWeb3JsPublicKey(mint.publicKey),
+              user.publicKey
             );
 
+            // mint 100000 into the associated token account
+            const mintAmount = 100000 * (10 ** token.decimals);
+            try {
+                const mintTransaction = await mintTo(
+                    connection, 
+                    user, 
+                    toWeb3JsPublicKey(mint.publicKey), 
+                    tokenAccount,
+                    user, 
+                    mintAmount, 
+                    [], 
+                    { commitment: "confirmed" }
+                );
+
+                console.log(`Minted ${mintAmount} tokens into the associated token account`);
+            } catch (error) {
+                console.error(`Error minting tokens into the associated token account: ${JSON.stringify(error, null, 2)} ${await error.getLogs()}`);
+            }
             // Add to the new tokens data
             newTokensData.push({
                 ...token,

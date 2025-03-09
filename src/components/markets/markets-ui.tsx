@@ -26,6 +26,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "../solana/solana-provider";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Dynamically import the CardSpotlight component with no SSR
 const CardSpotlight = dynamic(
@@ -100,6 +101,7 @@ function Markets() {
   const [filteredBanks, setFilteredBanks] = useState<BankData[]>([]);
   const { banks } = useMarketsBanks();
   const { connected } = useWallet();
+  const router = useRouter();
   
   // Process banks data when it's loaded
   useEffect(() => {
@@ -119,7 +121,7 @@ function Markets() {
   }, [searchTerm, banks.data]);
 
   // Calculate total TVL and average APY
-  const totalTvl = filteredBanks.reduce((sum, bank) => sum + bank.account.totalDeposited, 0);
+  const totalTvl = filteredBanks.reduce((sum, bank) => sum + bank.account.totalDepositedShares, 0);
   const avgApy = filteredBanks.length > 0 
     ? filteredBanks.reduce((sum, bank) => sum + bank.account.apy, 0) / filteredBanks.length
     : 0;
@@ -155,7 +157,7 @@ function Markets() {
             </div>
             <div className="bg-neutral-100 dark:bg-neutral-800 p-3 rounded-lg">
               <p className="text-sm text-neutral-500">TVL</p>
-              <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDeposited)}</p>
+              <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDepositedShares)}</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -164,10 +166,15 @@ function Markets() {
               <li>Min Deposit: {bank.account.minDeposit / (10 ** (bank.tokenInfo?.decimals || 0))} {tokenSymbol}</li>
               <li>Deposit Fee: {bank.account.depositFee / 100}%</li>
               <li>Withdrawal Fee: {bank.account.withdrawalFee / 100}%</li>
+              <li>Deposit Rate: {bank.account.depositInterestRate / 100}%</li>
+              <li>Borrow Rate: {bank.account.borrowInterestRate / 100}%</li>
             </ul>
           </div>
           <div className="mt-6">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+            <button 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+              onClick={() => router.push(`/deposit-tokens?bankId=${bank.publicKey.toString()}`)}
+            >
               Deposit Now
             </button>
           </div>
@@ -184,7 +191,7 @@ function Markets() {
   // Create hover effect items
   const hoverItems = filteredBanks.map((bank, index) => ({
     title: bank.account.name,
-    description: `${bank.tokenInfo?.symbol || 'TOKEN'} • ${formatApy(bank.account.apy)} APY • ${formatNumber(bank.account.totalDeposited)} TVL`,
+    description: `${bank.tokenInfo?.symbol || 'TOKEN'} • ${formatApy(bank.account.apy)} APY • ${formatNumber(bank.account.totalDepositedShares)} TVL`,
     link: `#bank-${bank.publicKey.toString()}`
   }));
 
@@ -346,7 +353,7 @@ function Markets() {
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">TVL</p>
-                        <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDeposited)}</p>
+                        <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDepositedShares)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">Max LTV</p>
@@ -355,6 +362,15 @@ function Markets() {
                     </div>
                     
                     <CardDescription>{bank.account.description}</CardDescription>
+                    
+                    <div className="mt-3 mb-4 grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-neutral-500">Deposit Rate:</span> {bank.account.depositInterestRate / 100}%
+                      </div>
+                      <div>
+                        <span className="text-neutral-500">Borrow Rate:</span> {bank.account.borrowInterestRate / 100}%
+                      </div>
+                    </div>
                     
                     <div className="mt-4 flex gap-2">
                       <button 

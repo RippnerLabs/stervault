@@ -1,0 +1,235 @@
+[
+  {
+    "address": "8qDNtUiyRN93y1jFf5JVyASwdN7wHNK3p4SGCPpCf6iK",
+    "name": "Wrapped SOL",
+    "symbol": "SOL",
+    "decimals": 9,
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+    "tags": [
+      "verified",
+      "strict",
+      "community"
+    ],
+    "daily_volume": 3114937684.92888,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": null,
+    "mint_authority": null,
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "wrapped-solana"
+    }
+  },
+  {
+    "address": "AgjeyHWehpyuEV6117rtJWptXDEq3DbDb2K9NMJ9cTSd",
+    "name": "USD Coin",
+    "symbol": "USDC",
+    "decimals": 6,
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+    "tags": [
+      "verified",
+      "strict",
+      "community"
+    ],
+    "daily_volume": 3013777213.2289,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar",
+    "mint_authority": "BJE5MMbqXjVwjAF7oxwPYXnTXDyspzZyt4vwenNw5ruG",
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "usd-coin"
+    }
+  },
+  {
+    "address": "H5NRL7cnuao86FG3aCUnqA1GFU48SN1YT9L4Eeh1a4Vd",
+    "name": "USDT",
+    "symbol": "USDT",
+    "decimals": 6,
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
+    "tags": [
+      "verified",
+      "community",
+      "strict"
+    ],
+    "daily_volume": 955476504.643948,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi",
+    "mint_authority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi",
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "tether"
+    }
+  },
+  {
+    "address": "AxUZhTE1VysEDeMak5aHfANF5tNSU1LcqtpJT1qv2jYc",
+    "name": "OFFICIAL TRUMP",
+    "symbol": "TRUMP",
+    "decimals": 6,
+    "logoURI": "https://arweave.net/VQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw",
+    "tags": [
+      "verified",
+      "community",
+      "birdeye-trending"
+    ],
+    "daily_volume": 227988107.476071,
+    "created_at": "2025-01-17T14:19:04.321773Z",
+    "freeze_authority": null,
+    "mint_authority": null,
+    "permanent_delegate": null,
+    "minted_at": "2025-01-17T14:00:59Z",
+    "extensions": {
+      "coingeckoId": "official-trump"
+    }
+  },
+  {
+    "address": "CXfYsJnRMwEN5r5dDPSAyqULbLkFxnwZ8XXnvL4pLSEs",
+    "name": "Jupiter Perps",
+    "symbol": "JLP",
+    "decimals": 6,
+    "logoURI": "https://static.jup.ag/jlp/icon.png",
+    "tags": [
+      "verified",
+      "community",
+      "strict"
+    ],
+    "daily_volume": 196025342.878508,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49",
+    "mint_authority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49",
+    "permanent_delegate": null,
+    "minted_at": "2023-07-18T10:57:12Z",
+    "extensions": {
+      "coingeckoId": "jupiter-perpetuals-liquidity-provider-token"
+    }
+  },
+  {
+    "address": "9UVbxtWoBvofyy2JJP27dsuGRz3S5qZThzyz2LpnXSDY",
+    "name": "Jito Staked SOL",
+    "symbol": "JitoSOL",
+    "decimals": 9,
+    "logoURI": "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
+    "tags": [
+      "verified",
+      "strict",
+      "lst",
+      "community"
+    ],
+    "daily_volume": 91472090.371608,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": null,
+    "mint_authority": "6iQKfEyhr3bZMotVkW6beNZz5CPAkiwvgV2CTje9pVSS",
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "jito-staked-sol"
+    }
+  },
+  {
+    "address": "AJopQPFVUuJ8SPTDL8Sa4LyfHfqsByUShamd2Yj8TQmJ",
+    "name": "Jupiter",
+    "symbol": "JUP",
+    "decimals": 6,
+    "logoURI": "https://static.jup.ag/jup/icon.png",
+    "tags": [
+      "verified",
+      "strict",
+      "community",
+      "birdeye-trending"
+    ],
+    "daily_volume": 90945885.3918188,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": null,
+    "mint_authority": null,
+    "permanent_delegate": null,
+    "minted_at": "2024-01-25T08:54:23Z",
+    "extensions": {
+      "coingeckoId": "jupiter-exchange-solana"
+    }
+  },
+  {
+    "address": "DjzTdg9aBzzJGL1smkwWnYzh7sxefFLKcUkvhh923kqp",
+    "name": "USDS",
+    "symbol": "USDS",
+    "decimals": 6,
+    "logoURI": "https://ipfs.io/ipfs/QmTW9HWfb2wsQqEVJiixkQ73Nsfp2Rx4ESaDSiQ7ThwnFM",
+    "tags": [
+      "verified",
+      "community"
+    ],
+    "daily_volume": 88433351.0470289,
+    "created_at": "2024-11-08T06:48:38.125560Z",
+    "freeze_authority": "66xDajRZ7MTrgePf27NdugVwDBFhKCCY9EYZ7B9CdDWj",
+    "mint_authority": "Bjui9tuxKGsiF5FDwosfUsRUXg9RZCKidbThfm6CRtRt",
+    "permanent_delegate": null,
+    "minted_at": "2024-10-29T22:31:46Z",
+    "extensions": {
+      "coingeckoId": "usds"
+    }
+  },
+  {
+    "address": "EtQb6bj17pKzzz6VQYhTdPxRAWXqWKvk88vKwZAbcYbE",
+    "name": "Wrapped BTC (Portal)",
+    "symbol": "WBTC",
+    "decimals": 8,
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh/logo.png",
+    "tags": [
+      "verified",
+      "strict",
+      "community",
+      "birdeye-trending"
+    ],
+    "daily_volume": 62917788.1431655,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": null,
+    "mint_authority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "wrapped-btc-wormhole"
+    }
+  },
+  {
+    "address": "HhwPf5uM4QQxH53BeXNJhyZuPC8xMenHMCBM9fs82xiY",
+    "name": "Ether (Portal)",
+    "symbol": "ETH",
+    "decimals": 8,
+    "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs/logo.png",
+    "tags": [
+      "verified",
+      "strict",
+      "community",
+      "birdeye-trending"
+    ],
+    "daily_volume": 58507722.7758884,
+    "created_at": "2024-04-26T10:56:58.893768Z",
+    "freeze_authority": null,
+    "mint_authority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
+    "permanent_delegate": null,
+    "minted_at": null,
+    "extensions": {
+      "coingeckoId": "ethereum-wormhole"
+    }
+  },
+  {
+    "address": "HSkH2qrfjyX1zn5fKExinserwrJTGdduUsNZBBcjthjp",
+    "name": "Fartcoin",
+    "symbol": "Fartcoin",
+    "decimals": 6,
+    "logoURI": "https://ipfs.io/ipfs/QmQr3Fz4h1etNsF7oLGMRHiCzhB5y9a7GjyodnF7zLHK1g",
+    "tags": [
+      "verified",
+      "community"
+    ],
+    "daily_volume": 48726550.1199713,
+    "created_at": "2024-10-18T06:05:06.885909Z",
+    "freeze_authority": null,
+    "mint_authority": null,
+    "permanent_delegate": null,
+    "minted_at": "2024-10-18T06:05:05Z",
+    "extensions": {
+      "coingeckoId": "fartcoin"
+    }
+  }
+]
