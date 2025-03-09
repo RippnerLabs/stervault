@@ -20,4 +20,14 @@ pub enum ErrorCode {
     OverBorrowableAmount,
     #[msg("Invalid Price Feed")]
     InvalidPriceFeed,
+    #[msg("Invalid Deposit Amount")]
+    InvalidDepositAmount,
+    #[msg("Invalid Withdraw Amount")]
+    InvalidWithdrawAmount,
+    #[msg("Borrow Amount Too Small")]
+    BorrowAmountTooSmall,
+    #[msg("Stale Price")]
+    StalePrice,
+    #[msg("Insufficient Liquidity")]
+    InsufficientLiquidity,
 }

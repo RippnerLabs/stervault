@@ -3,6 +3,7 @@ use instructions::*;
 mod instructions;
 mod state;
 mod error;
+mod utils;
 mod constants;
 
 declare_id!("EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G");
@@ -20,18 +21,35 @@ pub mod lending {
     return process_init_user(ctx, mint_address);
   }
 
-  pub fn init_bank(ctx: Context<InitBank>,     liquidation_threshold: u64,
+  pub fn init_bank(ctx: Context<InitBank>, 
+    liquidation_threshold: u64,
     liquidation_bonus: u64,
     liquidation_close_factor: u64,
     max_ltv: u64,
-    interest_rate: u64,
+    deposit_interest_rate: u64,
+    borrow_interest_rate: u64,
     name: String,
     description: String,
     deposit_fee: u64,
     withdrawal_fee: u64,
     min_deposit: u64,
-) -> Result<()> {
-    return process_init_bank(ctx, liquidation_threshold, liquidation_bonus, liquidation_close_factor, max_ltv, interest_rate, name, description, deposit_fee, withdrawal_fee, min_deposit);
+    interest_accrual_period: i64,
+  ) -> Result<()> {
+    return process_init_bank(
+        ctx, 
+        liquidation_threshold,
+        liquidation_bonus,
+        liquidation_close_factor,
+        max_ltv,
+        deposit_interest_rate,
+        borrow_interest_rate,
+        name,
+        description,
+        deposit_fee,
+        withdrawal_fee,
+        min_deposit,
+        interest_accrual_period
+    );
   }
 
   pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {

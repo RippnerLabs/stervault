@@ -522,7 +522,11 @@ export type Lending = {
           "type": "u64"
         },
         {
-          "name": "interestRate",
+          "name": "depositInterestRate",
+          "type": "u64"
+        },
+        {
+          "name": "borrowInterestRate",
           "type": "u64"
         },
         {
@@ -544,6 +548,10 @@ export type Lending = {
         {
           "name": "minDeposit",
           "type": "u64"
+        },
+        {
+          "name": "interestAccrualPeriod",
+          "type": "i64"
         }
       ]
     },
@@ -1289,6 +1297,31 @@ export type Lending = {
       "code": 6008,
       "name": "invalidPriceFeed",
       "msg": "Invalid Price Feed"
+    },
+    {
+      "code": 6009,
+      "name": "invalidDepositAmount",
+      "msg": "Invalid Deposit Amount"
+    },
+    {
+      "code": 6010,
+      "name": "invalidWithdrawAmount",
+      "msg": "Invalid Withdraw Amount"
+    },
+    {
+      "code": 6011,
+      "name": "borrowAmountTooSmall",
+      "msg": "Borrow Amount Too Small"
+    },
+    {
+      "code": 6012,
+      "name": "stalePrice",
+      "msg": "Stale Price"
+    },
+    {
+      "code": 6013,
+      "name": "insufficientLiquidity",
+      "msg": "Insufficient Liquidity"
     }
   ],
   "types": [
@@ -1306,20 +1339,28 @@ export type Lending = {
             "type": "pubkey"
           },
           {
-            "name": "totalDeposited",
-            "type": "u64"
-          },
-          {
-            "name": "totalBorrowed",
-            "type": "u64"
-          },
-          {
             "name": "totalDepositedShares",
             "type": "u64"
           },
           {
             "name": "totalBorrowedShares",
             "type": "u64"
+          },
+          {
+            "name": "depositInterestRate",
+            "type": "u64"
+          },
+          {
+            "name": "borrowInterestRate",
+            "type": "u64"
+          },
+          {
+            "name": "lastCompoundTime",
+            "type": "i64"
+          },
+          {
+            "name": "interestAccrualPeriod",
+            "type": "i64"
           },
           {
             "name": "liquidationThreshold",
@@ -1336,26 +1377,6 @@ export type Lending = {
           {
             "name": "maxLtv",
             "type": "u64"
-          },
-          {
-            "name": "interestRate",
-            "type": "u64"
-          },
-          {
-            "name": "lastUpdatedDeposited",
-            "type": "i64"
-          },
-          {
-            "name": "lastUpdatedBorrowed",
-            "type": "i64"
-          },
-          {
-            "name": "apr",
-            "type": "f64"
-          },
-          {
-            "name": "apy",
-            "type": "f64"
           },
           {
             "name": "name",
@@ -1518,15 +1539,7 @@ export type Lending = {
             "type": "pubkey"
           },
           {
-            "name": "deposited",
-            "type": "u64"
-          },
-          {
             "name": "depositedShares",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed",
             "type": "u64"
           },
           {

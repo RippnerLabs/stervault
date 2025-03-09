@@ -516,7 +516,11 @@
           "type": "u64"
         },
         {
-          "name": "interest_rate",
+          "name": "deposit_interest_rate",
+          "type": "u64"
+        },
+        {
+          "name": "borrow_interest_rate",
           "type": "u64"
         },
         {
@@ -538,6 +542,10 @@
         {
           "name": "min_deposit",
           "type": "u64"
+        },
+        {
+          "name": "interest_accrual_period",
+          "type": "i64"
         }
       ]
     },
@@ -1283,6 +1291,31 @@
       "code": 6008,
       "name": "InvalidPriceFeed",
       "msg": "Invalid Price Feed"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidDepositAmount",
+      "msg": "Invalid Deposit Amount"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidWithdrawAmount",
+      "msg": "Invalid Withdraw Amount"
+    },
+    {
+      "code": 6011,
+      "name": "BorrowAmountTooSmall",
+      "msg": "Borrow Amount Too Small"
+    },
+    {
+      "code": 6012,
+      "name": "StalePrice",
+      "msg": "Stale Price"
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient Liquidity"
     }
   ],
   "types": [
@@ -1300,20 +1333,28 @@
             "type": "pubkey"
           },
           {
-            "name": "total_deposited",
-            "type": "u64"
-          },
-          {
-            "name": "total_borrowed",
-            "type": "u64"
-          },
-          {
             "name": "total_deposited_shares",
             "type": "u64"
           },
           {
             "name": "total_borrowed_shares",
             "type": "u64"
+          },
+          {
+            "name": "deposit_interest_rate",
+            "type": "u64"
+          },
+          {
+            "name": "borrow_interest_rate",
+            "type": "u64"
+          },
+          {
+            "name": "last_compound_time",
+            "type": "i64"
+          },
+          {
+            "name": "interest_accrual_period",
+            "type": "i64"
           },
           {
             "name": "liquidation_threshold",
@@ -1330,26 +1371,6 @@
           {
             "name": "max_ltv",
             "type": "u64"
-          },
-          {
-            "name": "interest_rate",
-            "type": "u64"
-          },
-          {
-            "name": "last_updated_deposited",
-            "type": "i64"
-          },
-          {
-            "name": "last_updated_borrowed",
-            "type": "i64"
-          },
-          {
-            "name": "apr",
-            "type": "f64"
-          },
-          {
-            "name": "apy",
-            "type": "f64"
           },
           {
             "name": "name",
@@ -1512,15 +1533,7 @@
             "type": "pubkey"
           },
           {
-            "name": "deposited",
-            "type": "u64"
-          },
-          {
             "name": "deposited_shares",
-            "type": "u64"
-          },
-          {
-            "name": "borrowed",
             "type": "u64"
           },
           {

@@ -1,10 +1,11 @@
-use std::ops::{Div, Mul};
+use std::ops::{Div, Mul, Sub};
 
 use anchor_lang::prelude::*;
 use anchor_spl::{associated_token::AssociatedToken, token_interface::{TokenAccount, Mint, TokenInterface, TransferChecked, transfer_checked}};
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 use crate::state::*;
 use crate::error::ErrorCode;
+use crate::utils::*;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
@@ -90,79 +91,124 @@ pub struct Withdraw<'info> {
 
 
 pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-    // get the outstanding loan / borrowed amount against the collateral
+    // Get current timestamp for all time-based calculations
+    let current_time = Clock::get()?.unix_timestamp;
+    
+    // Get mutable references to accounts
     let bank_borrow = &mut ctx.accounts.bank_borrow;
+    let bank_collateral = &mut ctx.accounts.bank_collateral;
     let user_borrow = &mut ctx.accounts.user_borrow_account;
-    let bank_borrow_current_value_with_interest = bank_borrow.total_borrowed.checked_mul(bank_borrow.interest_rate.pow(Clock::get()?.unix_timestamp.checked_sub(user_borrow.last_updated_borrowed).unwrap()as u32)).unwrap();
-    
-    // Handle division by zero for borrow value per share
-    let bank_borrow_value_per_share = if bank_borrow.total_borrowed_shares == 0 {
-        0
-    } else {
-        bank_borrow_current_value_with_interest.checked_div(bank_borrow.total_borrowed_shares).unwrap()
-    };
-    
-    let user_borrow_value_with_interest = bank_borrow_value_per_share.checked_mul(user_borrow.borrowed_shares).unwrap();
+    let user_collateral = &mut ctx.accounts.user_collateral_account;
 
-    // get borrowed amount in usd
-    let price_update_borrow_token = &mut ctx.accounts.price_update_borrow_token;
-    let pyth_network_feed_id_borrow_token = &mut ctx.accounts.pyth_network_feed_id_borrow_token;
-    let borrow_token_price_feed_id = get_feed_id_from_hex(pyth_network_feed_id_borrow_token.feed_id.as_str()).unwrap();
-    let borrow_token_price = price_update_borrow_token.get_price_no_older_than(&Clock::get()?, 600, &borrow_token_price_feed_id).unwrap();
-    let borrowed_amount_in_usd = (borrow_token_price.price as u64).checked_mul(user_borrow_value_with_interest as u64).unwrap();
+    // Accrue interest to both markets
+    accrue_interest(bank_collateral, current_time)?;
+    accrue_interest(bank_borrow, current_time)?;
 
-    // get collateral value in usd
-    let price_update_collateral_token = &mut ctx.accounts.price_update_collateral_token;
-    let pyth_network_feed_id_collateral_token = &mut ctx.accounts.pyth_network_feed_id_collateral_token;
-    let collateral_token_price_feed_id = get_feed_id_from_hex(pyth_network_feed_id_collateral_token.feed_id.as_str()).unwrap();
-    let collateral_token_price = price_update_collateral_token.get_price_no_older_than(&Clock::get()?, 60, &collateral_token_price_feed_id).unwrap();
-    let user_collateral_account = &mut ctx.accounts.user_collateral_account;
-    let collateral_token_value_in_usd = (collateral_token_price.price as u64).checked_mul(user_collateral_account.deposited as u64).unwrap();
+    // Calculate user's collateral assets with interest
+    let collateral_assets = calculate_user_assets(
+        bank_collateral,
+        user_collateral.deposited_shares,
+        user_collateral.last_updated_deposited
+    )?;
 
-    //  get requested amount to withdraw in usd
-    let requested_amount_in_usd = (amount as u64).checked_mul(borrow_token_price.price as u64).unwrap();
+    msg!("Collateral assets: {}", collateral_assets);
 
-    // check if requested amount is less than or equal to the total collateral value
-    if requested_amount_in_usd.checked_add(borrowed_amount_in_usd).unwrap() as f64 > (bank_borrow.max_ltv as f64).div(100 as f64).mul(collateral_token_value_in_usd as f64) {
+    // Validate collateral price feed
+    msg!("Validating collateral price feed");
+    let collateral_price = get_validated_price(
+        &ctx.accounts.price_update_collateral_token,
+        &ctx.accounts.pyth_network_feed_id_collateral_token
+    )?;
+    msg!("Collateral price: {}", collateral_price.price);
+    // Calculate total collateral value in USD
+    let collateral_value = (collateral_assets as f64)
+    .mul(collateral_price.price as f64)
+    .div(10u128.pow((-1 * collateral_price.exponent) as u32) as f64)
+    .div(10u128.pow((ctx.accounts.mint_collateral.decimals) as u32) as f64);
+    msg!("collateral_value: {}", collateral_value);
+    // Calculate existing debt in underlying assets
+    let existing_debt = calculate_user_assets(
+        bank_borrow,
+        user_borrow.borrowed_shares,
+        user_borrow.last_updated_borrowed
+    )?;
+
+    // Validate borrow token price feed
+    msg!("Validating borrow token price feed");
+    let borrow_price = get_validated_price(
+        &ctx.accounts.price_update_borrow_token,
+        &ctx.accounts.pyth_network_feed_id_borrow_token
+    )?;
+
+    // Convert debt to USD
+    let debt_value = (existing_debt as f64)
+        .mul(borrow_price.price as f64)
+        .div(10u128.pow(ctx.accounts.mint_borrow.decimals as u32) as f64)
+        .div(10u128.pow((-1 * borrow_price.exponent) as u32) as f64);
+    msg!("Existing debt value: ${}", debt_value);
+
+    // Convert withdrawal amount to USD
+    let withdrawal_value = (amount as f64)
+        .mul(collateral_price.price as f64)
+        .div(10u128.pow(ctx.accounts.mint_collateral.decimals as u32) as f64)
+        .div(10u128.pow((-1 *collateral_price.exponent) as u32) as f64);
+    msg!("Requested withdrawal value: ${}", withdrawal_value);
+
+    // Calculate maximum allowed debt based on LTV
+    let max_debt = collateral_value
+        .sub(withdrawal_value)
+        .mul(bank_borrow.max_ltv as f64)
+        .div(10_000.0); // Convert basis points to ratio
+    msg!("Max debt: ${}", max_debt);
+
+    // Check if debt exceeds new collateral value
+    if debt_value > max_debt {
+        msg!("Withdrawal would exceed LTV limit");
         return Err(ErrorCode::WithdrawAmountExceedsCollateralValue.into());
     }
 
-    // transfer the requested amount to the user
-    let transfer_checked_accounts = TransferChecked{
-        authority: ctx.accounts.bank_collateral_token_account.to_account_info(),
-        from: ctx.accounts.bank_collateral_token_account.to_account_info(),
-        mint: ctx.accounts.mint_collateral.to_account_info(),
-        to: ctx.accounts.user_collateral_token_account.to_account_info(),
-    };
-    let mint_collateral_key = ctx.accounts.mint_collateral.key();
-    let signer_seeds: &[&[&[u8]]] = &[
-        &[
-            b"treasury",
-            mint_collateral_key.as_ref(),
-            &[ctx.bumps.bank_collateral_token_account],
-        ]
-    ];
-    let cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), transfer_checked_accounts, signer_seeds);
-    transfer_checked(cpi_ctx, amount, ctx.accounts.mint_collateral.decimals)?;
-
-    // update collateral bank account
-    let bank_collateral = &mut ctx.accounts.bank_collateral;
-    
-    // Handle division by zero for shares calculation
-    let shares_to_remove = if bank_collateral.total_deposited == 0 {
+    // Calculate shares to burn based on current exchange rate
+    let shares_to_remove = if bank_collateral.total_deposited_shares == 0 {
         0
     } else {
-        amount
-            .checked_mul(bank_collateral.total_deposited_shares)
-            .unwrap_or(0)
-            .checked_div(bank_collateral.total_deposited)
-            .unwrap_or(0)
+        (amount as u128)
+            .checked_mul(bank_collateral.total_deposited_shares as u128)
+            .and_then(|v| v.checked_div(calculate_total_assets(bank_collateral)))
+            .ok_or(ErrorCode::MathOverflow)? as u64
     };
-    
-    bank_collateral.total_deposited = bank_collateral.total_deposited.checked_sub(amount).unwrap();
-    bank_collateral.total_deposited_shares = bank_collateral.total_deposited_shares.checked_sub(shares_to_remove).unwrap();
-    user_collateral_account.deposited = user_collateral_account.deposited.checked_sub(amount).unwrap();
-    user_collateral_account.deposited_shares = user_collateral_account.deposited_shares.checked_sub(shares_to_remove).unwrap();
 
+    // Execute collateral transfer
+    msg!("Transferring {} collateral tokens", amount);
+    let mint_collateral_key = ctx.accounts.mint_collateral.key();
+    let signer_seeds: &[&[&[u8]]] = &[&[
+        b"treasury",
+        mint_collateral_key.as_ref(),
+        &[ctx.bumps.bank_collateral_token_account],
+    ]];
+    let transfer_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        TransferChecked {
+            authority: ctx.accounts.bank_collateral_token_account.to_account_info(),
+            mint: ctx.accounts.mint_collateral.to_account_info(),
+            from: ctx.accounts.bank_collateral_token_account.to_account_info(),
+            to: ctx.accounts.user_collateral_token_account.to_account_info(),
+        },
+        signer_seeds,
+    );
+    transfer_checked(transfer_ctx, amount, ctx.accounts.mint_collateral.decimals)?;
+
+    // Update collateral positions
+    msg!("Updating collateral shares");
+    bank_collateral.total_deposited_shares = bank_collateral.total_deposited_shares
+        .checked_sub(shares_to_remove)
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    user_collateral.deposited_shares = user_collateral.deposited_shares
+        .checked_sub(shares_to_remove)
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    user_collateral.last_updated_deposited = current_time;
+
+    msg!("Withdrawal successful. Remaining collateral shares: {}", user_collateral.deposited_shares);
     Ok(())
 }

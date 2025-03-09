@@ -55,7 +55,6 @@ describe('Lending Smart Contract Tests', () => {
       wallet: provider.wallet,
     });
 
-
     solUsdPriceFeedAccount = pythSolanaReceiver
       .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID)
       .toBase58();
@@ -92,7 +91,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      2
+      6 // Changed to 6 decimals for USDC
     );
 
     mintSOL = await createMint(
@@ -101,7 +100,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      2
+      9 // Changed to 9 decimals for SOL
     );
 
     [usdcBankAccount] = PublicKey.findProgramAddressSync(
@@ -169,19 +168,21 @@ describe('Lending Smart Contract Tests', () => {
     expect(initUserSolTx).toBeTruthy();
   });
 
-  it('Test Init and Fund USDC Bank', async () => {
+  it('Test Init Bank', async () => {
     const initUSDCBankTx = await program.methods
       .initBank(
         new BN(5),
         new BN(5),
         new BN(50),
-        new BN(75),
+        new BN(7500),
         new BN(5),
-        Buffer.from("USDC Bank"),
-        Buffer.from("USDC Bank Description"),
+        new BN(10),
+        "USDC Bank",
+        "USDC Bank Description",
         new BN(5),
         new BN(5),
-        new BN(10000)
+        new BN(10000),
+        new BN(86400),
       )
       .accounts({
         signer: signer.publicKey,
@@ -190,9 +191,36 @@ describe('Lending Smart Contract Tests', () => {
       })
       .rpc({ commitment: 'confirmed' });
 
-    expect(initUSDCBankTx).toBeTruthy();
+    const initSOLBankTx = await program.methods
+      .initBank(
+        new BN(5),
+        new BN(5),
+        new BN(50),
+        new BN(7500),
+        new BN(3),
+        new BN(15),
+        "SOL Bank",
+        "SOL Bank Description", 
+        new BN(3),
+        new BN(3),
+        new BN(10000),
+        new BN(86400),
+      )
+      .accounts({
+        signer: signer.publicKey,
+        mint: mintSOL,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc({ commitment: 'confirmed' });
 
-    const amount = 10_000 * 10 ** 9;
+    console.log('initUSDCBankTx', initUSDCBankTx);
+    console.log('initSOLBankTx', initSOLBankTx);
+    expect(initUSDCBankTx).toBeTruthy();
+    expect(initSOLBankTx).toBeTruthy();
+  });
+
+  it('Test Init and Fund USDC Bank', async () => {
+    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
     const mintTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -207,40 +235,21 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test Init and Fund SOL Bank', async () => {
-    const initSOLBankTx = await program.methods
-      .initBank(
-        new BN(5),
-        new BN(5),
-        new BN(50),
-        new BN(75),
-        new BN(5),
-        Buffer.from("SOL Bank"),
-        Buffer.from("SOL Bank Description"),
-        new BN(5),
-        new BN(5),
-        new BN(10000)
-      )
-      .accounts({
-        signer: signer.publicKey,
-        mint: mintSOL,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .rpc({ commitment: 'confirmed' });
-
-    expect(initSOLBankTx).toBeTruthy();
-
-    const amount = 10_000 * 10 ** 9;
-    const mintSOLTx = await mintTo(
+    
+    // Deposit 1000 SOL (9 decimals)
+    const depositAmount = 1000 * 10**9;
+    
+    const mintTx = await mintTo(
       // @ts-ignore
       banksClient,
       signer,
       mintSOL,
       solBankTokenAccount,
       signer,
-      amount
+      depositAmount
     );
 
-    expect(mintSOLTx).toBeTruthy();
+    expect(mintTx).toBeTruthy();
   });
 
   it('Create and Fund Token Account', async () => {
@@ -254,7 +263,7 @@ describe('Lending Smart Contract Tests', () => {
 
     expect(USDCTokenAccount).toBeTruthy();
 
-    const amount = 10_000 * 10 ** 9;
+    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
     const mintUSDCTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -268,9 +277,35 @@ describe('Lending Smart Contract Tests', () => {
     expect(mintUSDCTx).toBeTruthy();
   });
 
+  it('Create and Fund SOL Token Account', async () => {
+    const SOLTokenAccount = await createAccount(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintSOL,
+      signer.publicKey
+    );
+    expect(SOLTokenAccount).toBeTruthy();
+
+    const amount = 10_000 * 10 ** 9;
+    const mintSOLTx = await mintTo(
+      // @ts-ignore
+      banksClient,
+      signer,
+      mintSOL,
+      SOLTokenAccount,
+      signer,
+      amount
+    );
+
+    expect(mintSOLTx).toBeTruthy();
+  });
+
   it('Test Deposit', async () => {
+    // For 200 USDC (6 decimals)
+    const depositAmount = 1000 * 10**6;
     const depositUSDC = await program.methods
-      .deposit(new BN(100000000000))
+      .deposit(new BN(depositAmount))
       .accounts({
         signer: signer.publicKey,
         mint: mintUSDC,
@@ -278,42 +313,60 @@ describe('Lending Smart Contract Tests', () => {
       })
       .rpc({ commitment: 'confirmed' });
 
+      console.log('depositUSDC', depositUSDC);
     expect(depositUSDC).toBeTruthy();
   });
 
+  it('Test SOL Deposit', async () => {
+    // For 200 SOL (9 decimals)
+    const depositAmount = 1000 * 10**9;
+    const depositSOL = await program.methods
+      .deposit(new BN(depositAmount))
+      .accounts({
+        signer: signer.publicKey,
+        mint: mintSOL,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc({ commitment: 'confirmed' });
+
+      console.log('depositSOL', depositSOL);
+    expect(depositSOL).toBeTruthy();
+  });
+  
   it('Test Borrow', async () => {
+    // Reduce borrow amount to 10 SOL (10,000,000,000 lamports)
+    const borrowAmount = 5 * 10**9;
+
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
       [Buffer.from("SOL")],
       program.programId
     );
-
     const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
       [Buffer.from("USDC")],
       program.programId
     );
 
+    // Fix price feed validation
     const accounts = {
       signer: signer.publicKey,
       mintBorrow: mintSOL,
       mintCollateral: mintUSDC,
 
-      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
-        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
-      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+      priceUpdateBorrowToken: new PublicKey(solUsdPriceFeedAccount),
+      priceUpdateCollateralToken: new PublicKey(usdcUsdPriceFeedAccount),
 
-      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
-        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
       pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
 
       tokenProgram: TOKEN_PROGRAM_ID,
     };
-    console.log('accounts', JSON.stringify(accounts, null, 2));
+
+    // Add required accounts
     const borrowSOL = await program.methods
-      .borrow(new BN(1000000))
+      .borrow(new BN(borrowAmount))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
-    console.log('borrowSOL', borrowSOL);
     expect(borrowSOL).toBeTruthy();
   });
 
@@ -345,8 +398,9 @@ describe('Lending Smart Contract Tests', () => {
     };
 
 
+    const repayAmount = 5 * 10**9;
     const repaySOL = await program.methods
-      .repay(new BN(1000000))
+      .repay(new BN(repayAmount))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
     expect(repaySOL).toBeTruthy();
@@ -379,13 +433,12 @@ describe('Lending Smart Contract Tests', () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     };
 
+    const withdrawAmount = 1000 * 10**6;
     const withdrawSOL = await program.methods
-      .withdraw(new BN(1000000))
+      .withdraw(new BN(withdrawAmount))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
     expect(withdrawSOL).toBeTruthy();
   });
-
-
 
 });
