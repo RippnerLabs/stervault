@@ -17,8 +17,12 @@ pub mod lending {
     return process_store_symbol_feed_id(ctx, symbol, feed_id);
   }
 
-  pub fn init_user(ctx: Context<InitUserTokenState>, mint_address: Pubkey) -> Result<()> {
-    return process_init_user(ctx, mint_address);
+  pub fn init_user(ctx: Context<InitUser>) -> Result<()> {
+    return process_init_user(ctx);
+  }
+
+  pub fn init_user_token_state(ctx: Context<InitUserTokenState>, mint_address: Pubkey) -> Result<()> {
+    return process_init_user_token_state(ctx, mint_address);
   }
 
   pub fn init_bank(ctx: Context<InitBank>, 

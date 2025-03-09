@@ -441,4 +441,35 @@ describe('Lending Smart Contract Tests', () => {
     expect(withdrawSOL).toBeTruthy();
   });
 
+  async function getUserDeposits(userPublicKey: PublicKey) {
+    const [globalStatePDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("user_global"), userPublicKey.toBuffer()],
+        program.programId
+    );
+
+    try {
+        const globalState = await program.account.userGlobalState.fetch(globalStatePDA);
+        return await Promise.all(globalState.deposited_mints.map(async (mint) => {
+            const [userTokenState] = PublicKey.findProgramAddressSync(
+                [userPublicKey.toBuffer(), mint.toBuffer()],
+                program.programId
+            );
+            return await program.account.userTokenState.fetch(userTokenState);
+        }));
+    } catch {
+        return [];
+    }
+  }
+
+  it('Test Get User Deposits', async () => {
+    const deposits = await getUserDeposits(signer.publicKey);
+    console.log('User deposits across all banks:', deposits);
+    
+    // Example log output:
+    // [
+    //   { depositedShares: 100000000, mint: 'EPjFWdd5...' }, // USDC
+    //   { depositedShares: 500000000, mint: 'So1111111...' } // SOL
+    // ]
+  });
+
 });

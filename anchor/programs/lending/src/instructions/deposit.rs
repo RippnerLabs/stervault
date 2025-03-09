@@ -3,6 +3,7 @@ use anchor_spl::{associated_token::AssociatedToken, token_interface::{Mint, Toke
 use crate::state::Bank;
 use crate::error::ErrorCode;
 use crate::state::UserTokenState;
+use crate::state::UserGlobalState;
 use crate::utils::*;
 
 #[derive(Accounts)]
@@ -47,13 +48,20 @@ pub struct Deposit<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
+
+    #[account(
+        mut,
+        seeds = [b"user_global", signer.key().as_ref()],
+        bump,
+    )]
+    pub user_global_state: Account<'info, UserGlobalState>,
 }
 
 pub fn process_deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
     // For tokens like SOL with 9 decimals, amount should be passed as 3*10^9 for 3 SOL
     // This ensures proper decimal handling when interacting with token accounts
     // Example: 3 SOL = 3_000_000_000 lamports
-    
+    msg!("Processing deposit {}", amount);
     let transfer_cpi_accounts = TransferChecked {
         authority: ctx.accounts.signer.to_account_info(),
         from: ctx.accounts.user_token_account.to_account_info(),
@@ -93,6 +101,13 @@ pub fn process_deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
 
     msg!("Bank total deposited shares: {}", bank.total_deposited_shares);
     msg!("User deposited shares: {}", user.deposited_shares);
+
+    // Update global state
+    let global_state = &mut ctx.accounts.user_global_state;
+    if !global_state.deposited_mints.contains(&ctx.accounts.mint.key()) {
+        global_state.deposited_mints.push(ctx.accounts.mint.key());
+    }
+
     Ok(())
 }
 

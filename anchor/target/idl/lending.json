@@ -423,6 +423,34 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "user_global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -568,6 +596,59 @@
           "signer": true
         },
         {
+          "name": "user_global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_user_token_state",
+      "discriminator": [
+        93,
+        39,
+        255,
+        186,
+        239,
+        199,
+        197,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
           "name": "user_account",
           "writable": true,
           "pda": {
@@ -579,6 +660,34 @@
               {
                 "kind": "arg",
                 "path": "mint_address"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
               }
             ]
           }
@@ -1233,6 +1342,19 @@
       ]
     },
     {
+      "name": "UserGlobalState",
+      "discriminator": [
+        196,
+        55,
+        221,
+        183,
+        141,
+        42,
+        99,
+        15
+      ]
+    },
+    {
       "name": "UserTokenState",
       "discriminator": [
         10,
@@ -1515,6 +1637,28 @@
           {
             "name": "feed_id",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserGlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposited_mints",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

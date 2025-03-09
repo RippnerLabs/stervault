@@ -2,29 +2,26 @@ use anchor_lang::prelude::*;
 use crate::state::*;
 
 #[derive(Accounts)]
-#[instruction(mint_address:Pubkey)]
-pub struct InitUserTokenState<'info> {
+pub struct InitUser<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
     #[account(
         init,
-        space = 8 + UserTokenState::INIT_SPACE,
         payer = signer,
-        seeds = [signer.key().as_ref(), mint_address.key().as_ref()],
-        bump
+        space = UserGlobalState::INIT_SPACE,
+        seeds = [b"user_global", signer.key().as_ref()],
+        bump,
     )]
-    pub user_account: Account<'info, UserTokenState>,
+    pub user_global_state: Account<'info, UserGlobalState>,
 
     pub system_program: Program<'info, System>,
 }
 
-pub fn process_init_user(ctx: Context<InitUserTokenState>, mint_address: Pubkey) -> Result<()> {
-    let user = &mut ctx.accounts.user_account;
-    user.owner = ctx.accounts.signer.key();
-    user.mint_address = mint_address;
-    let unix_timestamp = Clock::get()?.unix_timestamp;
-    user.last_updated_borrowed = unix_timestamp;
-    user.last_updated_borrowed = unix_timestamp;
+pub fn process_init_user(ctx: Context<InitUser>) -> Result<()> {
+    let global_state = &mut ctx.accounts.user_global_state;
+    global_state.user = ctx.accounts.signer.key();
+    global_state.deposited_mints = vec![];
+    global_state.bump = ctx.bumps.user_global_state;
     Ok(())
 }

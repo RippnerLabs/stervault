@@ -429,6 +429,34 @@ export type Lending = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "userGlobalState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -574,6 +602,59 @@ export type Lending = {
           "signer": true
         },
         {
+          "name": "userGlobalState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initUserTokenState",
+      "discriminator": [
+        93,
+        39,
+        255,
+        186,
+        239,
+        199,
+        197,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
           "name": "userAccount",
           "writable": true,
           "pda": {
@@ -585,6 +666,34 @@ export type Lending = {
               {
                 "kind": "arg",
                 "path": "mintAddress"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userGlobalState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
               }
             ]
           }
@@ -1239,6 +1348,19 @@ export type Lending = {
       ]
     },
     {
+      "name": "userGlobalState",
+      "discriminator": [
+        196,
+        55,
+        221,
+        183,
+        141,
+        42,
+        99,
+        15
+      ]
+    },
+    {
       "name": "userTokenState",
       "discriminator": [
         10,
@@ -1521,6 +1643,28 @@ export type Lending = {
           {
             "name": "feedId",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userGlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositedMints",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }

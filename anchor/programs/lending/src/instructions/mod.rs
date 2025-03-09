@@ -1,5 +1,7 @@
 pub use init_user::*;
 pub mod init_user;
+pub use init_user_token_state::*;
+pub mod init_user_token_state;
 pub mod init_bank;
 pub use init_bank::*;
 pub mod deposit;

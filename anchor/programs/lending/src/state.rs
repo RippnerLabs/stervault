@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-
+use crate::constants::MAX_MINTS;
 #[account]
 #[derive(InitSpace)]
 pub struct UserTokenState {
@@ -44,3 +44,13 @@ pub struct PythNetworkFeedId {
     #[max_len(200)]
     pub feed_id: String,
 }
+
+#[account]
+#[derive(InitSpace)]
+pub struct UserGlobalState {
+    pub user: Pubkey,          // The user public key
+    #[max_len(MAX_MINTS)]
+    pub deposited_mints: Vec<Pubkey>,  // List of all mints the user has deposited to
+    pub bump: u8,
+}
+
