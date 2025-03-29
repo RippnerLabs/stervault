@@ -1,14 +1,16 @@
 use anchor_lang::prelude::*;
-use crate::constants::MAX_MINTS;
+use crate::constants::{MAX_MINTS, MAX_BORROW_POSITIONS};
 #[account]
 #[derive(InitSpace)]
 pub struct UserTokenState {
     pub owner: Pubkey,
     pub mint_address: Pubkey,
     pub deposited_shares: u64,
+    pub collateral_shares: u64,
     pub borrowed_shares: u64,
     pub last_updated_deposited: i64,
     pub last_updated_borrowed: i64,
+    pub last_updated_collateral: i64,
 }
 
 #[account]
@@ -17,6 +19,7 @@ pub struct Bank {
     pub authority: Pubkey,
     pub mint_address: Pubkey,
     pub total_deposited_shares: u64,
+    pub total_collateral_shares: u64,
     pub total_borrowed_shares: u64,
     pub deposit_interest_rate: u64,
     pub borrow_interest_rate: u64,
@@ -48,9 +51,22 @@ pub struct PythNetworkFeedId {
 #[account]
 #[derive(InitSpace)]
 pub struct UserGlobalState {
-    pub user: Pubkey,          // The user public key
+    pub user: Pubkey,
     #[max_len(MAX_MINTS)]
-    pub deposited_mints: Vec<Pubkey>,  // List of all mints the user has deposited to
+    pub deposited_mints: Vec<Pubkey>,
+    #[max_len(MAX_BORROW_POSITIONS)]
+    pub active_positions: Vec<Pubkey>,
     pub bump: u8,
 }
 
+#[account]
+#[derive(InitSpace)]
+pub struct BorrowPosition {
+    pub owner: Pubkey,
+    pub collateral_mint: Pubkey,
+    pub borrow_mint: Pubkey,
+    pub collateral_shares: u64,
+    pub borrowed_shares: u64,
+    pub last_updated: i64,
+    pub active: bool,
+}

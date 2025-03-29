@@ -19,7 +19,7 @@ pub struct InitUserTokenState<'info> {
     #[account(
         init_if_needed,
         payer = signer,
-        space = UserGlobalState::INIT_SPACE,
+        space = 8 + UserGlobalState::INIT_SPACE,
         seeds = [b"user_global", signer.key().as_ref()],
         bump,
     )]
@@ -36,5 +36,11 @@ pub fn process_init_user_token_state(ctx: Context<InitUserTokenState>, mint_addr
     let unix_timestamp = Clock::get()?.unix_timestamp;
     user.last_updated_borrowed = unix_timestamp;
     user.last_updated_borrowed = unix_timestamp;
+
+    let global_state = &mut ctx.accounts.user_global_state;
+    global_state.user = ctx.accounts.signer.key();
+    global_state.deposited_mints.push(mint_address);
+    global_state.bump = ctx.bumps.user_global_state;
+
     Ok(())
 }

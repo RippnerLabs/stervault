@@ -9,7 +9,7 @@ pub struct InitUser<'info> {
     #[account(
         init,
         payer = signer,
-        space = UserGlobalState::INIT_SPACE,
+        space = 8 + UserGlobalState::INIT_SPACE,
         seeds = [b"user_global", signer.key().as_ref()],
         bump,
     )]

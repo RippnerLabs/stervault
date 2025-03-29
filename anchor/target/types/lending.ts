@@ -258,6 +258,39 @@ export type Lending = {
           }
         },
         {
+          "name": "borrowPosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mintCollateral"
+              },
+              {
+                "kind": "account",
+                "path": "mintBorrow"
+              }
+            ]
+          }
+        },
+        {
           "name": "priceUpdateBorrowToken"
         },
         {
@@ -268,6 +301,34 @@ export type Lending = {
         },
         {
           "name": "pythNetworkFeedIdCollateralToken"
+        },
+        {
+          "name": "userGlobalState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
           "name": "associatedTokenProgram",
@@ -580,6 +641,73 @@ export type Lending = {
         {
           "name": "interestAccrualPeriod",
           "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "initBorrowPosition",
+      "discriminator": [
+        47,
+        86,
+        47,
+        204,
+        142,
+        160,
+        81,
+        28
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "borrowPosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "arg",
+                "path": "mintCollateral"
+              },
+              {
+                "kind": "arg",
+                "path": "mintBorrow"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "mintCollateral",
+          "type": "pubkey"
+        },
+        {
+          "name": "mintBorrow",
+          "type": "pubkey"
         }
       ]
     },
@@ -976,6 +1104,67 @@ export type Lending = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "borrowPosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "mintCollateral"
+              },
+              {
+                "kind": "account",
+                "path": "mintBorrow"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userGlobalState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -1050,25 +1239,22 @@ export type Lending = {
           "signer": true
         },
         {
-          "name": "mintBorrow"
+          "name": "mint"
         },
         {
-          "name": "mintCollateral"
-        },
-        {
-          "name": "bankBorrow",
+          "name": "bank",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "mintBorrow"
+                "path": "mint"
               }
             ]
           }
         },
         {
-          "name": "bankBorrowTokenAccount",
+          "name": "bankTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1087,13 +1273,13 @@ export type Lending = {
               },
               {
                 "kind": "account",
-                "path": "mintBorrow"
+                "path": "mint"
               }
             ]
           }
         },
         {
-          "name": "userBorrowAccount",
+          "name": "userTokenState",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1103,13 +1289,13 @@ export type Lending = {
               },
               {
                 "kind": "account",
-                "path": "mintBorrow"
+                "path": "mint"
               }
             ]
           }
         },
         {
-          "name": "userBorrowTokenAccount",
+          "name": "userAssociatedTokenAccount",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1123,7 +1309,7 @@ export type Lending = {
               },
               {
                 "kind": "account",
-                "path": "mintBorrow"
+                "path": "mint"
               }
             ],
             "program": {
@@ -1164,132 +1350,6 @@ export type Lending = {
               ]
             }
           }
-        },
-        {
-          "name": "bankCollateral",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "mintCollateral"
-              }
-            ]
-          }
-        },
-        {
-          "name": "bankCollateralTokenAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mintCollateral"
-              }
-            ]
-          }
-        },
-        {
-          "name": "userCollateralAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "account",
-                "path": "mintCollateral"
-              }
-            ]
-          }
-        },
-        {
-          "name": "userCollateralTokenAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "account",
-                "path": "tokenProgram"
-              },
-              {
-                "kind": "account",
-                "path": "mintCollateral"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "priceUpdateBorrowToken"
-        },
-        {
-          "name": "pythNetworkFeedIdBorrowToken"
-        },
-        {
-          "name": "priceUpdateCollateralToken"
-        },
-        {
-          "name": "pythNetworkFeedIdCollateralToken"
-        },
-        {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "tokenProgram"
@@ -1297,6 +1357,10 @@ export type Lending = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
       "args": [
@@ -1319,6 +1383,19 @@ export type Lending = {
         66,
         97,
         188
+      ]
+    },
+    {
+      "name": "borrowPosition",
+      "discriminator": [
+        243,
+        140,
+        20,
+        139,
+        32,
+        243,
+        114,
+        55
       ]
     },
     {
@@ -1444,6 +1521,16 @@ export type Lending = {
       "code": 6013,
       "name": "insufficientLiquidity",
       "msg": "Insufficient Liquidity"
+    },
+    {
+      "code": 6014,
+      "name": "insufficientFunds",
+      "msg": "Insufficient Funds"
+    },
+    {
+      "code": 6015,
+      "name": "insufficientCollateral",
+      "msg": "Insufficient Collateral"
     }
   ],
   "types": [
@@ -1462,6 +1549,10 @@ export type Lending = {
           },
           {
             "name": "totalDepositedShares",
+            "type": "u64"
+          },
+          {
+            "name": "totalCollateralShares",
             "type": "u64"
           },
           {
@@ -1519,6 +1610,42 @@ export type Lending = {
           {
             "name": "minDeposit",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "borrowPosition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateralMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "borrowMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateralShares",
+            "type": "u64"
+          },
+          {
+            "name": "borrowedShares",
+            "type": "u64"
+          },
+          {
+            "name": "lastUpdated",
+            "type": "i64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
           }
         ]
       }
@@ -1663,6 +1790,12 @@ export type Lending = {
             }
           },
           {
+            "name": "activePositions",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
             "name": "bump",
             "type": "u8"
           }
@@ -1687,6 +1820,10 @@ export type Lending = {
             "type": "u64"
           },
           {
+            "name": "collateralShares",
+            "type": "u64"
+          },
+          {
             "name": "borrowedShares",
             "type": "u64"
           },
@@ -1696,6 +1833,10 @@ export type Lending = {
           },
           {
             "name": "lastUpdatedBorrowed",
+            "type": "i64"
+          },
+          {
+            "name": "lastUpdatedCollateral",
             "type": "i64"
           }
         ]
@@ -1737,9 +1878,9 @@ export type Lending = {
   ],
   "constants": [
     {
-      "name": "solUsdPriceFeedId",
-      "type": "string",
-      "value": "\"0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d\""
+      "name": "maximumAge",
+      "type": "u64",
+      "value": "10000"
     }
   ]
 };

@@ -25,6 +25,10 @@ pub mod lending {
     return process_init_user_token_state(ctx, mint_address);
   }
 
+  pub fn init_borrow_position(ctx: Context<InitBorrowPosition>, mint_collateral: Pubkey, mint_borrow: Pubkey) -> Result<()> {
+    return process_init_borrow_position(ctx, mint_collateral, mint_borrow);
+  }
+
   pub fn init_bank(ctx: Context<InitBank>, 
     liquidation_threshold: u64,
     liquidation_bonus: u64,

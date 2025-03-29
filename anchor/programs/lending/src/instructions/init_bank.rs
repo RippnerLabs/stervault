@@ -68,6 +68,7 @@ pub fn process_init_bank(
     
     bank.total_deposited_shares = 0;
     bank.total_borrowed_shares = 0;
-
+    bank.total_collateral_shares = 0;
+    
     Ok(())
 }

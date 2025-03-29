@@ -30,4 +30,8 @@ pub enum ErrorCode {
     StalePrice,
     #[msg("Insufficient Liquidity")]
     InsufficientLiquidity,
+    #[msg("Insufficient Funds")]
+    InsufficientFunds,
+    #[msg("Insufficient Collateral")]
+    InsufficientCollateral,
 }
