@@ -1,6 +1,6 @@
 [
   {
-    "address": "8qDNtUiyRN93y1jFf5JVyASwdN7wHNK3p4SGCPpCf6iK",
+    "address": "4X7nLovMuU8uB9wpxjYqvGJPBnSnXWD1zqoeVpPxUAGb",
     "name": "Wrapped SOL",
     "symbol": "SOL",
     "decimals": 9,
@@ -21,7 +21,7 @@
     }
   },
   {
-    "address": "AgjeyHWehpyuEV6117rtJWptXDEq3DbDb2K9NMJ9cTSd",
+    "address": "4gMHvaJ1GyvFby2khN6F4DWeL1P1UtPzf1yBxUj3xvDT",
     "name": "USD Coin",
     "symbol": "USDC",
     "decimals": 6,
@@ -42,7 +42,7 @@
     }
   },
   {
-    "address": "H5NRL7cnuao86FG3aCUnqA1GFU48SN1YT9L4Eeh1a4Vd",
+    "address": "9odeeXdA9gWSo7QoM1s6bk8G9dEZg7CNWFeW4ExKwWUK",
     "name": "USDT",
     "symbol": "USDT",
     "decimals": 6,
@@ -63,7 +63,7 @@
     }
   },
   {
-    "address": "AxUZhTE1VysEDeMak5aHfANF5tNSU1LcqtpJT1qv2jYc",
+    "address": "AQXk4ywhTefHA5HZNbmZexkPTBE3eRRu4V2E7Y9fDAKu",
     "name": "OFFICIAL TRUMP",
     "symbol": "TRUMP",
     "decimals": 6,
@@ -84,7 +84,7 @@
     }
   },
   {
-    "address": "CXfYsJnRMwEN5r5dDPSAyqULbLkFxnwZ8XXnvL4pLSEs",
+    "address": "GC5kRkwRm2BMPUzjSq8HVmhshtbPbBVxT6UeAyTrQ2Bx",
     "name": "Jupiter Perps",
     "symbol": "JLP",
     "decimals": 6,
@@ -105,7 +105,7 @@
     }
   },
   {
-    "address": "9UVbxtWoBvofyy2JJP27dsuGRz3S5qZThzyz2LpnXSDY",
+    "address": "4f1syS9nrCv6WTirPoaR2Yp3n3X6CpMdnukG5ndGp52J",
     "name": "Jito Staked SOL",
     "symbol": "JitoSOL",
     "decimals": 9,
@@ -127,7 +127,7 @@
     }
   },
   {
-    "address": "AJopQPFVUuJ8SPTDL8Sa4LyfHfqsByUShamd2Yj8TQmJ",
+    "address": "BaaCDRkqM7vCMHCs8bpbvtAewRNQpFgsbAxLABLBbUUt",
     "name": "Jupiter",
     "symbol": "JUP",
     "decimals": 6,
@@ -149,7 +149,7 @@
     }
   },
   {
-    "address": "DjzTdg9aBzzJGL1smkwWnYzh7sxefFLKcUkvhh923kqp",
+    "address": "GvGGqabt1YkvwrAGKqChkjnx2ZHskvxx91wrvatUA3op",
     "name": "USDS",
     "symbol": "USDS",
     "decimals": 6,
@@ -169,7 +169,7 @@
     }
   },
   {
-    "address": "EtQb6bj17pKzzz6VQYhTdPxRAWXqWKvk88vKwZAbcYbE",
+    "address": "BjtuVE3V17f8MnTrzf29839Qoo6WiEhpxwiSsA9VvRQX",
     "name": "Wrapped BTC (Portal)",
     "symbol": "WBTC",
     "decimals": 8,
@@ -191,7 +191,7 @@
     }
   },
   {
-    "address": "HhwPf5uM4QQxH53BeXNJhyZuPC8xMenHMCBM9fs82xiY",
+    "address": "8zaSjnMKZXmRe2SPbo6KEvxZmHSTZuaeem3sjLGXYbG1",
     "name": "Ether (Portal)",
     "symbol": "ETH",
     "decimals": 8,
@@ -213,7 +213,7 @@
     }
   },
   {
-    "address": "HSkH2qrfjyX1zn5fKExinserwrJTGdduUsNZBBcjthjp",
+    "address": "2WvVeNFaaeT53zguTqUfs98QX92CVSfWc6FAWHhNVHfx",
     "name": "Fartcoin",
     "symbol": "Fartcoin",
     "decimals": 6,

@@ -40,8 +40,15 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             ),
         },
         {
+            label: "Deposits",
+            href: "/deposits",
+            icon: (
+                <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+            ),
+        },
+        {
             label: "Deposit Tokens",
-            href: "/deposit",
+            href: "/deposit-tokens",
             icon: (
                 <IconArrowDownCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
             ),

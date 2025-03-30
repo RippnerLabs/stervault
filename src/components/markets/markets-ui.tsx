@@ -376,8 +376,16 @@ function Markets() {
                       <button 
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors text-sm"
                         disabled={!connected}
+                        onClick={() => router.push(`/deposit-tokens?bankId=${bank.publicKey.toString()}`)}
                       >
                         Deposit
+                      </button>
+                      <button 
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm"
+                        disabled={!connected}
+                        onClick={() => router.push(`/borrow?bankId=${bank.publicKey.toString()}`)}
+                      >
+                        Borrow
                       </button>
                       <button className="flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 p-2 rounded-lg transition-colors">
                         <IconInfoCircle className="h-5 w-5" />

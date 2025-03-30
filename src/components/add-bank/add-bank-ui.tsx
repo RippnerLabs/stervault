@@ -333,10 +333,10 @@ function AddBank() {
             }
 
             // Validate the token is a valid SPL token on the blockchain
-            const isValidToken = await validateToken(data.tokenAddress);
-            if (!isValidToken) {
-                throw new Error("Token validation failed. Please make sure you're using a valid SPL token mint address on the devnet.");
-            }
+            // const isValidToken = await validateToken(data.tokenAddress);
+            // if (!isValidToken) {
+            //     throw new Error("Token validation failed. Please make sure you're using a valid SPL token mint address on the devnet.");
+            // }
 
             // Convert token address string to PublicKey
             const tokenMint = new PublicKey(data.tokenAddress);

@@ -33,8 +33,9 @@ export function useBankProgram() {
     queryKey: ['banks', 'all', { cluster }],
     queryFn: async () => {
       try {
-        // This will need to be updated based on your actual program structure
-        // Assuming the bank accounts are stored in a way that can be queried
+        // Fetch all bank accounts from the program
+        // Using any here since the TypeScript definitions may not fully match the runtime structure
+        // @ts-ignore
         const allAccounts = await program.account.bank.all()
         return allAccounts
       } catch (error) {
@@ -198,10 +199,20 @@ export function useBankProgram() {
         );
         console.log('User PDA:', userPDA.toString());
 
+        // Find PDA for user global state
+        const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from('user_global'), provider.publicKey.toBuffer()],
+          programId
+        );
+        console.log('User Global State PDA:', userGlobalStatePDA.toString());
+
         const tx = await program.methods
-          .initUser(mintAddress)
+          .initUserTokenState(mintAddress)
           .accounts({
             signer: provider.publicKey,
+            userAccount: userPDA,
+            userGlobalState: userGlobalStatePDA,
+            systemProgram: SystemProgram.programId,
           })
           .rpc({ commitment: 'confirmed' });
         
