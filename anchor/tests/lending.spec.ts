@@ -325,8 +325,39 @@ describe('Lending Smart Contract Tests', () => {
       })
       .rpc({ commitment: 'confirmed' });
 
-      console.log('depositUSDC', depositUSDC);
+    console.log('depositUSDC', depositUSDC);
     expect(depositUSDC).toBeTruthy();
+    
+    // Verify the deposit was recorded correctly
+    console.log("Verifying USDC deposit...");
+    // Get user token state for USDC
+    const [userTokenStatePDA] = PublicKey.findProgramAddressSync(
+      [signer.publicKey.toBuffer(), mintUSDC.toBuffer()],
+      program.programId
+    );
+    
+    const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
+    console.log("USDC User Token State after deposit:", userTokenState);
+    
+    // Verify deposit shares are greater than 0
+    expect(userTokenState.depositedShares.toString()).not.toBe('0');
+    console.log("USDC Deposited Shares:", userTokenState.depositedShares.toString());
+    
+    // Get user global state to verify mint was added
+    const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_global"), signer.publicKey.toBuffer()],
+      program.programId
+    );
+    
+    const userGlobalState = await program.account.userGlobalState.fetch(userGlobalStatePDA);
+    console.log("User Global State after USDC deposit:", userGlobalState);
+    
+    // Verify USDC mint is in the deposited mints array
+    const usdcMintInDeposits = userGlobalState.depositedMints.some(
+      mint => mint.toBase58() === mintUSDC.toBase58()
+    );
+    expect(usdcMintInDeposits).toBe(true);
+    console.log("USDC deposit verification completed successfully");
   });
 
   it('Test SOL Deposit', async () => {
@@ -341,8 +372,39 @@ describe('Lending Smart Contract Tests', () => {
       })
       .rpc({ commitment: 'confirmed' });
 
-      console.log('depositSOL', depositSOL);
+    console.log('depositSOL', depositSOL);
     expect(depositSOL).toBeTruthy();
+    
+    // Verify the deposit was recorded correctly
+    console.log("Verifying SOL deposit...");
+    // Get user token state for SOL
+    const [userTokenStatePDA] = PublicKey.findProgramAddressSync(
+      [signer.publicKey.toBuffer(), mintSOL.toBuffer()],
+      program.programId
+    );
+    
+    const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
+    console.log("SOL User Token State after deposit:", userTokenState);
+    
+    // Verify deposit shares are greater than 0
+    expect(userTokenState.depositedShares.toString()).not.toBe('0');
+    console.log("SOL Deposited Shares:", userTokenState.depositedShares.toString());
+    
+    // Get user global state to verify mint was added
+    const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_global"), signer.publicKey.toBuffer()],
+      program.programId
+    );
+    
+    const userGlobalState = await program.account.userGlobalState.fetch(userGlobalStatePDA);
+    console.log("User Global State after SOL deposit:", userGlobalState);
+    
+    // Verify SOL mint is in the deposited mints array
+    const solMintInDeposits = userGlobalState.depositedMints.some(
+      mint => mint.toBase58() === mintSOL.toBase58()
+    );
+    expect(solMintInDeposits).toBe(true);
+    console.log("SOL deposit verification completed successfully");
   });
   
   it('Test Borrow', async () => {

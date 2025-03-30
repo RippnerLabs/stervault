@@ -7,7 +7,7 @@ pub struct InitUser<'info> {
     pub signer: Signer<'info>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = signer,
         space = 8 + UserGlobalState::INIT_SPACE,
         seeds = [b"user_global", signer.key().as_ref()],
