@@ -440,39 +440,157 @@ describe('Lending Smart Contract Tests', () => {
       .withdraw(new BN(withdrawAmount))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
-    // expect(withdra÷wSOL).toBeTruthy();
+    expect(withdrawSOL).toBeTruthy();
   });
 
-  async function getUserDeposits(userPublicKey: PublicKey) {
-    const [globalStatePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user_global"), userPublicKey.toBuffer()],
-        program.programId
+  it("Test Get User Financial Profile", async () => {
+    console.log("Starting Test Get User Financial Profile");
+    // Derive the user's global state PDA using the seed [b"user_global", userPublicKey].
+    console.log("Deriving user global state PDA for signer:", signer.publicKey.toBase58());
+    const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_global"), signer.publicKey.toBuffer()],
+      program.programId
     );
-
-    try {
-        const globalState = await program.account.userGlobalState.fetch(globalStatePDA);
-        return await Promise.all(globalState.deposited_mints.map(async (mint) => {
-            const [userTokenState] = PublicKey.findProgramAddressSync(
-                [userPublicKey.toBuffer(), mint.toBuffer()],
-                program.programId
-            );
-            return await program.account.userTokenState.fetch(userTokenState);
-        }));
-    } catch {
-        return [];
-    }
-  }
-
-  it('Test Get User Deposits', async () => {
-    const deposits = await getUserDeposits(signer.publicKey);
-    console.log('User deposits across all banks:', deposits);
+    console.log("User global state PDA derived:", userGlobalStatePDA.toBase58());
     
-    // Example log output:
-    // [
-    //   { depositedShares: 100000000, mint: 'EPjFWdd5...' }, // USDC
-    //   { depositedShares: 500000000, mint: 'So1111111...' } // SOL
-    // ]
+    console.log("Fetching user global state data...");
+    const userGlobalState = await program.account.userGlobalState.fetch(userGlobalStatePDA);
+    console.log("User Global State:", userGlobalState);
+    console.log("User Global State - depositedMints:", userGlobalState.depositedMints);
+    console.log("User Global State - activePositions:", userGlobalState.activePositions);
+    console.log("User Global State - bump:", userGlobalState.bump);
+  
+    // For each deposited mint (i.e. for each bank the user has interacted with),
+    // derive and fetch the user token state (which stores deposited, collateral, and borrow shares).
+    console.log(`Processing ${userGlobalState.depositedMints.length} deposited mints`);
+    for (const mint of userGlobalState.depositedMints) {
+      console.log("Processing mint:", mint.toBase58());
+      console.log("Deriving user token state PDA for this mint...");
+      const [userTokenStatePDA] = PublicKey.findProgramAddressSync(
+        [signer.publicKey.toBuffer(), mint.toBuffer()],
+        program.programId
+      );
+      console.log("User token state PDA:", userTokenStatePDA.toBase58());
+      
+      console.log("Fetching user token state data...");
+      const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
+      console.log(`User Token State for mint ${mint.toBase58()}:`, userTokenState);
+      console.log("  - Owner:", userTokenState.owner.toBase58());
+      console.log("  - Mint Address:", userTokenState.mintAddress.toBase58());
+      console.log("  - Deposited Shares:", userTokenState.depositedShares.toString());
+      console.log("  - Collateral Shares:", userTokenState.collateralShares.toString());
+      console.log("  - Borrowed Shares:", userTokenState.borrowedShares.toString());
+      console.log("  - Last Updated Deposited:", userTokenState.lastUpdatedDeposited.toString());
+      console.log("  - Last Updated Collateral:", userTokenState.lastUpdatedCollateral.toString());
+      console.log("  - Last Updated Borrowed:", userTokenState.lastUpdatedBorrowed.toString());
+    }
+  
+    // For each active borrow position (if any), fetch the BorrowPosition account.
+    console.log(`Processing ${userGlobalState.activePositions.length} active borrow positions`);
+    for (const pos of userGlobalState.activePositions) {
+      console.log("Processing borrow position:", pos.toBase58());
+      console.log("Fetching borrow position data...");
+      const borrowPosition = await program.account.borrowPosition.fetch(pos);
+      console.log(`Borrow Position ${pos.toBase58()}:`, borrowPosition);
+      console.log("  - Owner:", borrowPosition.owner.toBase58());
+      console.log("  - Collateral Mint:", borrowPosition.collateralMint.toBase58());
+      console.log("  - Borrow Mint:", borrowPosition.borrowMint.toBase58());
+      console.log("  - Collateral Shares:", borrowPosition.collateralShares.toString());
+      console.log("  - Borrowed Shares:", borrowPosition.borrowedShares.toString());
+      console.log("  - Last Updated:", borrowPosition.lastUpdated.toString());
+      console.log("  - Active:", borrowPosition.active);
+    }
+    console.log("Test Get User Financial Profile completed");
   });
-
+  
+  it("Test Get User Deposits", async () => {
+    console.log("Starting Test Get User Deposits");
+    // This test uses the user's public key to list deposits across all banks.
+    console.log("Deriving user global state PDA for signer:", signer.publicKey.toBase58());
+    const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_global"), signer.publicKey.toBuffer()],
+      program.programId
+    );
+    console.log("User global state PDA derived:", userGlobalStatePDA.toBase58());
+    
+    console.log("Fetching user global state data...");
+    const userGlobalState = await program.account.userGlobalState.fetch(userGlobalStatePDA);
+    console.log("User Global State:", userGlobalState);
+    console.log("User has deposited in", userGlobalState.depositedMints.length, "mints");
+    
+    const depositsInfo = [];
+    console.log("Processing each deposited mint to get detailed information...");
+    for (const mint of userGlobalState.depositedMints) {
+      console.log("Processing mint:", mint.toBase58());
+      console.log("Deriving user token state PDA for this mint...");
+      const [userTokenStatePDA] = PublicKey.findProgramAddressSync(
+        [signer.publicKey.toBuffer(), mint.toBuffer()],
+        program.programId
+      );
+      console.log("User token state PDA:", userTokenStatePDA.toBase58());
+      
+      console.log("Fetching user token state data...");
+      const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
+      console.log("User token state fetched:", userTokenState);
+      
+      const depositInfo = {
+        mint: mint.toBase58(),
+        depositedShares: userTokenState.depositedShares,
+        collateralShares: userTokenState.collateralShares,
+        borrowedShares: userTokenState.borrowedShares,
+        lastUpdatedDeposited: userTokenState.lastUpdatedDeposited,
+        lastUpdatedCollateral: userTokenState.lastUpdatedCollateral,
+        lastUpdatedBorrowed: userTokenState.lastUpdatedBorrowed,
+      };
+      console.log("Created deposit info object:", depositInfo);
+      depositsInfo.push(depositInfo);
+    }
+    console.log("All User Deposits Information:", depositsInfo);
+    console.log("Total number of deposits:", depositsInfo.length);
+    expect(depositsInfo.length).toBeGreaterThan(0);
+    console.log("Test Get User Deposits completed successfully");
+  });
+  
+  it("Test Get Active Borrow Positions", async () => {
+    console.log("Starting Test Get Active Borrow Positions");
+    // Derive the user's global state PDA.
+    console.log("Deriving user global state PDA for signer:", signer.publicKey.toBase58());
+    const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_global"), signer.publicKey.toBuffer()],
+      program.programId
+    );
+    console.log("User global state PDA derived:", userGlobalStatePDA.toBase58());
+    
+    console.log("Fetching user global state data...");
+    const userGlobalState = await program.account.userGlobalState.fetch(userGlobalStatePDA);
+    console.log("User Global State:", userGlobalState);
+    console.log("User has", userGlobalState.activePositions.length, "active borrow positions");
+    
+    const borrowPositions = [];
+    console.log("Processing each active position to get detailed information...");
+    for (const posPubkey of userGlobalState.activePositions) {
+      console.log("Processing position:", posPubkey.toBase58());
+      console.log("Fetching borrow position data...");
+      const borrowPosition = await program.account.borrowPosition.fetch(posPubkey);
+      console.log("Borrow position fetched:", borrowPosition);
+      
+      const positionInfo = {
+        position: posPubkey.toBase58(),
+        owner: borrowPosition.owner.toBase58(),
+        collateralMint: borrowPosition.collateralMint.toBase58(),
+        borrowMint: borrowPosition.borrowMint.toBase58(),
+        collateralShares: borrowPosition.collateralShares,
+        borrowedShares: borrowPosition.borrowedShares,
+        lastUpdated: borrowPosition.lastUpdated,
+        active: borrowPosition.active,
+      };
+      console.log("Created position info object:", positionInfo);
+      borrowPositions.push(positionInfo);
+    }
+    console.log("All User Active Borrow Positions:", borrowPositions);
+    console.log("Total number of active positions:", borrowPositions.length);
+    console.log("Note: It's valid for a user to have zero borrow positions.");
+    console.log("Test Get Active Borrow Positions completed");
+  });
   
 });
