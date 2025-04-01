@@ -65,7 +65,6 @@ export function useDeposits() {
   const provider = useAnchorProvider()
   const programId = useMemo(() => LENDING_PROGRAM_ID, [])
   const program = useMemo(() => {
-    console.log('Using program ID for deposit:', programId.toString());
     return getLendingProgram(provider, programId);
   }, [provider, programId])
   const { banks } = useMarketsBanks();
@@ -274,7 +273,7 @@ export function useDeposits() {
                 }
                 
                 console.log(`Processed deposit for ${mintAddress.toString()}: Amount=${depositAmount}, Shares=${depositShares}`);
-              } catch (error) {
+      } catch (error) {
                 console.error('Error processing deposit amounts:', error);
               }
               

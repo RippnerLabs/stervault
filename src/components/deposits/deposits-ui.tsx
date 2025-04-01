@@ -27,7 +27,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { TypewriterEffect, TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 import { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -237,7 +236,7 @@ function Deposits() {
     if (userDeposits.isError) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-6">
-                <CardSpotlight className="max-w-2xl w-full">
+                <Card className="max-w-2xl w-full">
                     <div className="text-center p-6">
                         <h1 className="text-4xl font-bold mb-4 text-red-500">Error Loading Deposits</h1>
                         <p className="text-neutral-400 mb-6">
@@ -258,7 +257,7 @@ function Deposits() {
                             <span>Try Again</span>
                         </Button>
                     </div>
-                </CardSpotlight>
+                </Card>
             </div>
         );
     }
@@ -273,7 +272,7 @@ function Deposits() {
                     </p>
                 </div>
                 
-                <CardSpotlight className="mb-16 p-12">
+                <Card className="mb-16 p-12">
                     <div className="flex flex-col items-center justify-center text-center">
                         <IconCoins className="w-20 h-20 text-primary/50 mb-4" />
                         <h3 className="text-2xl font-medium mb-2">Ready to Start Earning?</h3>
@@ -289,7 +288,7 @@ function Deposits() {
                             <IconArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Button>
                     </div>
-                </CardSpotlight>
+                </Card>
             </div>
         );
     }
@@ -305,41 +304,41 @@ function Deposits() {
             
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <CardSpotlight className="p-6">
+                <Card className="p-6">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-neutral-100 rounded-full">
                             <IconCurrencyDollar className="h-6 w-6 text-primary" />
                         </div>
                         <div>
                             <Label className="text-neutral-500">Total Value</Label>
-                            <p className="text-2xl font-bold text-white">{formatNumber(totalDepositValue)}</p>
+                            <p className="text-2xl font-bold">{formatNumber(totalDepositValue)}</p>
                         </div>
                     </div>
-                </CardSpotlight>
+                </Card>
                 
-                <CardSpotlight className="p-6">
+                <Card className="p-6">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-neutral-100 rounded-full">
                             <IconWallet className="h-6 w-6 text-primary" />
                         </div>
                         <div>
                             <Label className="text-neutral-500">Active Deposits</Label>
-                            <p className="text-2xl font-bold text-white">{userDeposits.data.length}</p>
+                            <p className="text-2xl font-bold">{userDeposits.data.length}</p>
                         </div>
                     </div>
-                </CardSpotlight>
+                </Card>
                 
-                <CardSpotlight className="p-6">
+                <Card className="p-6">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-neutral-100 rounded-full">
                             <IconCoins className="h-6 w-6 text-primary" />
                         </div>
                         <div>
                             <Label className="text-neutral-500">Tokens</Label>
-                            <p className="text-2xl font-bold text-white">{Object.keys(depositsByToken || {}).length}</p>
+                            <p className="text-2xl font-bold">{Object.keys(depositsByToken || {}).length}</p>
                         </div>
                     </div>
-                </CardSpotlight>
+                </Card>
             </div>
             
             {/* Deposits by Token */}

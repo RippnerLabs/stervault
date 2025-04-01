@@ -92,7 +92,6 @@ export function useMarketsBanks() {
   const provider = useAnchorProvider()
   const programId = useMemo(() => LENDING_PROGRAM_ID, [])
   const program = useMemo(() => {
-    console.log('Using program ID for markets:', programId.toString());
     return getLendingProgram(provider, programId);
   }, [provider, programId])
 

@@ -14,7 +14,6 @@ export const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7
 export function getLendingProgram(provider: AnchorProvider, address?: PublicKey) {
   // Always use the provided address if available, otherwise use the LENDING_PROGRAM_ID
   const programId = address || LENDING_PROGRAM_ID;
-  console.log('Using program ID in getLendingProgram:', programId.toString());
   return new Program({ ...LendingIDL, address: programId.toBase58() } as Lending, provider)
 }
 

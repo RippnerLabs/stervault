@@ -22,7 +22,6 @@ export function useDepositTokens() {
   const provider = useAnchorProvider()
   const programId = useMemo(() => LENDING_PROGRAM_ID, [])
   const program = useMemo(() => {
-    console.log('Using program ID for deposit:', programId.toString());
     return getLendingProgram(provider, programId);
   }, [provider, programId])
 

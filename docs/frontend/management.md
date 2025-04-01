@@ -66,7 +66,7 @@ Here’s a **comprehensive UI layout** for your **Solana Token Lending Dashboard
 **Main Content:**  
 - **List of Token Banks** (Each showing deposit interest rates).  
 - **User Deposits in Banks** (Table with deposit details).  
-- **Move Funds to Bank** (Form for transferring tokens).  
+- submit the deposit as collateral to borrow tokens from other banks
 
 ---
 

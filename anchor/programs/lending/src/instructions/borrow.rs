@@ -118,10 +118,10 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("Borrow mint: {}", ctx.accounts.mint_borrow.key());
     msg!("Collateral mint: {}", ctx.accounts.mint_collateral.key());
     
-    if amount < ctx.accounts.bank_borrow.min_deposit {
-        msg!("ERROR: Borrow amount {} is less than minimum deposit {}", amount, ctx.accounts.bank_borrow.min_deposit);
-        return Err(ErrorCode::BorrowAmountTooSmall.into());
-    }
+    // if amount < ctx.accounts.bank_borrow.min_deposit {
+    //     msg!("ERROR: Borrow amount {} is less than minimum deposit {}", amount, ctx.accounts.bank_borrow.min_deposit);
+    //     return Err(ErrorCode::BorrowAmountTooSmall.into());
+    // }
 
     let current_time = Clock::get()?.unix_timestamp;
     msg!("Current timestamp: {}", current_time);
@@ -203,6 +203,12 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
         &ctx.accounts.pyth_network_feed_id_borrow_token,
     )?;
     msg!("Borrow token price: {} with exponent {}", borrow_price.price, borrow_price.exponent);
+    
+    msg!("Calculating borrow value");
+    msg!("Amount: {}", amount);
+    msg!("Borrow token decimals: {}", ctx.accounts.mint_borrow.decimals);
+    msg!("Borrow price: {}", borrow_price.price);
+    msg!("Borrow price exponent: {}", borrow_price.exponent);
     
     let borrow_value = (amount as f64)
         .div(10u128.pow(ctx.accounts.mint_borrow.decimals as u32) as f64)
