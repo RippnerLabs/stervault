@@ -4,7 +4,7 @@ import { getLendingProgram } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, SystemProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
@@ -12,6 +12,25 @@ import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from '@coral-xyz/anchor'
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getMint } from '@solana/spl-token'
 import { useMarketsBanks } from '../markets/markets-data-access'
+import { useTokenMetadata, useBatchPythPrices, TokenMetadata, PythPriceData } from '../pyth/pyth-data-access'
+import { priceFeedIds as priceFeedIdsMap } from '../../lib/constants'
+
+// Helper function to verify if a string is a valid hex ID
+function isValidHexId(id: string): boolean {
+  // Check if it's a 64-character hex string (without 0x prefix)
+  return /^[0-9a-f]{64}$/i.test(id);
+}
+
+// Helper function to verify if a string appears to be a base58 account address
+function isLikelyBase58Address(id: string): boolean {
+  // Base58 addresses are typically shorter (32-44 chars) and contain alphanumeric chars
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(id);
+}
+
+// Helper function to strip 0x prefix
+function stripHexPrefix(id: string): string {
+  return id.startsWith('0x') ? id.slice(2) : id;
+}
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
@@ -54,8 +73,12 @@ export interface UserDeposit {
     name: string;
     logoURI: string;
     decimals: number;
+    pythPriceFeed?: string;
   };
   mintDecimals?: number;
+  // Added for Pyth price integration
+  usdValue?: number;
+  priceData?: PythPriceData;
 }
 
 export function useDeposits() {
@@ -68,6 +91,15 @@ export function useDeposits() {
     return getLendingProgram(provider, programId);
   }, [provider, programId])
   const { banks } = useMarketsBanks();
+  
+  // Get token metadata from the local JSON file
+  const tokenMetadata = useTokenMetadata();
+  
+  // State to hold price feed IDs for batch requests - ensuring they're in the correct format
+  const [priceFeedIds, setPriceFeedIds] = useState<string[]>([]);
+  
+  // Get prices from Pyth for all relevant tokens
+  const pythPrices = useBatchPythPrices(priceFeedIds);
 
   // Get mint info
   const getMintInfo = useQuery({
@@ -98,6 +130,15 @@ export function useDeposits() {
       try {
         console.log('Fetching user deposits for wallet:', provider.publicKey.toString());
         
+        // Get token metadata
+        let tokenMetadataMap: Record<string, TokenMetadata> = {};
+        if (tokenMetadata.data) {
+          tokenMetadataMap = tokenMetadata.data.reduce((acc, token) => {
+            acc[token.address] = token;
+            return acc;
+          }, {} as Record<string, TokenMetadata>);
+        }
+        
         // Get all user accounts for the current wallet
         const userAccounts = await (program.account as any).userTokenState.all([
           {
@@ -109,6 +150,9 @@ export function useDeposits() {
         ]);
         
         console.log(`Found ${userAccounts.length} user deposit accounts`);
+        
+        // Track valid price feed IDs in the correct format
+        const validPriceFeedIds: string[] = [];
         
         // Process each user account
         const deposits = await Promise.all(
@@ -203,6 +247,10 @@ export function useDeposits() {
                 return null;
               }
               
+              // Get token metadata from the local map
+              const mintAddressStr = mintAddress.toString();
+              const token = tokenMetadataMap[mintAddressStr];
+              
               // Find the bank for this mint
               const bank = banks.data?.find(b => 
                 b.account.mintAddress.toString() === mintAddress.toString()
@@ -211,8 +259,14 @@ export function useDeposits() {
               // Get mint info for decimals
               let mintDecimals;
               try {
-                const mintInfo = await fetchMintInfo(mintAddress);
-                mintDecimals = mintInfo.decimals;
+                // First try to get from token metadata
+                if (token) {
+                  mintDecimals = token.decimals;
+                } else {
+                  // Fall back to on-chain fetch
+                  const mintInfo = await fetchMintInfo(mintAddress);
+                  mintDecimals = mintInfo.decimals;
+                }
               } catch (error) {
                 console.error(`Error fetching mint info for ${mintAddress.toString()}:`, error);
                 mintDecimals = bank?.tokenInfo?.decimals || 9;
@@ -273,7 +327,7 @@ export function useDeposits() {
                 }
                 
                 console.log(`Processed deposit for ${mintAddress.toString()}: Amount=${depositAmount}, Shares=${depositShares}`);
-      } catch (error) {
+              } catch (error) {
                 console.error('Error processing deposit amounts:', error);
               }
               
@@ -317,6 +371,68 @@ export function useDeposits() {
                 bankPublicKey = bank.publicKey;
               }
               
+              // Build the token info from metadata if available
+              let tokenSymbol = token?.symbol || bank?.tokenInfo?.symbol || 'Unknown';
+              
+              // Find the correct price feed ID for this token
+              let pythPriceFeedId: string | undefined = undefined;
+              
+              // Always try from constants first - this is the most reliable source
+              if (tokenSymbol && Object.prototype.hasOwnProperty.call(priceFeedIdsMap, tokenSymbol)) {
+                const feedFromConstants = priceFeedIdsMap[tokenSymbol as keyof typeof priceFeedIdsMap];
+                pythPriceFeedId = feedFromConstants;
+                console.log(`Using price feed ID from constants for ${tokenSymbol}: ${pythPriceFeedId}`);
+              } 
+              // Then try from token metadata as fallback
+              else if (token?.pythPriceFeed) {
+                pythPriceFeedId = token.pythPriceFeed;
+                console.log(`Using price feed ID from token metadata for ${tokenSymbol}: ${pythPriceFeedId}`);
+              }
+              
+              // Process the price feed ID to ensure correct format
+              if (pythPriceFeedId) {
+                // Skip any IDs that look like base58 account addresses
+                if (isLikelyBase58Address(pythPriceFeedId)) {
+                  console.warn(`Skipping invalid price feed ID format (looks like account address) for ${tokenSymbol}: ${pythPriceFeedId}`);
+                  pythPriceFeedId = undefined;
+                } else {
+                  // Remove 0x prefix if present
+                  const cleanId = stripHexPrefix(pythPriceFeedId);
+                  
+                  // Only add to our list if it's a valid hex ID (64 chars)
+                  if (isValidHexId(cleanId)) {
+                    if (!validPriceFeedIds.includes(cleanId)) {
+                      validPriceFeedIds.push(cleanId);
+                      console.log(`Added price feed ID for ${tokenSymbol}: ${cleanId}`);
+                    } else {
+                      console.log(`Price feed ID already in list for ${tokenSymbol}: ${cleanId}`);
+                    }
+                    
+                    // Update the price feed ID to the cleaned version
+                    pythPriceFeedId = cleanId;
+                  } else {
+                    console.warn(`Invalid price feed ID format for ${tokenSymbol}: ${pythPriceFeedId}, cleaned: ${cleanId}`);
+                    pythPriceFeedId = undefined;
+                  }
+                }
+              }
+              
+              const tokenInfo = token ? {
+                symbol: token.symbol,
+                name: token.name,
+                logoURI: token.logoURI,
+                decimals: token.decimals,
+                pythPriceFeed: pythPriceFeedId
+              } : bank?.tokenInfo ? {
+                ...bank.tokenInfo,
+                pythPriceFeed: pythPriceFeedId
+              } : {
+                symbol: tokenSymbol,
+                name: tokenSymbol,
+                decimals: mintDecimals,
+                pythPriceFeed: pythPriceFeedId
+              };
+              
               return {
                 publicKey: account.publicKey,
                 bankPublicKey: bankPublicKey || new PublicKey('11111111111111111111111111111111'),
@@ -330,7 +446,7 @@ export function useDeposits() {
                   depositInterestRate: bank.account.depositInterestRate,
                   interestAccrualPeriod: bank.account.interestAccrualPeriod,
                 } : undefined,
-                tokenInfo: bank?.tokenInfo,
+                tokenInfo,
                 mintDecimals,
               };
             } catch (error) {
@@ -340,6 +456,10 @@ export function useDeposits() {
           })
         );
         
+        // Update price feed IDs for batch fetching
+        console.log('Setting valid price feed IDs for Pyth:', validPriceFeedIds);
+        setPriceFeedIds(validPriceFeedIds);
+        
         // Filter out nulls and deposits with zero amount
         return deposits.filter((deposit: UserDeposit | null) => deposit !== null && deposit.depositAmount > 0) as UserDeposit[];
       } catch (error) {
@@ -347,13 +467,89 @@ export function useDeposits() {
         return [];
       }
     },
-    enabled: !!provider.publicKey && banks.isSuccess,
+    enabled: !!provider.publicKey && banks.isSuccess && tokenMetadata.isSuccess,
   });
+
+  // Once we have price data, update the deposit objects with USD values
+  const depositsWithPrices = useMemo(() => {
+    if (!userDeposits.data || !pythPrices.data) {
+      console.log('Missing data for price calculations:', {
+        hasUserDeposits: !!userDeposits.data,
+        hasPythPrices: !!pythPrices.data,
+        numDeposits: userDeposits.data?.length || 0,
+        numPrices: Object.keys(pythPrices.data || {}).length
+      });
+      return userDeposits.data;
+    }
+    
+    // Log detailed information about available price data
+    console.log('Price data keys:', Object.keys(pythPrices.data));
+    console.log('Price data available:', Object.keys(pythPrices.data).map(id => 
+      `${id.substring(0, 8)}...=${pythPrices.data[id].price.toFixed(4)}`
+    ));
+    
+    return userDeposits.data.map((deposit: UserDeposit) => {
+      // Skip if no price feed
+      if (!deposit.tokenInfo?.pythPriceFeed) {
+        console.log(`Deposit for ${deposit.tokenInfo?.symbol || 'unknown'} has no price feed ID`);
+        return deposit;
+      }
+      
+      // Make sure to use the right format for looking up price data (without 0x prefix)
+      const priceFeedId = stripHexPrefix(deposit.tokenInfo.pythPriceFeed);
+      console.log(`Looking up price for ${deposit.tokenInfo.symbol} with feed ID ${priceFeedId}`);
+      
+      // Try different ways to match the price feed ID
+      let priceData = null;
+      
+      // 1. Direct lookup with the cleaned ID
+      if (pythPrices.data[priceFeedId]) {
+        priceData = pythPrices.data[priceFeedId];
+        console.log(`Found price with exact match for ${priceFeedId}`);
+      } 
+      // 2. Try with original format
+      else if (pythPrices.data[deposit.tokenInfo.pythPriceFeed]) {
+        priceData = pythPrices.data[deposit.tokenInfo.pythPriceFeed];
+        console.log(`Found price with original format for ${deposit.tokenInfo.pythPriceFeed}`);
+      }
+      // 3. Try to find a partial match (if some IDs have 0x and some don't)
+      else {
+        const matchingKey = Object.keys(pythPrices.data).find(key => 
+          stripHexPrefix(key) === priceFeedId
+        );
+        
+        if (matchingKey) {
+          priceData = pythPrices.data[matchingKey];
+          console.log(`Found price with partial match: ${matchingKey}`);
+        }
+      }
+      
+      if (priceData) {
+        const usdValue = deposit.depositAmount * priceData.price;
+        console.log(`Calculated USD value for ${deposit.tokenInfo.symbol}: ${deposit.depositAmount} * ${priceData.price} = $${usdValue.toFixed(2)}`);
+        
+        return {
+          ...deposit,
+          usdValue: usdValue,
+          priceData
+        };
+      } else {
+        console.warn(`No price data found for ${deposit.tokenInfo.symbol} (feed ID: ${priceFeedId})`);
+        console.warn(`Available price IDs: ${Object.keys(pythPrices.data).join(', ')}`);
+        return deposit;
+      }
+    });
+  }, [userDeposits.data, pythPrices.data]);
 
   return {
     program,
     programId,
-    userDeposits,
+    userDeposits: {
+      ...userDeposits,
+      data: depositsWithPrices
+    },
     fetchMintInfo,
+    tokenMetadata,
+    pythPrices
   };
 } 

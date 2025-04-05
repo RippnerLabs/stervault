@@ -24,6 +24,7 @@
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slider": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@react-three/drei": "^10.0.3",
     "@react-three/fiber": "^9.0.4",
     "@solana/spl-token": "^0.4.8",
@@ -58,7 +59,7 @@
     "simplex-noise": "^4.0.3",
     "solana-bankrun": "^0.2.0",
     "spl-token-bankrun": "0.2.5",
-    "tailwind-merge": "^3.0.2",
+    "tailwind-merge": "^3.1.0",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.174.0",
     "zod": "^3.24.2"
