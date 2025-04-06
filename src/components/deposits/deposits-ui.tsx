@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-hot-toast";
 import { WalletButton } from "../solana/solana-provider";
-import { useDeposits, UserDeposit } from "./deposits-data-access";
+import { useDeposits, UserDeposit, useActiveBorrowPositions, BorrowPositionData } from "./deposits-data-access";
 import { useRouter } from "next/navigation";
 import { PublicKey } from "@solana/web3.js";
 import Image from "next/image";
@@ -27,7 +27,11 @@ import {
     IconTrendingUp,
     IconArrowsExchange,
     IconChevronDown,
-    IconChevronUp
+    IconChevronUp,
+    IconAlertCircle,
+    IconRepeat,
+    IconArrowsTransferDown,
+    IconArrowsTransferUp
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
@@ -41,6 +45,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { convertToUsd } from "../pyth/pyth-data-access";
+import { ActiveBorrowPositions } from "../borrow/active-borrow-positions";
 
 function Deposits() {
     // Format functions with error handling
@@ -159,12 +164,29 @@ function Deposits() {
     const [errorDetails, setErrorDetails] = useState<string | null>(null);
     const [showUsdValues, setShowUsdValues] = useState<boolean>(true);
     
-    // This component implements comprehensive error handling:
-    // 1. Error state tracking to show detailed error messages
-    // 2. UseMemo hooks with null/undefined checks to avoid rendering errors
-    // 3. Defensive coding in formatter functions
-    // 4. Type guards in data processing
-    // 5. Fallback values for missing or malformed data
+    // Format health factor - color based on value: <50% green, 50-70% yellow, >70% red
+    const formatHealthFactor = (ltv: number, maxLtv: number = 80) => {
+        try {
+            if (typeof ltv !== 'number' || isNaN(ltv)) return { value: 'N/A', color: 'text-gray-500' };
+            
+            const healthPercentage = (ltv / maxLtv) * 100;
+            let color = 'text-green-500';
+            
+            if (healthPercentage > 70) {
+                color = 'text-red-500';
+            } else if (healthPercentage > 50) {
+                color = 'text-yellow-500';
+            }
+            
+            return { 
+                value: formatPercent(ltv), 
+                color 
+            };
+        } catch (error) {
+            console.error('Error formatting health factor:', error);
+            return { value: 'N/A', color: 'text-gray-500' };
+        }
+    };
     
     // Log errors when they occur
     useEffect(() => {
@@ -484,12 +506,11 @@ function Deposits() {
                 </Card>
             </div>
             
-            {/* Deposits by Token */}
-            {focusCardsData.length > 0 && (
+            {/* Token Distribution */}
+            {userDeposits.data && userDeposits.data.length > 0 && (
                 <div className="mb-12">
                     <h2 className="text-2xl font-semibold mb-6">Deposits by Token</h2>
-                    <div className="mb-4">
-                        {/* Wrap FocusCards in a try/catch block */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {(() => {
                             try {
                                 // Make sure we have valid data
@@ -519,6 +540,11 @@ function Deposits() {
                     </div>
                 </div>
             )}
+            
+            {/* Active Borrow Positions - Replace with reusable component */}
+            <div className="mb-12">
+                <ActiveBorrowPositions />
+            </div>
             
             {/* Detailed Deposits List */}
             <div className="mb-12">

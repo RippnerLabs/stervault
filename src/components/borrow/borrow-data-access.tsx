@@ -553,7 +553,8 @@ export function useBorrowTokens() {
   // Calculate loan-to-value ratio with improved error handling
   const calculateLoanToValueRatio = (
     borrowAmount: number, 
-    userDeposit: UserDeposit, 
+    userDeposit: UserDeposit,
+    borrowBankId?: string,
     borrowDecimals: number = 6
   ): number => {
     try {
@@ -561,25 +562,52 @@ export function useBorrowTokens() {
         return 0;
       }
       
-      // Convert borrow amount to a decimal value
-      const normalizedBorrowAmount = borrowAmount;
+      // Get price data for the collateral
+      const collateralPrice = userDeposit.priceData?.price || 
+        (userDeposit.tokenInfo?.symbol ? getDefaultTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
       
-      // Get the collateral amount
-      const collateralAmount = userDeposit.depositAmount || 0;
+      // Get price data for the borrowed token
+      let borrowPrice = 1; // Default to 1 for stablecoins
+      if (borrowBankId) {
+        const borrowToken = banks.data?.find(b => b.publicKey.toString() === borrowBankId);
+        // Use priceData or get a default price based on symbol
+        if (borrowToken?.tokenInfo?.symbol) {
+          borrowPrice = getDefaultTokenPrice(borrowToken.tokenInfo.symbol) || 1;
+        }
+      }
       
-      if (collateralAmount <= 0) {
+      // If we don't have price data, we can't calculate LTV properly
+      if (!collateralPrice) {
+        console.warn('Missing price data for collateral token', userDeposit.tokenInfo?.symbol);
         return 0;
       }
       
-      // Calculate LTV ratio (borrow / collateral * 100)
-      const ltv = (normalizedBorrowAmount / collateralAmount) * 100;
+      // Convert tokens to USD values
+      const borrowUsdValue = borrowAmount * borrowPrice;
+      const collateralUsdValue = userDeposit.depositAmount * collateralPrice;
+      
+      if (collateralUsdValue <= 0) {
+        return 0;
+      }
+      
+      // Calculate LTV ratio based on USD values (borrow USD / collateral USD * 100)
+      const ltv = (borrowUsdValue / collateralUsdValue) * 100;
+      
+      console.log('LTV calculation in USD values:', {
+        borrowAmount,
+        borrowPrice,
+        borrowUsdValue,
+        collateralAmount: userDeposit.depositAmount,
+        collateralPrice,
+        collateralUsdValue,
+        ltvRatio: ltv
+      });
       
       // Check for invalid values
       if (isNaN(ltv) || !isFinite(ltv)) {
         console.warn('Invalid LTV calculation result:', {
-          borrowAmount,
-          normalizedBorrowAmount,
-          collateralAmount,
+          borrowUsdValue,
+          collateralUsdValue,
           ltv
         });
         return 0;
@@ -590,6 +618,30 @@ export function useBorrowTokens() {
       console.error('Error calculating loan-to-value ratio:', error);
       return 0;
     }
+  };
+
+  // Helper to get default token prices when price data is not available
+  const getDefaultTokenPrice = (symbol?: string): number => {
+    if (!symbol) return 0;
+    
+    // Default prices for common tokens (approximations)
+    // These values should be updated regularly or replaced with actual oracle data
+    const defaultPrices: Record<string, number> = {
+      "SOL": 60, // Solana
+      "USDC": 1, // USD Coin
+      "USDT": 1, // Tether
+      "BTC": 50000, // Bitcoin
+      "ETH": 3000, // Ethereum
+      "mSOL": 65, // Marinade Staked SOL
+      "stSOL": 65, // Lido Staked SOL
+      "RAY": 0.5, // Raydium
+      "SRM": 0.5, // Serum
+      "BONK": 0.00000005, // Bonk
+      // Add more tokens as needed
+    };
+    
+    // Return the default price if available, otherwise 0
+    return defaultPrices[symbol.toUpperCase()] || 0;
   };
 
   // Calculate max borrowing power based on user deposits with better error handling
@@ -608,9 +660,9 @@ export function useBorrowTokens() {
       }
       
       // Get collateral value and ensure it's a number
-      const collateralValue = userDeposit.depositAmount || 0;
+      const collateralAmount = userDeposit.depositAmount || 0;
       
-      if (collateralValue <= 0) {
+      if (collateralAmount <= 0) {
         console.log('Zero or negative collateral value, cannot calculate max borrow amount');
         return 0;
       }
@@ -619,18 +671,43 @@ export function useBorrowTokens() {
       // Convert from percentage to decimal (e.g., 75% -> 0.75)
       const maxLTV = safeGetBnValue(borrowBank.account.maxLtv, 75) / 100;
       
-      // Calculate maximum borrow amount
-      const maxBorrow = collateralValue * maxLTV;
+      // Get prices for both tokens to convert to USD values
+      const collateralPrice = userDeposit.priceData?.price || 
+        (userDeposit.tokenInfo?.symbol ? getDefaultTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
+        
+      let borrowPrice = 1; // Default to 1 for stablecoins like USDC
+      if (borrowBank.tokenInfo?.symbol) {
+        borrowPrice = getDefaultTokenPrice(borrowBank.tokenInfo.symbol) || 1;
+      }
+      
+      // If we don't have price data for collateral, we can't calculate max borrow amount properly
+      if (!collateralPrice) {
+        console.warn('Missing price data for collateral token', userDeposit.tokenInfo?.symbol);
+        return 0;
+      }
+      
+      // Convert collateral to USD value
+      const collateralUsdValue = collateralAmount * collateralPrice;
+      
+      // Calculate maximum borrow amount in USD
+      const maxBorrowUsd = collateralUsdValue * maxLTV;
+      
+      // Convert max borrow USD back to token amount
+      const maxBorrowAmount = maxBorrowUsd / borrowPrice;
       
       // Log calculation details for debugging
-      console.log('Max borrow calculation:', {
-        collateralValue,
+      console.log('Max borrow calculation in USD values:', {
+        collateralAmount,
+        collateralPrice,
+        collateralUsdValue,
         maxLTV: maxLTV * 100 + '%',
-        maxBorrowAmount: maxBorrow,
+        maxBorrowUsd,
+        borrowPrice,
+        maxBorrowAmount,
         bankId: borrowBank.publicKey.toString()
       });
       
-      return maxBorrow;
+      return maxBorrowAmount;
     } catch (error) {
       console.error('Error calculating max borrow amount:', error);
       return 0;

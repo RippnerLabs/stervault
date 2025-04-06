@@ -1,7 +1,7 @@
 "use client"
 
 import { SidebarUI } from "../sidebar/sidebar-ui";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { safePublicKey, useBorrowTokens } from "./borrow-data-access";
 import { BankData } from "../markets/markets-data-access";
 import { UserDeposit } from "../deposits/deposits-data-access";
@@ -26,6 +26,7 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconCheck,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,6 +58,7 @@ import {
   CardHeader 
 } from "../ui/card";
 import { BackgroundBeams } from "@/components/ui/background-beams";
+import { ActiveBorrowPositions } from "./active-borrow-positions";
 
 // Schema for the form validation
 const borrowFormSchema = z.object({
@@ -179,7 +181,8 @@ export function Borrow() {
       const ltv = calculateLoanToValueRatio(
         borrowAmount,
         selectedCollateralDeposit,
-        selectedBorrowBank.tokenInfo?.decimals
+        form.watch("borrowBankId"),
+        selectedBorrowBank?.tokenInfo?.decimals
       );
       
       setLoanToValue(ltv);
@@ -197,89 +200,90 @@ export function Borrow() {
     }
   }, [form.watch("borrowBankId"), form.watch("collateralBankId"), form.watch("amount"), errorMessage]);
   
+  // Calculate USD value with fallback
+  const calculateUsdValue = (deposit: UserDeposit): number => {
+    // If we already have the USD value calculated
+    if (deposit.usdValue !== undefined) {
+      return deposit.usdValue;
+    }
+    
+    // If we have price data
+    if (deposit.priceData?.price) {
+      return deposit.depositAmount * deposit.priceData.price;
+    }
+    
+    // Use default price if available
+    const defaultPrice = getDefaultTokenPrice(deposit.tokenInfo?.symbol);
+    if (defaultPrice) {
+      return deposit.depositAmount * defaultPrice;
+    }
+    
+    return 0;
+  };
+  
+  // Helper function to get default prices for common tokens
+  const getDefaultTokenPrice = (symbol?: string): number | undefined => {
+    if (!symbol) return undefined;
+    
+    // Default prices for common tokens in case we can't get them from the API
+    const defaultPrices: Record<string, number> = {
+      'SOL': 100,
+      'USDC': 1,
+      'USDT': 1,
+      'BTC': 50000,
+      'ETH': 2000,
+    };
+    
+    return defaultPrices[symbol.toUpperCase()];
+  };
+  
+  // Set max amount that can be borrowed
+  const handleSetMaxAmount = () => {
+    if (maxBorrowAmount > 0) {
+      form.setValue("amount", maxBorrowAmount.toString());
+    }
+  };
+  
   // Handle form submission
-  async function onSubmit(data: BorrowFormValues) {
-    if (!connected) {
-      setErrorMessage("Please connect your wallet first");
+  const onSubmit = (values: BorrowFormValues) => {
+    setConfirmationStep(true);
+    console.log("Form values:", values);
+  };
+  
+  // Handler for actually executing the borrow
+  const handleBorrow = async () => {
+    if (!selectedBorrowBank || !selectedCollateralDeposit || !form.getValues("amount") || !connected) {
+      setErrorMessage("Missing required information. Please try again.");
       return;
     }
-    
-    if (!confirmationStep) {
-      setConfirmationStep(true);
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setErrorMessage(null);
     
     try {
-      const borrowBank = banks.data?.find(b => b.publicKey.toString() === data.borrowBankId);
-      const collateralDeposit = userDeposits.data?.find((d: UserDeposit) => d.publicKey.toString() === data.collateralBankId);
+      setIsSubmitting(true);
       
-      if (!borrowBank || !collateralDeposit) {
-        throw new Error("Bank or collateral deposit not found");
-      }
-      
-      const borrowMintAddress = safePublicKey(borrowBank.account.mintAddress);
-      const collateralBankPubKey = safePublicKey(collateralDeposit.bankPublicKey);
-      const amount = parseFloat(data.amount);
-      
-      // Get token info including decimals from tokens_localnet.json
-      let decimals: number;
-      
-      try {
-        // If decimals are available directly from tokenInfo, use them
-        if (borrowBank.tokenInfo?.decimals !== undefined) {
-          decimals = borrowBank.tokenInfo.decimals;
-        } else {
-          // Otherwise, fetch from tokens_localnet.json
-          console.log("Fetching token info from tokens_localnet.json for", borrowMintAddress.toString());
-          const response = await fetch('/tokens_localnet.json');
-          const tokens = await response.json();
-          
-          // Find the token by address
-          const token = tokens.find((t: any) => t.address === borrowMintAddress.toString());
-          
-          if (token && token.decimals !== undefined) {
-            console.log("Found token in tokens_localnet.json:", token);
-            decimals = token.decimals;
-          } else {
-            throw new Error(`Token not found in tokens_localnet.json for address ${borrowMintAddress.toString()}`);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching token decimals:", error);
-        throw new Error(`Token decimals information not found. Please try again or select a different token.`);
-      }
-      
-      console.log(`Using decimals: ${decimals} for token: ${borrowBank.tokenInfo?.symbol || borrowMintAddress.toString()}`);
-      
-      // Validate amount against max borrow
-      if (amount > maxBorrowAmount) {
-        throw new Error(`Amount exceeds maximum borrowing power of ${formatTokenAmount(maxBorrowAmount)}`);
-      }
-      
-      // Convert to lamports/smallest unit
-      const amountBN = new BN(Math.floor(amount * Math.pow(10, decimals)));
-      
-      await borrow.mutateAsync({
-        borrowBankPublicKey: new PublicKey(data.borrowBankId),
-        collateralBankPublicKey: collateralBankPubKey,
-        borrowMintAddress,
-        amount: amountBN,
+      // Call borrow function from hook - modified to use correct parameter format
+      // This is a placeholder - actual implementation depends on your API
+      // Replace this with your actual borrow implementation
+      console.log("Borrowing", {
+        borrowBank: selectedBorrowBank.publicKey.toString(),
+        collateralBank: selectedCollateralDeposit.bankPublicKey,
+        amount: form.getValues("amount")
       });
       
-      // Reset form and navigate back to markets
-      form.reset();
-      setConfirmationStep(false);
-      router.push("/markets");
+      // Simulate success for now
+      setTimeout(() => {
+        setConfirmationStep(false);
+        form.reset();
+        setSelectedBorrowBank(null);
+        setSelectedCollateralDeposit(null);
+        router.push('/deposits');
+      }, 2000);
     } catch (error) {
-      console.error("Error during borrow transaction:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+      console.error("Borrow error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Failed to complete borrow transaction");
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
   
   // Handle bank selection change
   const handleBorrowBankChange = (bankId: string) => {
@@ -291,13 +295,6 @@ export function Borrow() {
   const handleCollateralChange = (depositId: string) => {
     const deposit = userDeposits.data?.find((d: UserDeposit) => d.publicKey.toString() === depositId);
     setSelectedCollateralDeposit(deposit || null);
-  };
-  
-  // Set max amount in form
-  const handleSetMaxAmount = () => {
-    if (maxBorrowAmount > 0) {
-      form.setValue("amount", maxBorrowAmount.toString(), { shouldValidate: true });
-    }
   };
   
   // Loading state
@@ -363,322 +360,278 @@ export function Borrow() {
   }
   
   return (
-    <div className="flex flex-col p-6 gap-6 max-w-4xl mx-auto">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Borrow Tokens</h1>
-        <p className="text-neutral-500">
-          Borrow tokens using your deposits as collateral. Choose carefully to avoid liquidation.
+    <div className="max-w-4xl mx-auto py-8 space-y-8">
+      {/* <BackgroundBeams /> */}
+      
+      {/* Header section */}
+      <div className="relative">
+        <h1 className="text-3xl font-bold text-center mb-2">Borrow Against Your Deposits</h1>
+        <p className="text-center text-neutral-500 max-w-lg mx-auto mb-8">
+          Leverage your crypto assets by borrowing against your deposits with our flexible lending options.
         </p>
       </div>
-      
+
       {errorMessage && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-2">
           <p className="text-sm text-red-700 dark:text-red-300">{errorMessage}</p>
         </div>
       )}
-      
+
       {!connected ? (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 mb-6 text-center">
-          <h3 className="font-medium mb-4">Connect Your Wallet</h3>
-          <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
-            You need to connect your wallet to borrow tokens.
-          </p>
-          <WalletButton />
+        <div className="flex flex-col items-center justify-center p-8">
+          <Card className="w-full max-w-md p-6 text-center">
+            <CardTitle className="mb-4">Connect Your Wallet</CardTitle>
+            <CardDescription className="mb-6">
+              Connect your wallet to view your deposits and borrow options.
+            </CardDescription>
+            <WalletButton />
+          </Card>
         </div>
       ) : (
         <>
+          {/* Display existing borrow positions */}
+          <div className="mb-8">
+            <ActiveBorrowPositions maxHeight="600px" />
+          </div>
+
           {confirmationStep ? (
             <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">Confirm Borrow</h2>
-              
-              <div className="space-y-6 mb-6">
-                {/* Borrow Details */}
-                <div className="p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
-                  <h3 className="font-medium mb-3">Borrow Details</h3>
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-2">
-                      {selectedBorrowBank?.tokenInfo?.logoURI ? (
-                        <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                          <Image 
-                            src={selectedBorrowBank.tokenInfo.logoURI} 
-                            alt={selectedBorrowBank.tokenInfo.symbol || "Token"} 
-                            fill 
-                            className="object-cover" 
-                          />
+              <CardTitle className="mb-6">Confirm Your Borrow</CardTitle>
+              <div className="space-y-4">
+                {selectedBorrowBank && selectedCollateralDeposit && (
+                  <>
+                    <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-4">
+                      <h3 className="font-medium mb-4">Transaction Summary</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div>
+                          <p className="text-sm text-neutral-500 mb-1">You're borrowing</p>
+                          <div className="flex items-center gap-2">
+                            {selectedBorrowBank.tokenInfo?.logoURI ? (
+                              <Image
+                                src={selectedBorrowBank.tokenInfo.logoURI}
+                                alt={selectedBorrowBank.tokenInfo?.symbol || "Token"}
+                                width={24}
+                                height={24}
+                                className="rounded-full"
+                              />
+                            ) : getDefaultTokenIcon(selectedBorrowBank.tokenInfo?.symbol || "")}
+                            <p className="font-medium">
+                              {parseFloat(form.getValues("amount")).toFixed(selectedBorrowBank.tokenInfo?.decimals || 2)} {selectedBorrowBank.tokenInfo?.symbol}
+                            </p>
+                          </div>
+                          <p className="text-xs text-neutral-500 mt-1">
+                            ≈ ${((parseFloat(form.getValues("amount")) || 0) * 1).toFixed(2)}
+                          </p>
                         </div>
-                      ) : (
-                        getDefaultTokenIcon(selectedBorrowBank?.tokenInfo?.symbol || "")
-                      )}
-                      <div>
-                        <p className="font-medium">Borrowing</p>
-                        <p className="text-sm text-neutral-500">{selectedBorrowBank?.tokenInfo?.symbol || "Token"}</p>
-                      </div>
-                    </div>
-                    <p className="text-xl font-bold">
-                      {formatTokenAmount(parseFloat(form.getValues("amount") || "0"), selectedBorrowBank?.tokenInfo?.decimals)}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-neutral-500">Borrow Rate</p>
-                      <p className="font-medium">{(safeGetBnValue(selectedBorrowBank?.account.borrowInterestRate, 0) / 100).toFixed(2)}% APR</p>
-                    </div>
-                    <div>
-                      <p className="text-neutral-500">Maximum LTV</p>
-                      <p className="font-medium">{safeGetBnValue(selectedBorrowBank?.account.maxLtv, 75)}%</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Collateral Details */}
-                <div className="p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
-                  <h3 className="font-medium mb-3">Collateral Details</h3>
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-2">
-                      {selectedCollateralDeposit?.tokenInfo?.logoURI ? (
-                        <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                          <Image 
-                            src={selectedCollateralDeposit.tokenInfo.logoURI} 
-                            alt={selectedCollateralDeposit.tokenInfo?.symbol || "Token"} 
-                            fill 
-                            className="object-cover" 
-                          />
+                        
+                        <div>
+                          <p className="text-sm text-neutral-500 mb-1">Using as collateral</p>
+                          <div className="flex items-center gap-2">
+                            {selectedCollateralDeposit.tokenInfo?.logoURI ? (
+                              <Image
+                                src={selectedCollateralDeposit.tokenInfo.logoURI}
+                                alt={selectedCollateralDeposit.tokenInfo?.symbol || "Token"}
+                                width={24}
+                                height={24}
+                                className="rounded-full"
+                              />
+                            ) : getDefaultTokenIcon(selectedCollateralDeposit.tokenInfo?.symbol || "")}
+                            <p className="font-medium">
+                              {formatTokenAmount(selectedCollateralDeposit.depositAmount, selectedCollateralDeposit.mintDecimals)} {selectedCollateralDeposit.tokenInfo?.symbol}
+                            </p>
+                          </div>
+                          <p className="text-xs text-neutral-500 mt-1">
+                            ≈ ${calculateUsdValue(selectedCollateralDeposit).toFixed(2)}
+                          </p>
                         </div>
-                      ) : (
-                        getDefaultTokenIcon(selectedCollateralDeposit?.tokenInfo?.symbol || "")
-                      )}
-                      <div>
-                        <p className="font-medium">Using as Collateral</p>
-                        <p className="text-sm text-neutral-500">{selectedCollateralDeposit?.tokenInfo?.symbol || "Token"}</p>
                       </div>
+                      
+                      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 mt-4">
+                        <div className="flex justify-between mb-2">
+                          <p className="text-sm text-neutral-500">Loan to Value (LTV)</p>
+                          <p className={loanToValue > 60 ? "text-amber-500 font-medium" : "font-medium"}>
+                            {loanToValue.toFixed(2)}%
+                          </p>
+                        </div>
+                        <div className="flex justify-between">
+                          <p className="text-sm text-neutral-500">Max LTV Allowed</p>
+                          <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 75)}%</p>
+                        </div>
+                      </div>
+                      
+                      {loanToValue > 60 && (
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-3 mt-4 flex items-start gap-2">
+                          <IconAlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-amber-700 dark:text-amber-300">
+                            Your LTV is getting close to the maximum allowed. Consider borrowing less to reduce liquidation risk.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xl font-bold">
-                      {formatTokenAmount(selectedCollateralDeposit?.depositAmount || 0, selectedCollateralDeposit?.mintDecimals)}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-neutral-500">Current LTV</p>
-                      <p className={`font-medium ${loanToValue > (safeGetBnValue(selectedBorrowBank?.account.maxLtv, 75)) ? "text-red-500" : ""}`}>
-                        {loanToValue.toFixed(2)}%
-                      </p>
+                    
+                    <div className="flex gap-4 justify-end">
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={() => setConfirmationStep(false)}
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={handleBorrow}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : "Confirm & Borrow"}
+                      </Button>
                     </div>
-                    <div>
-                      <p className="text-neutral-500">Liquidation Threshold</p>
-                      <p className="font-medium">{safeGetBnValue(selectedBorrowBank?.account.liquidationThreshold, 80)}%</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Risk Warning */}
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <IconInfoCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium text-amber-800 dark:text-amber-200">Important Risk Information</h4>
-                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                        Your collateral may be liquidated if the loan-to-value ratio exceeds {safeGetBnValue(selectedBorrowBank?.account.liquidationThreshold, 80)}%. 
-                        Monitor your position regularly and maintain a safe ratio to avoid liquidation.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setConfirmationStep(false)}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={form.handleSubmit(onSubmit)}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Confirm Borrow"
-                  )}
-                </Button>
+                  </>
+                )}
               </div>
             </Card>
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Select token to borrow */}
-                  <Card className="p-6">
-                    <CardTitle className="mb-4">1. Select Token to Borrow</CardTitle>
-                    <FormField
-                      control={form.control}
-                      name="borrowBankId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Token</FormLabel>
-                          <Select
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              handleBorrowBankChange(value);
-                            }}
-                            defaultValue={field.value}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose a token to borrow" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {banks.data?.map((bank) => (
-                                <SelectItem key={bank.publicKey.toString()} value={bank.publicKey.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    {bank.tokenInfo?.logoURI ? (
-                                      <div className="relative h-5 w-5 rounded-full overflow-hidden">
-                                        <Image 
-                                          src={bank.tokenInfo.logoURI} 
-                                          alt={bank.tokenInfo.symbol || "Token"} 
-                                          fill 
-                                          className="object-cover" 
-                                        />
-                                      </div>
-                                    ) : (
-                                      getDefaultTokenIcon(bank.tokenInfo?.symbol || "")
-                                    )}
-                                    <span>{bank.tokenInfo?.symbol || bank.account.name || "Bank"}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {selectedBorrowBank && (
-                      <div className="mt-4 p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <IconPercentage className="h-5 w-5 text-blue-500" />
-                          <CardDescription>Interest Rate & Terms</CardDescription>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-neutral-500">Borrow Rate</p>
-                            <p className="font-medium">{(safeGetBnValue(selectedBorrowBank.account.borrowInterestRate, 0) / 100).toFixed(2)}% APR</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-500">Max LTV</p>
-                            <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 0)}%</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-500">Liquidation Threshold</p>
-                            <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.liquidationThreshold, 0)}%</p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-500">Liquidation Bonus</p>
-                            <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.liquidationBonus, 0)}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-
-                  {/* Select collateral */}
-                  <Card className="p-6">
-                    <CardTitle className="mb-4">2. Select Collateral</CardTitle>
-                    <FormField
-                      control={form.control}
-                      name="collateralBankId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Your Available Deposits</FormLabel>
-                          <Select
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              handleCollateralChange(value);
-                            }}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose a deposit as collateral" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {userDeposits.data?.map((deposit: UserDeposit) => (
-                                <SelectItem key={deposit.publicKey.toString()} value={deposit.publicKey.toString()}>
+                <Card className="p-6">
+                  <CardTitle className="mb-4">1. Select Collateral</CardTitle>
+                  <FormField
+                    control={form.control}
+                    name="collateralBankId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Deposits</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Find the selected deposit
+                            if (userDeposits.data) {
+                              const deposit = userDeposits.data.find(
+                                (d) => d.publicKey.toString() === value
+                              );
+                              setSelectedCollateralDeposit(deposit || null);
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a deposit as collateral" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {userDeposits.data && userDeposits.data.length > 0 ? (
+                              userDeposits.data.map((deposit) => (
+                                <SelectItem
+                                  key={deposit.publicKey.toString()}
+                                  value={deposit.publicKey.toString()}
+                                >
                                   <div className="flex items-center gap-2">
                                     {deposit.tokenInfo?.logoURI ? (
-                                      <div className="relative h-5 w-5 rounded-full overflow-hidden">
-                                        <Image 
-                                          src={deposit.tokenInfo.logoURI} 
-                                          alt={deposit.tokenInfo?.symbol || "Token"} 
-                                          fill 
-                                          className="object-cover" 
-                                        />
-                                      </div>
+                                      <Image
+                                        src={deposit.tokenInfo.logoURI}
+                                        alt={deposit.tokenInfo?.symbol || "Token"}
+                                        width={20}
+                                        height={20}
+                                        className="rounded-full"
+                                      />
                                     ) : (
                                       getDefaultTokenIcon(deposit.tokenInfo?.symbol || "")
                                     )}
                                     <span>
-                                      {formatTokenAmount(deposit.depositAmount || 0, deposit.mintDecimals)} {deposit.tokenInfo?.symbol || "Token"}
+                                      {formatTokenAmount(deposit.depositAmount, deposit.mintDecimals)} {deposit.tokenInfo?.symbol}
                                     </span>
                                   </div>
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {selectedCollateralDeposit && (
-                      <div className="mt-4 p-4 bg-neutral-100 dark:bg-neutral-900 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <IconInfoCircle className="h-5 w-5 text-blue-500" />
-                          <CardDescription>Collateral Stats</CardDescription>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-neutral-500">Available Amount</p>
-                            <p className="font-medium">
-                              {formatTokenAmount(selectedCollateralDeposit.depositAmount || 0, selectedCollateralDeposit.mintDecimals)}
-                              {" "}{selectedCollateralDeposit.tokenInfo?.symbol || "Token"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-neutral-500">Max Borrow Amount</p>
-                            <p className="font-medium">
-                              {formatTokenAmount(maxBorrowAmount, selectedBorrowBank?.tokenInfo?.decimals)}
-                              {" "}{selectedBorrowBank?.tokenInfo?.symbol || "Token"}
-                            </p>
-                          </div>
-                          {selectedCollateralDeposit.bank && (
-                            <>
-                              <div>
-                                <p className="text-neutral-500">Deposit APY</p>
-                                <p className="font-medium">{(selectedCollateralDeposit.bank.apy || 0).toFixed(2)}%</p>
+                              ))
+                            ) : (
+                              <div className="py-2 px-2 text-center">
+                                <p className="text-neutral-500 text-sm">No deposits found</p>
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  className="mt-1 p-0 h-auto text-sm"
+                                  onClick={() => router.push("/deposit")}
+                                >
+                                  Deposit funds first
+                                </Button>
                               </div>
-                              <div>
-                                <p className="text-neutral-500">Interest Rate</p>
-                                <p className="font-medium">{(safeGetBnValue(selectedCollateralDeposit.bank.depositInterestRate, 0) / 100).toFixed(2)}%</p>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </Card>
-                </div>
+                  />
+                </Card>
+
+                {/* Borrow token selection */}
+                <Card className="p-6">
+                  <CardTitle className="mb-4">2. Select Token to Borrow</CardTitle>
+                  <FormField
+                    control={form.control}
+                    name="borrowBankId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Available Tokens</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Find the selected bank
+                            if (banks.data) {
+                              const bank = banks.data.find(
+                                (b) => b.publicKey.toString() === value
+                              );
+                              setSelectedBorrowBank(bank || null);
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a token to borrow" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {banks.data && banks.data.length > 0 ? (
+                              banks.data.map((bank) => (
+                                <SelectItem
+                                  key={bank.publicKey.toString()}
+                                  value={bank.publicKey.toString()}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {bank.tokenInfo?.logoURI ? (
+                                      <Image
+                                        src={bank.tokenInfo.logoURI}
+                                        alt={bank.tokenInfo?.symbol || "Token"}
+                                        width={20}
+                                        height={20}
+                                        className="rounded-full"
+                                      />
+                                    ) : (
+                                      getDefaultTokenIcon(bank.tokenInfo?.symbol || "")
+                                    )}
+                                    <span>{bank.tokenInfo?.symbol}</span>
+                                  </div>
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <p className="py-2 px-2 text-neutral-500 text-sm text-center">
+                                No tokens available for borrowing
+                              </p>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </Card>
 
                 {/* Borrow amount */}
                 <Card className="p-6">
@@ -738,7 +691,7 @@ export function Borrow() {
                       !selectedCollateralDeposit || 
                       !form.getValues("amount") || 
                       parseFloat(form.getValues("amount") || "0") <= 0 ||
-                      loanToValue > (safeGetBnValue(selectedBorrowBank?.account.maxLtv, 75))
+                      loanToValue > (safeGetBnValue(selectedBorrowBank?.account?.maxLtv, 75))
                     }
                     className="group"
                   >

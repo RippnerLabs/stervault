@@ -14,6 +14,7 @@ import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getMint } from '@solana/
 import { useMarketsBanks } from '../markets/markets-data-access'
 import { useTokenMetadata, useBatchPythPrices, TokenMetadata, PythPriceData } from '../pyth/pyth-data-access'
 import { priceFeedIds as priceFeedIdsMap } from '../../lib/constants'
+import { Connection } from '@solana/web3.js'
 
 // Helper function to verify if a string is a valid hex ID
 function isValidHexId(id: string): boolean {
@@ -34,6 +35,36 @@ function stripHexPrefix(id: string): string {
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+
+// Borrow position interface
+export interface BorrowPositionData {
+  publicKey: PublicKey;
+  owner: PublicKey;
+  collateralMint: PublicKey;
+  borrowMint: PublicKey;
+  collateralShares: number;
+  borrowedShares: number;
+  lastUpdated: number;
+  active: boolean;
+  // Added fields for UI display
+  collateralTokenInfo?: {
+    symbol: string;
+    name: string;
+    logoURI: string;
+    decimals: number;
+  };
+  borrowTokenInfo?: {
+    symbol: string;
+    name: string;
+    logoURI: string;
+    decimals: number;
+  };
+  collateralAmount?: number;
+  borrowAmount?: number;
+  collateralUsdValue?: number;
+  borrowUsdValue?: number;
+  ltvRatio?: number;
+}
 
 // User deposit data structure from the Anchor program
 export interface UserTokenStateAccount {
@@ -79,6 +110,204 @@ export interface UserDeposit {
   // Added for Pyth price integration
   usdValue?: number;
   priceData?: PythPriceData;
+}
+
+// Helper function to export for wider use
+export function useActiveBorrowPositions() {
+  const { connection } = useConnection()
+  const { cluster } = useCluster()
+  const provider = useAnchorProvider()
+  const programId = useMemo(() => LENDING_PROGRAM_ID, [])
+  const program = useMemo(() => {
+    return getLendingProgram(provider, programId);
+  }, [provider, programId])
+  
+  // Get token metadata from local JSON file
+  const tokenMetadata = useTokenMetadata();
+  
+  // Get banks for token info
+  const { banks } = useMarketsBanks();
+  
+  // Borrow positions query
+  const borrowPositions = useQuery({
+    queryKey: ['user-borrow-positions', { cluster, wallet: provider.publicKey?.toString() }],
+    queryFn: async () => {
+      if (!provider.publicKey) return [];
+      
+      try {
+        console.log('Fetching user borrow positions for wallet:', provider.publicKey.toString());
+        
+        // First, get the UserGlobalState PDA
+        const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("user_global"), provider.publicKey.toBuffer()],
+          program.programId
+        );
+        console.log('User global state PDA:', userGlobalStatePDA.toString());
+        
+        // Fetch the user global state account
+        let userGlobalState;
+        try {
+          userGlobalState = await (program.account as any).userGlobalState.fetch(userGlobalStatePDA);
+          console.log('User Global State fetched:', userGlobalState);
+        } catch (error) {
+          console.warn('User global state not found, user may not have any positions:', error);
+          return [];
+        }
+        
+        // No active positions
+        if (!userGlobalState.activePositions || userGlobalState.activePositions.length === 0) {
+          console.log('User has no active borrow positions');
+          return [];
+        }
+        
+        console.log(`User has ${userGlobalState.activePositions.length} active borrow positions`);
+        
+        // Get token metadata for lookup
+        let tokenMetadataMap: Record<string, TokenMetadata> = {};
+        if (tokenMetadata.data) {
+          tokenMetadataMap = tokenMetadata.data.reduce((acc, token) => {
+            acc[token.address] = token;
+            return acc;
+          }, {} as Record<string, TokenMetadata>);
+        }
+        
+        // Process each borrow position
+        const positions = await Promise.all(
+          userGlobalState.activePositions.map(async (positionPubkey: PublicKey) => {
+            try {
+              console.log('Processing borrow position:', positionPubkey.toString());
+              
+              // Fetch the borrow position account
+              const positionAccount = await (program.account as any).borrowPosition.fetch(positionPubkey);
+              console.log('Borrow position fetched:', positionAccount);
+              
+              // Get collateral mint info
+              const collateralMintStr = positionAccount.collateralMint.toString();
+              const collateralTokenInfo = tokenMetadataMap[collateralMintStr] || 
+                banks.data?.find(b => b.account.mintAddress.toString() === collateralMintStr)?.tokenInfo;
+              
+              // Get borrow mint info
+              const borrowMintStr = positionAccount.borrowMint.toString();
+              const borrowTokenInfo = tokenMetadataMap[borrowMintStr] || 
+                banks.data?.find(b => b.account.mintAddress.toString() === borrowMintStr)?.tokenInfo;
+              
+              // Get decimals for collateral and borrow tokens
+              const collateralDecimals = collateralTokenInfo?.decimals || 9;
+              const borrowDecimals = borrowTokenInfo?.decimals || 9;
+              
+              // Convert shares to amounts
+              // This is a simple conversion - in a real system you'd need to use the conversion rate from the bank
+              let collateralAmount = 0;
+              let borrowAmount = 0;
+              
+              try {
+                if (positionAccount.collateralShares) {
+                  const collateralSharesNum = typeof positionAccount.collateralShares.toNumber === 'function'
+                    ? positionAccount.collateralShares.toNumber()
+                    : parseInt(positionAccount.collateralShares.toString());
+                  collateralAmount = collateralSharesNum / Math.pow(10, collateralDecimals);
+                }
+                
+                if (positionAccount.borrowedShares) {
+                  const borrowSharesNum = typeof positionAccount.borrowedShares.toNumber === 'function'
+                    ? positionAccount.borrowedShares.toNumber()
+                    : parseInt(positionAccount.borrowedShares.toString());
+                  borrowAmount = borrowSharesNum / Math.pow(10, borrowDecimals);
+                }
+              } catch (error) {
+                console.error('Error converting shares to amounts:', error);
+              }
+              
+              // Get USD values (if token info available)
+              let collateralUsdValue = 0;
+              let borrowUsdValue = 0;
+              let ltvRatio = 0;
+              
+              // Try to get price info for tokens
+              const getTokenPrice = (symbol?: string): number => {
+                if (!symbol) return 0;
+                // These are fallback prices - in production, you'd use Pyth price feeds
+                const defaultPrices: Record<string, number> = {
+                  'SOL': 60,
+                  'USDC': 1,
+                  'USDT': 1,
+                  'BTC': 50000,
+                  'ETH': 3000,
+                  'mSOL': 65,
+                  'stSOL': 65,
+                  'RAY': 0.5,
+                  'SRM': 0.5,
+                  'BONK': 0.00000005,
+                };
+                return defaultPrices[symbol.toUpperCase()] || 0;
+              };
+              
+              const collateralPrice = getTokenPrice(collateralTokenInfo?.symbol);
+              const borrowPrice = getTokenPrice(borrowTokenInfo?.symbol);
+              
+              if (collateralPrice && collateralAmount) {
+                collateralUsdValue = collateralAmount * collateralPrice;
+              }
+              
+              if (borrowPrice && borrowAmount) {
+                borrowUsdValue = borrowAmount * borrowPrice;
+              }
+              
+              // Calculate LTV ratio
+              if (collateralUsdValue > 0 && borrowUsdValue > 0) {
+                ltvRatio = (borrowUsdValue / collateralUsdValue) * 100;
+              }
+              
+              // Extract last updated timestamp
+              let lastUpdated = 0;
+              if (positionAccount.lastUpdated) {
+                lastUpdated = typeof positionAccount.lastUpdated.toNumber === 'function'
+                  ? positionAccount.lastUpdated.toNumber()
+                  : parseInt(positionAccount.lastUpdated.toString());
+              }
+              
+              return {
+                publicKey: positionPubkey,
+                owner: positionAccount.owner,
+                collateralMint: positionAccount.collateralMint,
+                borrowMint: positionAccount.borrowMint,
+                collateralShares: typeof positionAccount.collateralShares.toNumber === 'function'
+                  ? positionAccount.collateralShares.toNumber()
+                  : parseInt(positionAccount.collateralShares.toString()),
+                borrowedShares: typeof positionAccount.borrowedShares.toNumber === 'function'
+                  ? positionAccount.borrowedShares.toNumber()
+                  : parseInt(positionAccount.borrowedShares.toString()),
+                lastUpdated,
+                active: positionAccount.active,
+                // Additional UI fields
+                collateralTokenInfo,
+                borrowTokenInfo,
+                collateralAmount,
+                borrowAmount,
+                collateralUsdValue,
+                borrowUsdValue,
+                ltvRatio
+              };
+            } catch (error) {
+              console.error('Error processing borrow position:', error);
+              return null;
+            }
+          })
+        );
+        
+        // Filter out nulls and inactive positions
+        return positions.filter((position: BorrowPositionData | null) => 
+          position !== null && position.active
+        ) as BorrowPositionData[];
+      } catch (error) {
+        console.error('Error fetching user borrow positions:', error);
+        return [];
+      }
+    },
+    enabled: !!provider.publicKey && !!banks.data && tokenMetadata.isSuccess,
+  });
+  
+  return borrowPositions;
 }
 
 export function useDeposits() {
