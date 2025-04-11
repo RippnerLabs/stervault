@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "../ui/sidebar";
 import {
     IconArrowLeft,
@@ -14,6 +14,7 @@ import {
     IconHistory,
     IconInfoCircle,
     IconPlus,
+    IconHome,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -28,89 +29,110 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { ClusterUiTable } from "../cluster/cluster-ui";
+import { usePathname } from "next/navigation";
 
+// Define link type for better type safety
+interface SidebarLinkType {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    breadcrumbText?: string; // Optional custom breadcrumb text
+    parent?: string; // Optional parent route for nested navigation
+}
 
 export function SidebarUI({ children }: { children: React.ReactNode }) {
-    const links = [
+    const pathname = usePathname();
+    
+    const links: SidebarLinkType[] = [
         {
             label: "Dashboard",
             href: "/dashboard",
-            icon: (
-                <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Dashboard"
         },
-        {
+    {
             label: "Deposits",
             href: "/deposits",
-            icon: (
-                <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "My Deposits"
         },
         {
             label: "Deposit Tokens",
             href: "/deposit-tokens",
-            icon: (
-                <IconArrowDownCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconArrowDownCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Deposit Tokens",
+            parent: "Deposits"
         },
         {
             label: "Bank Deposits",
             href: "/bank-deposits",
-            icon: (
-                <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Bank Deposits",
+            parent: "Deposits"
         },
         {
             label: "Borrowing",
             href: "/borrow",
-            icon: (
-                <IconCoin className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconCoin className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Borrow Tokens"
         },
         {
             label: "Repayment",
             href: "/repay",
-            icon: (
-                <IconCreditCard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconCreditCard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Repay Loans",
+            parent: "Borrowing"
         },
         {
             label: "Token Banks",
             href: "/markets",
-            icon: (
-                <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Available Markets"
         },
         {
             label: "Transaction History",
             href: "/transaction-history",
-            icon: (
-                <IconHistory className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconHistory className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Transaction History"
         },
         {
             label: "Bank Details",
             href: "/bank-details",
-            icon: (
-                <IconInfoCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconInfoCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Bank Details",
+            parent: "Token Banks"
         },
         {
             label: "Settings",
             href: "/settings",
-            icon: (
-                <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Settings"
         },
         {
             label: "Add Bank",
             href: "/add-bank",
-            icon: (
-                <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-            ),
+            icon: <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Add New Bank",
+            parent: "Token Banks"
         },
     ];
+    
     const [open, setOpen] = useState(false);
+    
+    // Find the current active link based on pathname
+    const currentLink = links.find(link => link.href === pathname);
+    
+    // Find the parent link if it exists
+    const parentLink = currentLink?.parent 
+        ? links.find(link => link.label === currentLink.parent)
+        : null;
+        
+    // Breadcrumb title - use custom text or link label
+    const breadcrumbTitle = currentLink?.breadcrumbText || currentLink?.label || "Solana Lending";
+    
+    // Parent breadcrumb title - use custom text or link label
+    const parentBreadcrumbTitle = parentLink?.breadcrumbText || parentLink?.label || "Home";
+    
     return (
         <div
             className={cn(
@@ -124,7 +146,12 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                         {open ? <Logo /> : <LogoIcon />}
                         <div className="mt-8 flex flex-col gap-2">
                             {links.map((link, idx) => (
-                                <SidebarLink key={idx} link={link} />
+                                <SidebarLink 
+                                    key={idx} 
+                                    link={link}
+                                    className={pathname === link.href ? 
+                                        "bg-primary/10 font-medium" : ""}
+                                />
                             ))}
                         </div>
                     </div>
@@ -150,17 +177,32 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
 
             <div className="flex flex-1">
                 <div className="rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-6 flex-1 w-full h-full overflow-y-auto">
-                    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 ">
+                    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
                         <Breadcrumb>
                             <BreadcrumbList>
+                                {/* Home breadcrumb */}
                                 <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="#">
-                                        Building Your Application
+                                    <BreadcrumbLink href="/dashboard">
+                                        Dashboard
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
+                                
+                                {/* Parent breadcrumb, if available */}
+                                {parentLink && (
+                                    <>
+                                        <BreadcrumbSeparator className="hidden md:block" />
+                                        <BreadcrumbItem className="hidden md:block">
+                                            <BreadcrumbLink href={parentLink.href}>
+                                                {parentBreadcrumbTitle}
+                                            </BreadcrumbLink>
+                                        </BreadcrumbItem>
+                                    </>
+                                )}
+                                
+                                {/* Current page breadcrumb */}
                                 <BreadcrumbSeparator className="hidden md:block" />
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                                    <BreadcrumbPage>{breadcrumbTitle}</BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
