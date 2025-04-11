@@ -141,9 +141,13 @@ export function useMarketsBanks() {
                 }
               };
 
-              // Fetch token metadata from tokens.json
-              const response = await fetch('/tokens.json');
+              // Fetch token metadata from tokens_localnet.json
+              const response = await fetch('/tokens_localnet.json');
               const tokens = await response.json();
+              
+              // Add debug logging
+              console.log('Fetched token metadata, found', tokens.length, 'tokens');
+              console.log('Looking for mint address:', rawAccount.mintAddress.toString());
               
               // Find token info by mint address
               const tokenInfo = tokens.find(
@@ -151,11 +155,27 @@ export function useMarketsBanks() {
               );
               
               if (tokenInfo) {
+                console.log('Found token info:', tokenInfo.symbol, tokenInfo.name);
                 convertedBank.tokenInfo = {
                   symbol: tokenInfo.symbol,
                   name: tokenInfo.name,
                   logoURI: tokenInfo.logoURI,
                   decimals: tokenInfo.decimals
+                };
+              } else {
+                console.warn('No token info found for mint address:', rawAccount.mintAddress.toString());
+                
+                // Create a default token info from the bank's name or description
+                const defaultSymbol = rawAccount.name.split(' ')[0] || 'UNKNOWN';
+                const defaultName = rawAccount.description || rawAccount.name || 'Unknown Token';
+                
+                console.log('Creating default token info:', defaultSymbol, defaultName);
+                
+                convertedBank.tokenInfo = {
+                  symbol: defaultSymbol,
+                  name: defaultName,
+                  logoURI: '',  // No logo available
+                  decimals: 9   // Default to 9 decimals (like SOL)
                 };
               }
               

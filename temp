@@ -1,0 +1,252 @@
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   1) 'use client'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   2) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   3) import { getLendingProgram, getLendingProgramId } from '@project/anchor'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   4) import { useConnection } from '@solana/wallet-adapter-react'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   5) import { Cluster, PublicKey, SystemProgram } from '@solana/web3.js'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   6) import { useMutation, useQuery } from '@tanstack/react-query'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   7) import { useMemo } from 'react'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   8) import toast from 'react-hot-toast'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530   9) import { useCluster } from '../cluster/cluster-data-access'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  10) import { useAnchorProvider } from '../solana/solana-provider'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  11) import { useTransactionToast } from '../ui/ui-layout'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  12) import { BN } from '@coral-xyz/anchor'
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  13) import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  14) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  15) // Use the deployed program ID from the anchor deploy output
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  16) const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  17) 
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  18) // SPL Token Program ID
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  19) const SPL_TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  20) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  21) export function useBankProgram() {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  22)   const { connection } = useConnection()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  23)   const { cluster } = useCluster()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  24)   const transactionToast = useTransactionToast()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  25)   const provider = useAnchorProvider()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  26)   const programId = useMemo(() => LENDING_PROGRAM_ID, [])
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  27)   const program = useMemo(() => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  28)     console.log('Using program ID:', programId.toString());
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  29)     return getLendingProgram(provider, programId);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  30)   }, [provider, programId])
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  31) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  32)   const banks = useQuery({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  33)     queryKey: ['banks', 'all', { cluster }],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  34)     queryFn: async () => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  35)       try {
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530  36)         // Fetch all bank accounts from the program
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530  37)         // Using any here since the TypeScript definitions may not fully match the runtime structure
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530  38)         // @ts-ignore
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  39)         const allAccounts = await program.account.bank.all()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  40)         return allAccounts
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  41)       } catch (error) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  42)         console.error('Error fetching banks:', error)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  43)         return []
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  44)       }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  45)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  46)   })
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  47) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  48)   const getProgramAccount = useQuery({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  49)     queryKey: ['get-program-account', { cluster }],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  50)     queryFn: () => connection.getParsedAccountInfo(programId),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  51)   })
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  52) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  53)   const initBank = useMutation({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  54)     mutationKey: ['bank', 'init', { cluster }],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  55)     mutationFn: async ({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  56)       tokenMint,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  57)       liquidationThreshold,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  58)       liquidationBonus,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  59)       liquidationCloseFactor,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  60)       maxLtv,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  61)       depositInterestRate,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  62)       borrowInterestRate,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  63)       name,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  64)       description,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  65)       depositFee,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  66)       withdrawalFee,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  67)       minDeposit,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  68)       interestAccrualPeriod,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  69)     }: {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  70)       tokenMint: PublicKey
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  71)       liquidationThreshold: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  72)       liquidationBonus: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  73)       liquidationCloseFactor: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  74)       maxLtv: number
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  75)       depositInterestRate: number
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  76)       borrowInterestRate: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  77)       name: string
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  78)       description: string
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  79)       depositFee: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  80)       withdrawalFee: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  81)       minDeposit: number
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  82)       interestAccrualPeriod: number
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  83)     }) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  84)       try {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  85)         console.log('Initializing bank with params:', {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  86)           tokenMint: tokenMint.toString(),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  87)           liquidationThreshold,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  88)           liquidationBonus,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  89)           liquidationCloseFactor,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  90)           maxLtv,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  91)           depositInterestRate,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  92)           borrowInterestRate,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  93)           name,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  94)           description,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  95)           depositFee,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  96)           withdrawalFee,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  97)           minDeposit,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530  98)           interestAccrualPeriod,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530  99)           programId: programId.toString(),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 100)           wallet: provider.publicKey?.toString()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 101)         });
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 102)         
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 103)         // Verify if the mint account exists
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 104)         const mintInfo = await connection.getAccountInfo(tokenMint);
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 105)         if (!mintInfo) {
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 106)           throw new Error(`Mint account ${tokenMint.toString()} does not exist on chain`);
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 107)         }
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 108)         console.log('Mint account info:', {
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 109)           owner: mintInfo.owner.toString(),
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 110)           data: mintInfo.data.length,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 111)           executable: mintInfo.executable,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 112)           lamports: mintInfo.lamports,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 113)         });
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 114) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 115)         // Find the PDA for the bank account
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 116)         const [bankPDA] = PublicKey.findProgramAddressSync(
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 117)           [tokenMint.toBuffer()],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 118)           programId
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 119)         );
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 120)         console.log('Bank PDA:', bankPDA.toString());
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 121) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 122)         // Find the PDA for the bank token account
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 123)         const [bankTokenAccountPDA] = PublicKey.findProgramAddressSync(
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 124)           [Buffer.from('treasury'), tokenMint.toBuffer()],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 125)           programId
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 126)         );
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 127)         console.log('Bank Token Account PDA:', bankTokenAccountPDA.toString());
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 128) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 129)         // Convert values to BN (BigNumber) as required by the contract
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 130)         const tx = await program.methods
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 131)           .initBank(
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 132)             new BN(liquidationThreshold),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 133)             new BN(liquidationBonus),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 134)             new BN(liquidationCloseFactor),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 135)             new BN(maxLtv),
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 136)             new BN(depositInterestRate),
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 137)             new BN(borrowInterestRate),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 138)             name,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 139)             description,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 140)             new BN(depositFee),
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 141)             new BN(withdrawalFee),
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 142)             new BN(minDeposit),
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 143)             new BN(interestAccrualPeriod)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 144)           )
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 145)           .accounts({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 146)             signer: provider.publicKey,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 147)             mint: tokenMint,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 148)             bank: bankPDA,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 149)             bankTokenAccount: bankTokenAccountPDA,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 150)             tokenProgram: SPL_TOKEN_PROGRAM_ID,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 151)             systemProgram: SystemProgram.programId,
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 152)           } as any)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 153)           .rpc({ commitment: 'confirmed' });
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 154)         
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 155)         console.log('Bank initialization transaction:', tx);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 156)         console.log('Solana Explorer URL:', `https://explorer.solana.com/tx/${tx}?cluster=devnet`);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 157)         
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 158)         return tx;
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 159)       } catch (error) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 160)         console.error('Error initializing bank:', error);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 161)         // Log more detailed error information
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 162)         if (error instanceof Error) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 163)           console.error('Error message:', error.message);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 164)           console.error('Error stack:', error.stack);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 165)           
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 166)           // Check for specific error codes
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 167)           const errorMessage = error.message;
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 168)           if (errorMessage.includes('custom program error: 0x1004')) {
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 169)             throw new Error('Error 4100: The declared program ID does not match the actual program ID. This has been fixed, please try again.');
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 170)           } else if (errorMessage.includes('AccountOwnedByWrongProgram') || errorMessage.includes('3007')) {
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 171)             throw new Error('The token mint account is not a valid SPL token or is owned by the wrong program. Please use a valid token mint address.');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 172)           } else if (errorMessage.includes('account not found')) {
+65611e74 (Jayanth Kumar 2025-03-10 00:06:15 +0530 173)             throw new Error('Required account not found. Make sure the token mint exists on the blockchain.');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 174)           } else if (errorMessage.includes('insufficient funds')) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 175)             throw new Error('Insufficient funds to complete the transaction.');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 176)           }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 177)         }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 178)         throw error;
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 179)       }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 180)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 181)     onSuccess: (signature) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 182)       transactionToast(signature)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 183)       return banks.refetch()
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 184)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 185)     onError: (error) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 186)       console.error('Failed to initialize bank:', error)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 187)       toast.error('Failed to initialize bank')
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 188)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 189)   })
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 190) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 191)   const initUser = useMutation({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 192)     mutationKey: ['user', 'init', { cluster }],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 193)     mutationFn: async (mintAddress: PublicKey) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 194)       try {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 195)         // Find the PDA for the user account
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 196)         const [userPDA] = PublicKey.findProgramAddressSync(
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 197)           [provider.publicKey.toBuffer(), mintAddress.toBuffer()],
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 198)           programId
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 199)         );
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 200)         console.log('User PDA:', userPDA.toString());
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 201) 
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 202)         // Find PDA for user global state
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 203)         const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 204)           [Buffer.from('user_global'), provider.publicKey.toBuffer()],
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 205)           programId
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 206)         );
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 207)         console.log('User Global State PDA:', userGlobalStatePDA.toString());
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 208) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 209)         const tx = await program.methods
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 210)           .initUserTokenState(mintAddress)
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 211)           .accounts({
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 212)             signer: provider.publicKey,
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 213)             userAccount: userPDA,
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 214)             userGlobalState: userGlobalStatePDA,
+cb3fbc2d (Jayanth Kumar 2025-03-30 23:30:04 +0530 215)             systemProgram: SystemProgram.programId,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 216)           })
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 217)           .rpc({ commitment: 'confirmed' });
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 218)         
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 219)         console.log('User initialization transaction:', tx);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 220)         console.log('Solana Explorer URL:', `https://explorer.solana.com/tx/${tx}?cluster=devnet`);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 221)         
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 222)         return tx;
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 223)       } catch (error) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 224)         console.error('Error initializing user:', error);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 225)         // Check if the error is because the account already exists
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 226)         if (error instanceof Error && error.message.includes('account already exists')) {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 227)           console.log('User account already exists, this is fine.');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 228)           return 'User account already exists';
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 229)         }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 230)         throw error;
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 231)       }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 232)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 233)     onSuccess: (signature) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 234)       if (typeof signature === 'string' && signature !== 'User account already exists') {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 235)         transactionToast(signature);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 236)       }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 237)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 238)     onError: (error) => {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 239)       console.error('Failed to initialize user:', error);
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 240)       toast.error('Failed to initialize user');
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 241)     },
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 242)   })
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 243) 
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 244)   return {
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 245)     program,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 246)     programId,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 247)     banks,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 248)     getProgramAccount,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 249)     initBank,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 250)     initUser,
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 251)   }
+2714c1f7 (Jayanth Kumar 2025-03-03 02:58:54 +0530 252) } 

@@ -330,15 +330,6 @@ export function useDeposits() {
   // Get prices from Pyth for all relevant tokens
   const pythPrices = useBatchPythPrices(priceFeedIds);
 
-  // Get mint info
-  const getMintInfo = useQuery({
-    queryKey: ['mint-info'],
-    queryFn: async ({ queryKey }) => {
-      return {}; // This is a placeholder, we'll use the function directly
-    },
-    enabled: false, // Don't run automatically
-  });
-
   // Fetch mint info function
   const fetchMintInfo = async (mintAddress: PublicKey) => {
     try {

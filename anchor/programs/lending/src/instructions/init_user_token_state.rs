@@ -8,7 +8,7 @@ pub struct InitUserTokenState<'info> {
     pub signer: Signer<'info>,
 
     #[account(
-        init,
+        init_if_needed,
         space = 8 + UserTokenState::INIT_SPACE,
         payer = signer,
         seeds = [signer.key().as_ref(), mint_address.key().as_ref()],

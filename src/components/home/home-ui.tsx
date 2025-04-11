@@ -24,13 +24,26 @@ import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { ImagesSlider } from "@/components/ui/images-slider";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { FloatingNav } from "../ui/floating-navbar";
+import {
+    Navbar,
+    NavBody,
+    NavItems,
+    MobileNav,
+    NavbarLogo,
+    NavbarButton,
+    MobileNavHeader,
+    MobileNavToggle,
+    MobileNavMenu,
+} from "@/components/ui/resizable-navbar";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function HomeUI() {
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
+            <NavbarDemo >
+
             {/* 1. Hero Section */}
             <HeroSection />
 
@@ -57,208 +70,189 @@ export default function HomeUI() {
 
             {/* 9. Get Started / Call to Action */}
             <CallToAction />
+            </NavbarDemo>
         </div>
     );
 }
 
-import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-
-function Navbar() {
-    const components: { title: string; href: string; description: string }[] = [
-        {
-            title: "Alert Dialog",
-            href: "/docs/primitives/alert-dialog",
-            description:
-                "A modal dialog that interrupts the user with important content and expects a response.",
-        },
-        {
-            title: "Hover Card",
-            href: "/docs/primitives/hover-card",
-            description:
-                "For sighted users to preview content available behind a link.",
-        },
-        {
-            title: "Progress",
-            href: "/docs/primitives/progress",
-            description:
-                "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
-        },
-        {
-            title: "Scroll-area",
-            href: "/docs/primitives/scroll-area",
-            description: "Visually or semantically separates content.",
-        },
-        {
-            title: "Tabs",
-            href: "/docs/primitives/tabs",
-            description:
-                "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
-        },
-        {
-            title: "Tooltip",
-            href: "/docs/primitives/tooltip",
-            description:
-                "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
-        },
-    ]
-
-    function NavigationMenuDemo() {
-        return (
-            <div className="flex justify-between w-[80vw] mx-auto">
-                <div className="flex-1">
-                    <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg mr-2"></div>
-                        <span className="text-2xl font-bold text-black">DeFi</span>
-                    </div>
-                </div>
-                <div className="flex-1">
-                    <NavigationMenu className="text-black">
-                        <NavigationMenuList>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
-                                <NavigationMenuContent>
-                                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                        <li className="row-span-3">
-                                            <NavigationMenuLink asChild>
-                                                <a
-                                                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                                    href="/"
-                                                >
-                                                    <div className="mb-2 mt-4 text-lg font-medium">
-                                                        shadcn/ui
-                                                    </div>
-                                                    <p className="text-sm leading-tight text-muted-foreground">
-                                                        Beautifully designed components built with Radix UI and
-                                                        Tailwind CSS.
-                                                    </p>
-                                                </a>
-                                            </NavigationMenuLink>
-                                        </li>
-                                        <ListItem href="/docs" title="Introduction">
-                                            Re-usable components built using Radix UI and Tailwind CSS.
-                                        </ListItem>
-                                        <ListItem href="/docs/installation" title="Installation">
-                                            How to install dependencies and structure your app.
-                                        </ListItem>
-                                        <ListItem href="/docs/primitives/typography" title="Typography">
-                                            Styles for headings, paragraphs, lists...etc
-                                        </ListItem>
-                                    </ul>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger>Components</NavigationMenuTrigger>
-                                <NavigationMenuContent>
-                                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                        {components.map((component) => (
-                                            <ListItem
-                                                key={component.title}
-                                                title={component.title}
-                                                href={component.href}
-                                            >
-                                                {component.description}
-                                            </ListItem>
-                                        ))}
-                                    </ul>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <Link href="/docs" legacyBehavior passHref>
-                                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                        Documentation
-                                    </NavigationMenuLink>
-                                </Link>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
-                <div className="flex-1 items-center flex justify-end">
-                <Link href="/get-started" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 transform hover:scale-105">
-                    Get Started
-                </Link>
-                </div>
-            </div>
-        )
-    }
-
-    const ListItem = React.forwardRef<
-        React.ElementRef<"a">,
-        React.ComponentPropsWithoutRef<"a">
-    >(({ className, title, children, ...props }, ref) => {
-        return (
-            <li>
-                <NavigationMenuLink asChild>
-                    <a
-                        ref={ref}
-                        className={cn(
-                            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                            className
-                        )}
-                        {...props}
-                    >
-                        <div className="text-sm font-medium leading-none">{title}</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            {children}
-                        </p>
-                    </a>
-                </NavigationMenuLink>
-            </li>
-        )
-    })
-    ListItem.displayName = "ListItem"
-
+function NavbarDemo({ children }: { children: React.ReactNode }) {
     const navItems = [
-        { name: "Home", link: "/" },
-        { name: "Markets", link: "/markets" },
-        { name: "Lending", link: "/lending" },
+        {
+            name: "Features",
+            link: "#features",
+        },
+        {
+            name: "Pricing",
+            link: "#pricing",
+        },
+        {
+            name: "Contact",
+            link: "#contact",
+        },
     ];
+
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     return (
-        <FloatingNav>
-            <NavigationMenuDemo />
-        </FloatingNav>
-    )
+        <div className="relative w-full">
+            <Navbar>
+                {/* Desktop Navigation */}
+                <NavBody>
+                    <NavbarLogo />
+                    <NavItems items={navItems} />
+                    <div className="flex items-center gap-4">
+                        <NavbarButton variant="secondary">Login</NavbarButton>
+                        <NavbarButton variant="primary">Book a call</NavbarButton>
+                    </div>
+                </NavBody>
+
+                {/* Mobile Navigation */}
+                <MobileNav>
+                    <MobileNavHeader>
+                        <NavbarLogo />
+                        <MobileNavToggle
+                            isOpen={isMobileMenuOpen}
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        />
+                    </MobileNavHeader>
+
+                    <MobileNavMenu
+                        isOpen={isMobileMenuOpen}
+                        onClose={() => setIsMobileMenuOpen(false)}
+                    >
+                        {navItems.map((item, idx) => (
+                            <a
+                                key={`mobile-link-${idx}`}
+                                href={item.link}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="relative text-neutral-600 dark:text-neutral-300"
+                            >
+                                <span className="block">{item.name}</span>
+                            </a>
+                        ))}
+                        <div className="flex w-full flex-col gap-4">
+                            <NavbarButton
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                variant="primary"
+                                className="w-full"
+                            >
+                                Login
+                            </NavbarButton>
+                            <NavbarButton
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                variant="primary"
+                                className="w-full"
+                            >
+                                Book a call
+                            </NavbarButton>
+                        </div>
+                    </MobileNavMenu>
+                </MobileNav>
+            </Navbar>
+            {children}
+        </div>
+    );
 }
+
 
 // 1. Hero Section
 function HeroSection() {
     return (
-        <section className="relative w-full ">
-            <HeroHighlight containerClassName="h-screen bg-black">
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                        Decentralized <Highlight>Solana Lending</Highlight>, Built for You.
-                    </h1>
-                    <p className="text-xl md:text-2xl mb-10 max-w-3xl">
-                        Seamlessly borrow and lend tokens with lightning-fast transactions and zero intermediaries.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Link href="/lending">
-                            <BackgroundGradient className="rounded-3xl">
-                                <button className="px-8 py-4 rounded-3xl bg-black text-white font-bold text-lg">
-                                    Start Lending
-                                </button>
-                            </BackgroundGradient>
-                        </Link>
-                        <Link href="/markets">
-                            <BackgroundGradient className="rounded-3xl">
-                                <button className="px-8 py-4 rounded-3xl bg-black text-white font-bold text-lg">
-                                    Explore Markets
-                                </button>
-                            </BackgroundGradient>
-                        </Link>
-                    </div>
-                </div>
-            </HeroHighlight>
-        </section>
+        <div className="relative mx-auto my-20 flex flex-col items-center justify-center">
+        <div className="absolute inset-y-0 left-0 h-full w-px ">
+          <div className="absolute top-0 h-40 w-px " />
+        </div>
+        <div className="absolute inset-y-0 right-0 h-full w-px ">
+          <div className="absolute h-40 w-px " />
+        </div>
+        <div className="absolute inset-x-0 bottom-0 h-px w-full ">
+          <div className="absolute mx-auto h-px w-40" />
+        </div>
+        <div className="px-4 py-10 md:py-20">
+          <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
+            {"Launch your website in hours, not days"
+              .split(" ")
+              .map((word, index) => (
+                <motion.span
+                  key={index}
+                  initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
+                  animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: index * 0.1,
+                    ease: "easeInOut",
+                  }}
+                  className="mr-2 inline-block"
+                >
+                  {word}
+                </motion.span>
+              ))}
+          </h1>
+          <motion.p
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.3,
+              delay: 0.8,
+            }}
+            className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
+          >
+            With AI, you can launch your website in hours, not days. Try our best
+            in class, state of the art, cutting edge AI tools to get your website
+            up.
+          </motion.p>
+          <motion.div
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.3,
+              delay: 1,
+            }}
+            className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
+          >
+            <button className="w-60 transform rounded-lg bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+              Explore Now
+            </button>
+            <button className="w-60 transform rounded-lg border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
+              Contact Support
+            </button>
+          </motion.div>
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 10,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.3,
+              delay: 1.2,
+            }}
+            className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+          >
+            <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
+              <Image
+                src="https://assets.aceternity.com/pro/aceternity-landing.webp"
+                alt="Landing page preview"
+                className="aspect-[16/9] h-auto w-full object-cover"
+                height={1000}
+                width={1000}
+              />
+            </div>
+          </motion.div>
+        </div>
+      </div>
+  
     );
 }
 

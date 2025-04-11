@@ -145,8 +145,6 @@ export function useBankProgram() {
           .accounts({
             signer: provider.publicKey,
             mint: tokenMint,
-            bank: bankPDA,
-            bankTokenAccount: bankTokenAccountPDA,
             tokenProgram: SPL_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           } as any)
@@ -210,8 +208,6 @@ export function useBankProgram() {
           .initUserTokenState(mintAddress)
           .accounts({
             signer: provider.publicKey,
-            userAccount: userPDA,
-            userGlobalState: userGlobalStatePDA,
             systemProgram: SystemProgram.programId,
           })
           .rpc({ commitment: 'confirmed' });
