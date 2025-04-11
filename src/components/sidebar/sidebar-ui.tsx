@@ -83,7 +83,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
         },
         {
             label: "Transaction History",
-            href: "/history",
+            href: "/transaction-history",
             icon: (
                 <IconHistory className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
             ),
