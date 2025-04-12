@@ -9,7 +9,7 @@ export default function Footer() {
                             href="/"
                         >
                             <img
-                                alt="logo"
+                                alt="SolanaLend logo"
                                 loading="lazy"
                                 width={30}
                                 height={30}
@@ -20,87 +20,73 @@ export default function Footer() {
                                 style={{ color: "transparent" }}
                             />
                             <span className="font-medium text-black dark:text-white">
-                                DevStudio
+                                SolanaLend
                             </span>
                         </a>
                     </div>
                     <div className="mt-2 ml-2">
-                        © copyright DevStudios 2024. All rights reserved.
+                        © 2024 SolanaLend. All rights reserved.
                     </div>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 items-start mt-10 sm:mt-0 md:mt-0">
                     <div className="flex justify-center space-y-4 flex-col w-full">
                         <p className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">
-                            Pages
+                            Platform
                         </p>
                         <ul className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 list-none space-y-4">
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#lending"
                                 >
-                                    All Products
+                                    Lending
                                 </a>
                             </li>
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#borrowing"
                                 >
-                                    Studio
+                                    Borrowing
                                 </a>
                             </li>
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#dashboard"
                                 >
-                                    Clients
+                                    Dashboard
                                 </a>
                             </li>
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#calculator"
                                 >
-                                    Pricing
+                                    Interest Calculator
                                 </a>
                             </li>
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#security"
                                 >
-                                    Blog
+                                    Security
                                 </a>
                             </li>
                         </ul>
                     </div>
                     <div className="flex justify-center space-y-4 flex-col">
                         <p className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">
-                            Socials
+                            Social
                         </p>
                         <ul className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 list-none space-y-4">
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
-                                >
-                                    Facebook
-                                </a>
-                            </li>
-                            <li className="list-none">
-                                <a
-                                    className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
-                                >
-                                    Instagram
-                                </a>
-                            </li>
-                            <li className="list-none">
-                                <a
-                                    className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="https://twitter.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                 >
                                     Twitter
                                 </a>
@@ -108,9 +94,70 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="https://discord.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                 >
-                                    LinkedIn
+                                    Discord
+                                </a>
+                            </li>
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="https://telegram.org"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Telegram
+                                </a>
+                            </li>
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="https://github.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    GitHub
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div className="flex justify-center space-y-4 flex-col">
+                        <p className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">
+                            Resources
+                        </p>
+                        <ul className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 list-none space-y-4">
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="#documentation"
+                                >
+                                    Documentation
+                                </a>
+                            </li>
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="#faq"
+                                >
+                                    FAQ
+                                </a>
+                            </li>
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="#blog"
+                                >
+                                    Blog
+                                </a>
+                            </li>
+                            <li className="list-none">
+                                <a
+                                    className="transition-colors hover:text-text-neutral-800 "
+                                    href="#governance"
+                                >
+                                    Governance
                                 </a>
                             </li>
                         </ul>
@@ -123,7 +170,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#privacy"
                                 >
                                     Privacy Policy
                                 </a>
@@ -131,7 +178,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#terms"
                                 >
                                     Terms of Service
                                 </a>
@@ -139,40 +186,17 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#risk"
                                 >
-                                    Cookie Policy
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div className="flex justify-center space-y-4 flex-col">
-                        <p className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold">
-                            Register
-                        </p>
-                        <ul className="transition-colors hover:text-text-neutral-800 text-neutral-600 dark:text-neutral-300 list-none space-y-4">
-                            <li className="list-none">
-                                <a
-                                    className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
-                                >
-                                    Sign Up
+                                    Risk Disclosure
                                 </a>
                             </li>
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
+                                    href="#security-audit"
                                 >
-                                    Login
-                                </a>
-                            </li>
-                            <li className="list-none">
-                                <a
-                                    className="transition-colors hover:text-text-neutral-800 "
-                                    href="/products"
-                                >
-                                    Forgot Password
+                                    Security Audits
                                 </a>
                             </li>
                         </ul>
@@ -180,7 +204,7 @@ export default function Footer() {
                 </div>
             </div>
             <p className="text-center mt-20 text-5xl md:text-9xl lg:text-[12rem] xl:text-[13rem] font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 dark:from-neutral-950 to-neutral-200 dark:to-neutral-800 inset-x-0">
-                DevStudio
+                SolanaLend
             </p>
         </div>
 

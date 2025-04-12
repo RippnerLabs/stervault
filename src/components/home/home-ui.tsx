@@ -68,16 +68,16 @@ export default function HomeUI() {
 function NavbarDemo({ children }: { children: React.ReactNode }) {
     const navItems = [
         {
-            name: "Features",
-            link: "#features",
+            name: "Lending",
+            link: "/borrow",
         },
         {
-            name: "Pricing",
-            link: "#pricing",
+            name: "Borrowing",
+            link: "/markets",
         },
         {
-            name: "Contact",
-            link: "#contact",
+            name: "Dashboard",
+            link: "/dashboard",
         },
     ];
 
@@ -91,9 +91,11 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                     <NavbarLogo />
                     <NavItems items={navItems} />
                     <div className="flex items-center gap-4">
-                        <ThemeToggle />
-                        <NavbarButton variant="secondary">Login</NavbarButton>
-                        <NavbarButton variant="primary">Book a call</NavbarButton>
+                        {/* <ThemeToggle /> */}
+                        <NavbarButton variant="secondary">Connect Wallet</NavbarButton>
+                        <NavbarButton variant="primary" onClick={() => {
+                            window.location.href = "/dashboard";
+                        }}>Launch App</NavbarButton>
                     </div>
                 </NavBody>
 
@@ -122,19 +124,22 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                             </a>
                         ))}
                         <div className="flex w-full flex-col gap-4">
-                            <NavbarButton
+                            {/* <NavbarButton
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 variant="primary"
                                 className="w-full"
                             >
-                                Login
-                            </NavbarButton>
+                                Connect Wallet
+                            </NavbarButton> */}
                             <NavbarButton
-                                onClick={() => setIsMobileMenuOpen(false)}
+                                onClick={() => {
+                                    // setIsMobileMenuOpen(false);
+                                    window.location.href = "/dashboard";
+                                }}
                                 variant="primary"
                                 className="w-full"
                             >
-                                Book a call
+                                Launch App
                             </NavbarButton>
                         </div>
                     </MobileNavMenu>
@@ -149,94 +154,94 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
 function HeroSection() {
     const products = [
         {
-            title: "Moonbeam",
-            link: "https://gomoonbeam.com",
+            title: "Earn Interest on SOL",
+            link: "#lending",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
+                "https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=3024&auto=format&fit=crop",
         },
         {
-            title: "Cursor",
-            link: "https://cursor.so",
+            title: "Borrow Against Collateral",
+            link: "#borrowing",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/cursor.png",
+                "https://images.unsplash.com/photo-1534951009808-766178b47a4f?crop=entropy&cs=tinysrgb&fit=max&w=1080",
         },
         {
-            title: "Rogue",
-            link: "https://userogue.com",
+            title: "Ultra-Fast Transactions",
+            link: "#features",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/rogue.png",
+                "https://images.unsplash.com/photo-1531297484001-80022131f5a1?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Editorially",
-            link: "https://editorially.org",
+            title: "Competitive APY Rates",
+            link: "#rates",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/editorially.png",
+                "https://images.unsplash.com/photo-1642465789831-a176eb4a1b14?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Editrix AI",
-            link: "https://editrix.ai",
+            title: "Secure Smart Contracts",
+            link: "#security",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/editrix.png",
+                "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Pixel Perfect",
-            link: "https://app.pixelperfect.quest",
+            title: "Low Transaction Fees",
+            link: "#fees",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
+                "https://images.unsplash.com/photo-1614787296891-d1b2b1aced36?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Algochurn",
-            link: "https://algochurn.com",
+            title: "Multi-Asset Support",
+            link: "#assets",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
+                "https://images.unsplash.com/photo-1640161704729-cbe966a08476?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Aceternity UI",
-            link: "https://ui.aceternity.com",
+            title: "Real-Time Monitoring",
+            link: "#dashboard",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Tailwind Master Kit",
-            link: "https://tailwindmasterkit.com",
+            title: "Liquidation Protection",
+            link: "#protection",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
+                "https://images.unsplash.com/photo-1644363832001-0876e81f37a9?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "SmartBridge",
-            link: "https://smartbridgetech.com",
+            title: "Mobile Access",
+            link: "#mobile",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
+                "https://images.unsplash.com/photo-1640228983634-e963bf92f89c?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Renderwork Studio",
-            link: "https://renderwork.studio",
+            title: "Decentralized Governance",
+            link: "#governance",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
+                "https://images.unsplash.com/photo-1643488072086-9d7318c0a04b?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Creme Digital",
-            link: "https://cremedigital.com",
+            title: "Enterprise-Grade Security",
+            link: "#security",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
+                "https://images.unsplash.com/photo-1640055704241-46bdb0bacbad?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Golden Bells Academy",
-            link: "https://goldenbellsacademy.com",
+            title: "Auto-Compounding Interest",
+            link: "#interest",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
+                "https://images.unsplash.com/photo-1517754461499-9930e2b54957?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "Invoker Labs",
-            link: "https://invoker.lol",
+            title: "Flash Loans",
+            link: "#flashloans",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/invoker.png",
+                "https://images.unsplash.com/photo-1573164713988-8665fc963095?crop=entropy&cs=srgb&w=1080",
         },
         {
-            title: "E Free Invoice",
-            link: "https://efreeinvoice.com",
+            title: "Community Rewards",
+            link: "#rewards",
             thumbnail:
-                "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
+                "https://images.unsplash.com/photo-1459257831348-f0cdd359235f?crop=entropy&cs=srgb&w=1080",
         },
     ];
 
@@ -246,7 +251,7 @@ function HeroSection() {
 // 2. Featured Highlights
 function FeaturedHighlights() {
     return (
-        <section className="py-10 bg-card">
+        <section className="py-10 bg-card" id="features">
             <FeaturesSectionDemo />
         </section>
     );
@@ -272,20 +277,20 @@ function LendingSimulator() {
     const focusCardsData = [
         {
             title: "Lending Opportunities",
-            src: "https://via.placeholder.com/400x300?text=Lending",
+            src: "https://images.unsplash.com/photo-1534951009808-766178b47a4f?crop=entropy&cs=tinysrgb&fit=max&w=1080",
         },
         {
             title: "Borrowing Options",
-            src: "https://via.placeholder.com/400x300?text=Borrowing",
+            src: "https://images.unsplash.com/photo-1642465789831-a176eb4a1b14?crop=entropy&cs=srgb&w=1080",
         },
         {
             title: "Market Analysis",
-            src: "https://via.placeholder.com/400x300?text=Analysis",
+            src: "https://images.unsplash.com/photo-1640161704729-cbe966a08476?crop=entropy&cs=srgb&w=1080",
         },
     ];
 
     return (
-        <section className="py-20 bg-zinc-900">
+        <section className="py-20 bg-zinc-900" id="calculator">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-4xl font-bold text-center mb-16">
                     Calculate Your Earnings & Borrowing Costs
@@ -323,7 +328,7 @@ function LendingSimulator() {
                             </div>
                             <div className="flex justify-between">
                                 <span>Amount:</span>
-                                <span>100 USDC</span>
+                                <span>1000 USDC</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Interest Rate:</span>
@@ -331,7 +336,7 @@ function LendingSimulator() {
                             </div>
                             <div className="flex justify-between font-bold">
                                 <span>Yearly Cost:</span>
-                                <span>3.8 USDC</span>
+                                <span>38 USDC</span>
                             </div>
                         </div>
                     </GlareCard>
@@ -342,7 +347,7 @@ function LendingSimulator() {
                 </div>
 
                 <div className="mt-16 text-center">
-                    <TextGenerateEffect words="Simulate your potential earnings and costs with our calculator." className="text-xl" />
+                    <TextGenerateEffect words="Simulate your potential earnings and costs with our advanced DeFi calculator." className="text-xl" />
                 </div>
             </div>
         </section>
@@ -353,19 +358,19 @@ function LendingSimulator() {
 function UserTestimonials() {
     const testimonials = [
         {
-            quote: "I never imagined DeFi lending could be this fast and secure!",
+            quote: "SolanaLend revolutionized my passive income strategy. The high APY rates and lightning-fast transactions make it my top choice for DeFi lending.",
             name: "Alice M.",
             designation: "DeFi Enthusiast",
             src: "https://randomuser.me/api/portraits/women/1.jpg",
         },
         {
-            quote: "Solana's lending pools have transformed my passive income strategy.",
-            name: "Bob T.",
+            quote: "The ability to borrow against my SOL holdings without selling has been game-changing for my investment strategy. The platform's security gives me peace of mind.",
+            name: "Robert T.",
             designation: "Crypto Investor",
             src: "https://randomuser.me/api/portraits/men/1.jpg",
         },
         {
-            quote: "The instant transactions make this platform a game-changer.",
+            quote: "As a developer, I appreciate the platform's well-designed smart contracts and transparent liquidation processes. Their technical excellence sets them apart.",
             name: "Charlie K.",
             designation: "Blockchain Developer",
             src: "https://randomuser.me/api/portraits/men/2.jpg",
@@ -373,7 +378,7 @@ function UserTestimonials() {
     ];
 
     return (
-        <section className="py-20 bg-black">
+        <section className="py-20 bg-black" id="testimonials">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-4xl font-bold text-center mb-16">What Our Users Say</h2>
 
@@ -388,21 +393,21 @@ function SecuritySection() {
     const securityFeatures = [
         {
             id: 1,
-            name: "Security Audits",
+            name: "Audited Smart Contracts",
             designation: "Security Feature",
-            content: "Fully audited smart contracts for maximum security.",
+            content: "Our lending protocols undergo regular security audits by leading blockchain security firms to ensure maximum protection for user funds.",
         },
         {
             id: 2,
-            name: "No Middlemen",
+            name: "Decentralized Architecture",
             designation: "Security Feature",
-            content: "Direct peer-to-peer lending with no centralized control.",
+            content: "Our platform operates on a fully decentralized model with no central points of failure or control, ensuring users maintain custody of their assets.",
         },
         {
             id: 3,
-            name: "Transparent Governance",
+            name: "Transparent Liquidations",
             designation: "Security Feature",
-            content: "Decisions made via DAO voting.",
+            content: "Our liquidation processes are fully transparent and algorithmic, with fair liquidation thresholds and incentives for system stability.",
         },
     ];
 
@@ -422,7 +427,7 @@ function SecuritySection() {
     ];
 
     return (
-        <section className="py-20 bg-zinc-900 relative">
+        <section className="py-20 bg-zinc-900 relative" id="security">
             <LampContainer className="w-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <h2 className="text-4xl font-bold text-center mb-16">Security & Transparency</h2>
@@ -496,6 +501,6 @@ function SecuritySection() {
 // 9. Get Started / Call to Action
 function CallToAction() {
     return (
-        <div className="relative overflow-hidden"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Want a professional, extraordinary website tailored to your needs? &nbsp;<span className="font-bold text-black dark:text-white">Get in touch</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">We've helped thousands of <span className="text-sky-700">founders and teams</span> build their products and apps from scratch, and we can help you too.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Talk to us</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">Manu literally took our requirements and quite literally ran with them. To anyone reading this - I can't recommend Manu enough, your job will be done exceptionally well, and you will be delighted with the end result.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">John Shahawy</p><p className="text-neutral-500 dark:text-neutral-400">Founder - Moonbeam, Rogue.</p></div></div></section></div>
+        <div className="relative overflow-hidden" id="contact"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Ready to start earning passive income with your Solana assets? &nbsp;<span className="font-bold text-black dark:text-white">Get started today</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">Join thousands of <span className="text-sky-700">users and investors</span> who are already earning competitive returns and accessing liquidity on the Solana blockchain.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Launch App</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">SolanaLend has completely transformed how I manage my crypto portfolio. The ability to earn interest on my SOL while still having the option to borrow against it when needed has given me incredible financial flexibility.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">Michael Chen</p><p className="text-neutral-500 dark:text-neutral-400">Crypto Investor & DeFi Enthusiast</p></div></div></section></div>
     );
 }

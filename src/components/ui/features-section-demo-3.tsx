@@ -10,32 +10,32 @@ import Link from "next/link";
 export default function FeaturesSectionDemo() {
   const features = [
     {
-      title: "Track issues effectively",
+      title: "Industry-Leading Interest Rates",
       description:
-        "Track and manage your project issues with ease using our intuitive interface.",
+        "Earn competitive interest rates on your deposited Solana assets with real-time yield calculations and auto-compounding returns.",
       skeleton: <SkeletonOne />,
       className:
         "col-span-1 lg:col-span-4 border-b lg:border-r dark:border-neutral-800",
     },
     {
-      title: "Capture pictures with AI",
+      title: "Lightning-Fast Borrowing",
       description:
-        "Capture stunning photos effortlessly using our advanced AI technology.",
+        "Access instant liquidity by borrowing against your crypto collateral with industry-leading loan-to-value ratios on Solana.",
       skeleton: <SkeletonTwo />,
       className: "border-b col-span-1 lg:col-span-2 dark:border-neutral-800",
     },
     {
-      title: "Watch our AI on YouTube",
+      title: "Learn About DeFi Lending",
       description:
-        "Whether its you or Tyler Durden, you can get to know about our product on YouTube",
+        "Explore our educational resources to understand how decentralized finance can revolutionize your investment strategy.",
       skeleton: <SkeletonThree />,
       className:
         "col-span-1 lg:col-span-3 lg:border-r  dark:border-neutral-800",
     },
     {
-      title: "Deploy in seconds",
+      title: "Advanced Risk Management",
       description:
-        "With our blazing fast, state of the art, cutting edge, we are so back cloud servies (read AWS) - you can deploy your model in seconds.",
+        "Our platform includes sophisticated risk management tools including collateral health monitoring, liquidation warnings, and automated protection mechanisms.",
       skeleton: <SkeletonFour />,
       className: "col-span-1 lg:col-span-3 border-b lg:border-none",
     },
@@ -44,12 +44,11 @@ export default function FeaturesSectionDemo() {
     <div className="relative z-20 py-10 lg:py-40 max-w-7xl mx-auto">
       <div className="px-8">
         <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-foreground">
-          Packed with thousands of features
+          Unlock the Full Potential of Your Solana Assets
         </h4>
 
         <p className="text-sm lg:text-base max-w-2xl my-4 mx-auto text-muted-foreground text-center font-normal">
-          From Image generation to video generation, Everything AI has APIs for
-          literally everything. It can even create this website copy for you.
+          Our decentralized lending platform enables you to earn interest on deposits and access liquidity through borrowing while maintaining control of your assets.
         </p>
       </div>
 

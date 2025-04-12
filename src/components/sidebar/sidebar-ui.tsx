@@ -48,7 +48,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             label: "Dashboard",
             href: "/dashboard",
             icon: <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            breadcrumbText: "Dashboard"
+            breadcrumbText: "Overview"
         },
     {
             label: "Deposits",
@@ -142,8 +142,6 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                                 <SidebarLink 
                                     key={idx} 
                                     link={link}
-                                    className={pathname === link.href ? 
-                                        "bg-primary/10 font-medium" : ""}
                                 />
                             ))}
                         </div>
@@ -151,14 +149,14 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                     <div>
                         <SidebarLink
                             link={{
-                                label: "Manu Arora",
+                                label: "New User",
                                 href: "#",
                                 icon: (
                                     <Image
-                                        src="https://assets.aceternity.com/manu.png"
-                                        className="h-7 w-7 flex-shrink-0 rounded-full"
-                                        width={50}
-                                        height={50}
+                                        src="https://cdn.jsdelivr.net/gh/alohe/avatars/png/memo_5.png"
+                                        className="h-10 w-10 flex-shrink-0 rounded-full object-contain"
+                                        width={100}
+                                        height={100}
                                         alt="Avatar"
                                     />
                                 ),
@@ -202,7 +200,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                     </header>
                     <div className="px-2 md:px-10">
                         {children}
-                        <ClusterUiTable />
+                        {/* <ClusterUiTable /> */}
                     </div>
                 </div>
             </div>
