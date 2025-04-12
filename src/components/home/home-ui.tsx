@@ -40,6 +40,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import FeaturesSectionDemo from "@/components/ui/features-section-demo-3";
+import LayoutGridDemo from "@/components/ui/layout-grid-demo";
 
 export default function HomeUI() {
     return (
@@ -266,70 +267,8 @@ function FeaturedHighlights() {
 
 // 3. Live Market Stats
 function LiveMarketStats() {
-    const stats = [
-        {
-            title: "Total Value Locked",
-            value: "$123,456,789",
-            icon: "📊",
-        },
-        {
-            title: "Top Lending Pools",
-            value: "SOL, USDC, ETH, BTC",
-            icon: "🏆",
-        },
-        {
-            title: "Average APY",
-            value: "8.5%",
-            icon: "📈",
-        },
-        {
-            title: "Recent Transactions",
-            value: "User X borrowed 50 SOL from Pool A",
-            icon: "🔄",
-        },
-    ];
-
     return (
-        <section className="py-20 bg-zinc-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Live Market Stats</h2>
-
-                <BentoGrid className="max-w-6xl mx-auto">
-                    {stats.map((stat, i) => (
-                        <BentoGridItem
-                            key={i}
-                            title={stat.title}
-                            description={
-                                <AnimatedTooltip
-                                    items={[
-                                        {
-                                            id: i,
-                                            name: stat.title,
-                                            designation: stat.value,
-                                            image: `https://via.placeholder.com/150?text=${stat.icon}`,
-                                        },
-                                    ]}
-                                />
-                            }
-                            header={
-                                <div className="flex items-center justify-center w-full h-full bg-zinc-800 rounded-xl p-4">
-                                    <span className="text-4xl">{stat.icon}</span>
-                                </div>
-                            }
-                            className="bg-zinc-800"
-                        />
-                    ))}
-                </BentoGrid>
-
-                <div className="mt-16 text-center">
-                    <h3 className="text-2xl font-bold mb-4">Market Trends</h3>
-                    <FlipWords
-                        words={["Rising APYs", "Increasing TVL", "Growing User Base", "Expanding Markets"]}
-                        className="text-xl font-bold"
-                    />
-                </div>
-            </div>
-        </section>
+        <LayoutGridDemo />
     );
 }
 
