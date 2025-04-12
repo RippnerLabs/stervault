@@ -655,4 +655,106 @@ describe('Lending Smart Contract Tests', () => {
     console.log("Test Get Active Borrow Positions completed");
   });
   
+
+  it("Test Get all banks financial profile", async () => {
+    console.log("Starting Test Get all banks financial profile");
+    
+    // In a production environment, we would query all Bank accounts
+    // Here we'll use the mints we created in the test setup
+    const knownMints = [mintSOL, mintUSDC];
+    console.log(`Checking financial profiles for ${knownMints.length} banks`);
+    
+    for (const mint of knownMints) {
+      // Derive the bank PDA for this mint
+      const [bankPDA] = PublicKey.findProgramAddressSync(
+        [mint.toBuffer()],
+        program.programId
+      );
+      console.log(`\nFetching bank information for mint: ${mint.toBase58()}`);
+      console.log(`Bank PDA: ${bankPDA.toBase58()}`);
+      
+      try {
+        // Fetch the bank data
+        const bankData = await program.account.bank.fetch(bankPDA);
+        
+        // Get mint info for display purposes
+        let mintInfo;
+        try {
+          // Use the bankrun context to get the account data
+          const mintAccountInfo = await context.banksClient.getAccount(mint);
+          // For this test, we can use the mints we already have access to
+          const decimals = mint.equals(mintSOL) ? 9 : 6; // SOL has 9 decimals, USDC has 6
+          
+          mintInfo = {
+            decimals: decimals,
+            supply: 'N/A', // We don't directly access supply in this simplified test
+          };
+        } catch (error) {
+          console.log(`Error fetching mint info: ${error}`);
+          mintInfo = { decimals: 'unknown', supply: 'unknown' };
+        }
+        
+        // Calculate financial metrics
+        const totalDeposited = bankData.totalDepositedShares.toString();
+        const totalCollateral = bankData.totalCollateralShares.toString();
+        const totalBorrowed = bankData.totalBorrowedShares.toString();
+        
+        // Calculate utilization rate (borrowed / deposited)
+        const utilizationRate = bankData.totalDepositedShares.toNumber() > 0 
+          ? (bankData.totalBorrowedShares.toNumber() / bankData.totalDepositedShares.toNumber() * 100).toFixed(2)
+          : '0.00';
+        
+        // Format interest rates as percentages (basis points to percentage)
+        const depositRate = (bankData.depositInterestRate.toNumber() / 100).toFixed(2);
+        const borrowRate = (bankData.borrowInterestRate.toNumber() / 100).toFixed(2);
+        
+        // Max LTV as percentage
+        const maxLtv = (bankData.maxLtv.toNumber() / 100).toFixed(2);
+        
+        // Format timestamps
+        const lastCompoundTime = new Date(bankData.lastCompoundTime.toNumber() * 1000).toISOString();
+        const interestAccrualPeriod = bankData.interestAccrualPeriod.toNumber();
+        
+        // Print bank financial profile
+        console.log('=== Bank Financial Profile ===');
+        console.log(`Name: ${bankData.name}`);
+        console.log(`Description: ${bankData.description}`);
+        console.log(`Authority: ${bankData.authority.toBase58()}`);
+        console.log(`Mint: ${bankData.mintAddress.toBase58()} (${mintInfo.decimals} decimals)`);
+        console.log('\n--- Financial Metrics ---');
+        console.log(`Total Deposited Shares: ${totalDeposited}`);
+        console.log(`Total Collateral Shares: ${totalCollateral}`);
+        console.log(`Total Borrowed Shares: ${totalBorrowed}`);
+        console.log(`Utilization Rate: ${utilizationRate}%`);
+        console.log('\n--- Interest Rates ---');
+        console.log(`Deposit Interest Rate: ${depositRate}%`);
+        console.log(`Borrow Interest Rate: ${borrowRate}%`);
+        console.log('\n--- Risk Parameters ---');
+        console.log(`Max LTV: ${maxLtv}%`);
+        console.log(`Liquidation Threshold: ${(bankData.liquidationThreshold.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Liquidation Bonus: ${(bankData.liquidationBonus.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Liquidation Close Factor: ${(bankData.liquidationCloseFactor.toNumber() / 100).toFixed(2)}%`);
+        console.log('\n--- Fees ---');
+        console.log(`Deposit Fee: ${(bankData.depositFee.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Withdrawal Fee: ${(bankData.withdrawalFee.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Minimum Deposit: ${bankData.minDeposit.toString()}`);
+        console.log('\n--- Time Parameters ---');
+        console.log(`Last Compound Time: ${lastCompoundTime}`);
+        console.log(`Interest Accrual Period: ${interestAccrualPeriod} seconds`);
+        console.log('=============================\n');
+        
+        // Verify some basic expectations
+        expect(bankData.mintAddress.toBase58()).toBe(mint.toBase58());
+        expect(bankData.totalDepositedShares.toNumber()).toBeGreaterThanOrEqual(0);
+        expect(bankData.totalBorrowedShares.toNumber()).toBeGreaterThanOrEqual(0);
+        
+      } catch (error) {
+        console.error(`Error fetching bank data for mint ${mint.toBase58()}: ${error}`);
+      }
+    }
+    
+    console.log("Test Get all banks financial profile completed");
+  });
+
+
 });

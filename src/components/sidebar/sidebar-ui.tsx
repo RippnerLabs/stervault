@@ -96,13 +96,6 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             breadcrumbText: "Transaction History"
         },
         {
-            label: "Bank Details",
-            href: "/bank-details",
-            icon: <IconInfoCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            breadcrumbText: "Bank Details",
-            parent: "Token Banks"
-        },
-        {
             label: "Settings",
             href: "/settings",
             icon: <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,

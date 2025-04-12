@@ -510,7 +510,7 @@ function Deposits() {
             {userDeposits.data && userDeposits.data.length > 0 && (
                 <div className="mb-12">
                     <h2 className="text-2xl font-semibold mb-6">Deposits by Token</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="">
                         {(() => {
                             try {
                                 // Make sure we have valid data

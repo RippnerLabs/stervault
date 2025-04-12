@@ -38,6 +38,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import FeaturesSectionDemo from "@/components/ui/features-section-demo-3";
 
 export default function HomeUI() {
     return (
@@ -101,6 +103,7 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                     <NavbarLogo />
                     <NavItems items={navItems} />
                     <div className="flex items-center gap-4">
+                        <ThemeToggle />
                         <NavbarButton variant="secondary">Login</NavbarButton>
                         <NavbarButton variant="primary">Book a call</NavbarButton>
                     </div>
@@ -154,167 +157,109 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
     );
 }
 
-
-// 1. Hero Section
+// Custom component to use HeroParallax with the products data
 function HeroSection() {
-    return (
-        <div className="relative mx-auto my-20 flex flex-col items-center justify-center">
-        <div className="absolute inset-y-0 left-0 h-full w-px ">
-          <div className="absolute top-0 h-40 w-px " />
-        </div>
-        <div className="absolute inset-y-0 right-0 h-full w-px ">
-          <div className="absolute h-40 w-px " />
-        </div>
-        <div className="absolute inset-x-0 bottom-0 h-px w-full ">
-          <div className="absolute mx-auto h-px w-40" />
-        </div>
-        <div className="px-4 py-10 md:py-20">
-          <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold text-slate-700 md:text-4xl lg:text-7xl dark:text-slate-300">
-            {"Launch your website in hours, not days"
-              .split(" ")
-              .map((word, index) => (
-                <motion.span
-                  key={index}
-                  initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
-                  animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: index * 0.1,
-                    ease: "easeInOut",
-                  }}
-                  className="mr-2 inline-block"
-                >
-                  {word}
-                </motion.span>
-              ))}
-          </h1>
-          <motion.p
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 0.8,
-            }}
-            className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-neutral-600 dark:text-neutral-400"
-          >
-            With AI, you can launch your website in hours, not days. Try our best
-            in class, state of the art, cutting edge AI tools to get your website
-            up.
-          </motion.p>
-          <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 1,
-            }}
-            className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
-          >
-            <button className="w-60 transform rounded-lg bg-black px-6 py-2 font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
-              Explore Now
-            </button>
-            <button className="w-60 transform rounded-lg border border-gray-300 bg-white px-6 py-2 font-medium text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-gray-100 dark:border-gray-700 dark:bg-black dark:text-white dark:hover:bg-gray-900">
-              Contact Support
-            </button>
-          </motion.div>
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 10,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.3,
-              delay: 1.2,
-            }}
-            className="relative z-10 mt-20 rounded-3xl border border-neutral-200 bg-neutral-100 p-4 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <div className="w-full overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700">
-              <Image
-                src="https://assets.aceternity.com/pro/aceternity-landing.webp"
-                alt="Landing page preview"
-                className="aspect-[16/9] h-auto w-full object-cover"
-                height={1000}
-                width={1000}
-              />
-            </div>
-          </motion.div>
-        </div>
-      </div>
-  
-    );
+    const products = [
+        {
+            title: "Moonbeam",
+            link: "https://gomoonbeam.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
+        },
+        {
+            title: "Cursor",
+            link: "https://cursor.so",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/cursor.png",
+        },
+        {
+            title: "Rogue",
+            link: "https://userogue.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/rogue.png",
+        },
+        {
+            title: "Editorially",
+            link: "https://editorially.org",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/editorially.png",
+        },
+        {
+            title: "Editrix AI",
+            link: "https://editrix.ai",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/editrix.png",
+        },
+        {
+            title: "Pixel Perfect",
+            link: "https://app.pixelperfect.quest",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
+        },
+        {
+            title: "Algochurn",
+            link: "https://algochurn.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
+        },
+        {
+            title: "Aceternity UI",
+            link: "https://ui.aceternity.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
+        },
+        {
+            title: "Tailwind Master Kit",
+            link: "https://tailwindmasterkit.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
+        },
+        {
+            title: "SmartBridge",
+            link: "https://smartbridgetech.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
+        },
+        {
+            title: "Renderwork Studio",
+            link: "https://renderwork.studio",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
+        },
+        {
+            title: "Creme Digital",
+            link: "https://cremedigital.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
+        },
+        {
+            title: "Golden Bells Academy",
+            link: "https://goldenbellsacademy.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
+        },
+        {
+            title: "Invoker Labs",
+            link: "https://invoker.lol",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/invoker.png",
+        },
+        {
+            title: "E Free Invoice",
+            link: "https://efreeinvoice.com",
+            thumbnail:
+            "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
+        },
+    ];
+
+    return <HeroParallax products={products} />;
 }
 
 // 2. Featured Highlights
 function FeaturedHighlights() {
-    const features = [
-        {
-            title: "Low Fees & High APY",
-            description: "Earn competitive yields on your assets with minimal fees.",
-            icon: "💰",
-            link: "#",
-        },
-        {
-            title: "Instant Transactions",
-            description: "Leverage Solana's speed for near-instant token lending.",
-            icon: "⚡",
-            link: "#",
-        },
-        {
-            title: "Secure & Transparent",
-            description: "Smart contracts ensure full transparency and security.",
-            icon: "🔒",
-            link: "#",
-        },
-        {
-            title: "Permissionless Access",
-            description: "No sign-ups. Just connect and start lending.",
-            icon: "🔑",
-            link: "#",
-        },
-    ];
-
     return (
-        <section className="py-20 bg-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Why Choose Us?</h2>
-                <HoverEffect items={features.map(feature => ({
-                    title: feature.title,
-                    description: feature.description,
-                    link: feature.link,
-                }))} />
-
-                <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {features.slice(0, 2).map((feature, index) => (
-                        <CardContainer key={index} className="w-full h-64">
-                            <CardBody className="bg-zinc-900 relative group/card rounded-xl p-6 h-full w-full">
-                                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                                    <CardItem translateZ={50} className="text-4xl mb-4">
-                                        {feature.icon}
-                                    </CardItem>
-                                    <CardItem translateZ={60} className="text-xl font-bold mb-2">
-                                        {feature.title}
-                                    </CardItem>
-                                    <CardItem translateZ={40} className="text-gray-400">
-                                        {feature.description}
-                                    </CardItem>
-                                </div>
-                            </CardBody>
-                        </CardContainer>
-                    ))}
-                </div>
-            </div>
+        <section className="py-10 bg-card">
+            <FeaturesSectionDemo />
         </section>
     );
 }

@@ -291,14 +291,14 @@ function Repay() {
       <div className="flex flex-col items-center justify-center h-[80vh] text-center px-4">
         <Card className="max-w-xl p-8">
           <div className="text-center">
-            <IconArrowsTransferDown className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+            <IconArrowsTransferDown className="h-12 w-12 text-neutral-800 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">No Active Borrow Positions</h2>
             <p className="text-neutral-400 mb-6">
               You don't have any active loans to repay. Browse markets to borrow against your deposits.
             </p>
             <Button 
               onClick={() => router.push("/borrow")} 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-neutral-800 hover:bg-neutral-900 text-white"
             >
               <IconArrowRight className="mr-2 h-4 w-4" />
               Borrow Tokens
