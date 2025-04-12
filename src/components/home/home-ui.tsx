@@ -1,18 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { HeroParallax } from "@/components/ui/hero-parallax";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
-import { HoverEffect } from "@/components/ui/card-hover-effect";
-import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
-import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
-import { FlipWords } from "@/components/ui/flip-words";
-import { TextRevealCard } from "@/components/ui/text-reveal-card";
-import { Spotlight } from "@/components/ui/spotlight";
 import { GlareCard } from "@/components/ui/glare-card";
 import { FocusCards } from "@/components/ui/focus-cards";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
@@ -20,10 +9,6 @@ import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import { CardStack } from "@/components/ui/card-stack";
 import { LampContainer } from "@/components/ui/lamp";
 import { TypewriterEffect } from "@/components/ui/typewriter-effect";
-import { MacbookScroll } from "@/components/ui/macbook-scroll";
-import { ImagesSlider } from "@/components/ui/images-slider";
-import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import {
     Navbar,
     NavBody,
@@ -35,44 +20,46 @@ import {
     MobileNavToggle,
     MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import FeaturesSectionDemo from "@/components/ui/features-section-demo-3";
 import LayoutGridDemo from "@/components/ui/layout-grid-demo";
+import TimelineDemo from "@/components/ui/timeline-demo";
+import Footer from "@/components/ui/footer";
 
 export default function HomeUI() {
     return (
         <div className="min-h-screen bg-black text-white">
             <NavbarDemo >
 
-            {/* 1. Hero Section */}
-            <HeroSection />
+                {/* 1. Hero Section */}
+                <HeroSection />
 
-            {/* 2. Featured Highlights */}
-            <FeaturedHighlights />
+                {/* 2. Featured Highlights */}
+                <FeaturedHighlights />
 
-            {/* 3. Live Market Stats */}
-            <LiveMarketStats />
+                {/* 3. Live Market Stats */}
+                <LiveMarketStats />
 
-            {/* 4. How It Works */}
-            <HowItWorks />
+                {/* 4. How It Works */}
+                <HowItWorks />
 
-            {/* 5. Lending & Borrowing Simulator */}
-            <LendingSimulator />
+                {/* 5. Lending & Borrowing Simulator */}
+                {/* <LendingSimulator /> */}
 
-            {/* 6. User Testimonials */}
-            <UserTestimonials />
+                {/* 6. User Testimonials */}
+                {/* <UserTestimonials /> */}
 
-            {/* 7. Security & Transparency */}
-            <SecuritySection />
+                {/* 7. Security & Transparency */}
+                {/* <SecuritySection /> */}
 
-            {/* 8. Roadmap & Future Features */}
-            <RoadmapSection />
+                {/* 8. Roadmap & Future Features */}
+                {/* <RoadmapSection /> */}
 
-            {/* 9. Get Started / Call to Action */}
-            <CallToAction />
+                {/* 9. Get Started / Call to Action */}
+                <CallToAction />
+
+                <Footer />
             </NavbarDemo>
         </div>
     );
@@ -165,91 +152,91 @@ function HeroSection() {
             title: "Moonbeam",
             link: "https://gomoonbeam.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
+                "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
         },
         {
             title: "Cursor",
             link: "https://cursor.so",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/cursor.png",
+                "https://aceternity.com/images/products/thumbnails/new/cursor.png",
         },
         {
             title: "Rogue",
             link: "https://userogue.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/rogue.png",
+                "https://aceternity.com/images/products/thumbnails/new/rogue.png",
         },
         {
             title: "Editorially",
             link: "https://editorially.org",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/editorially.png",
+                "https://aceternity.com/images/products/thumbnails/new/editorially.png",
         },
         {
             title: "Editrix AI",
             link: "https://editrix.ai",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/editrix.png",
+                "https://aceternity.com/images/products/thumbnails/new/editrix.png",
         },
         {
             title: "Pixel Perfect",
             link: "https://app.pixelperfect.quest",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
+                "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
         },
         {
             title: "Algochurn",
             link: "https://algochurn.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
+                "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
         },
         {
             title: "Aceternity UI",
             link: "https://ui.aceternity.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
+                "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
         },
         {
             title: "Tailwind Master Kit",
             link: "https://tailwindmasterkit.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
+                "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
         },
         {
             title: "SmartBridge",
             link: "https://smartbridgetech.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
+                "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
         },
         {
             title: "Renderwork Studio",
             link: "https://renderwork.studio",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
+                "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
         },
         {
             title: "Creme Digital",
             link: "https://cremedigital.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
+                "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
         },
         {
             title: "Golden Bells Academy",
             link: "https://goldenbellsacademy.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
+                "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
         },
         {
             title: "Invoker Labs",
             link: "https://invoker.lol",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/invoker.png",
+                "https://aceternity.com/images/products/thumbnails/new/invoker.png",
         },
         {
             title: "E Free Invoice",
             link: "https://efreeinvoice.com",
             thumbnail:
-            "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
+                "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
         },
     ];
 
@@ -274,42 +261,8 @@ function LiveMarketStats() {
 
 // 4. How It Works
 function HowItWorks() {
-    const steps = [
-        {
-            title: "Connect Your Wallet",
-            description: "Use Phantom, Solflare, or any Solana wallet.",
-            icon: "👛",
-        },
-        {
-            title: "Deposit Your Assets",
-            description: "Supply tokens to earn interest or use them as collateral.",
-            icon: "💎",
-        },
-        {
-            title: "Start Lending or Borrowing",
-            description: "Get instant liquidity or earn yield effortlessly.",
-            icon: "🔄",
-        },
-    ];
-
     return (
-        <section className="py-20 relative">
-            <Spotlight className="hidden sm:block" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {steps.map((step, index) => (
-                        <TextRevealCard
-                            key={index}
-                            text={step.title}
-                            revealText={step.description}
-                            className="w-full h-64"
-                        />
-                    ))}
-                </div>
-            </div>
-        </section>
+        <TimelineDemo />
     );
 }
 
@@ -485,85 +438,64 @@ function SecuritySection() {
     );
 }
 
-// 8. Roadmap & Future Features
-function RoadmapSection() {
-    const roadmapItems = [
-        {
-            title: "NFT Collateral Support",
-            description: "Use your NFTs as collateral for borrowing.",
-            image: "https://via.placeholder.com/800x600?text=NFT+Collateral",
-        },
-        {
-            title: "Cross-Chain Lending",
-            description: "Borrow across Solana and Ethereum.",
-            image: "https://via.placeholder.com/800x600?text=Cross+Chain",
-        },
-        {
-            title: "Mobile App Integration",
-            description: "Access lending on the go.",
-            image: "https://via.placeholder.com/800x600?text=Mobile+App",
-        },
-    ];
+// // 8. Roadmap & Future Features
+// function RoadmapSection() {
+//     const roadmapItems = [
+//         {
+//             title: "NFT Collateral Support",
+//             description: "Use your NFTs as collateral for borrowing.",
+//             image: "https://via.placeholder.com/800x600?text=NFT+Collateral",
+//         },
+//         {
+//             title: "Cross-Chain Lending",
+//             description: "Borrow across Solana and Ethereum.",
+//             image: "https://via.placeholder.com/800x600?text=Cross+Chain",
+//         },
+//         {
+//             title: "Mobile App Integration",
+//             description: "Access lending on the go.",
+//             image: "https://via.placeholder.com/800x600?text=Mobile+App",
+//         },
+//     ];
 
-    return (
-        <section className="py-20 bg-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Roadmap & Future Features</h2>
+//     return (
+//         <section className="py-20 bg-black">
+//             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+//                 <h2 className="text-4xl font-bold text-center mb-16">Roadmap & Future Features</h2>
 
-                <MacbookScroll
-                    title="Our Roadmap"
-                    showGradient={true}
-                    src="https://via.placeholder.com/1200x800?text=Roadmap"
-                />
+//                 <MacbookScroll
+//                     title="Our Roadmap"
+//                     showGradient={true}
+//                     src="https://via.placeholder.com/1200x800?text=Roadmap"
+//                 />
 
-                <div className="mt-20">
-                    <ImagesSlider images={roadmapItems.map(item => item.image)}>
-                        <div className="absolute inset-0 flex items-center justify-center text-white">
-                            <div className="text-center">
-                                <h3 className="text-2xl font-bold">Future Features</h3>
-                                <p className="text-lg">Swipe to explore our roadmap</p>
-                            </div>
-                        </div>
-                    </ImagesSlider>
-                </div>
+//                 <div className="mt-20">
+//                     <ImagesSlider images={roadmapItems.map(item => item.image)}>
+//                         <div className="absolute inset-0 flex items-center justify-center text-white">
+//                             <div className="text-center">
+//                                 <h3 className="text-2xl font-bold">Future Features</h3>
+//                                 <p className="text-lg">Swipe to explore our roadmap</p>
+//                             </div>
+//                         </div>
+//                     </ImagesSlider>
+//                 </div>
 
-                <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {roadmapItems.map((item, index) => (
-                        <HoverBorderGradient key={index} className="p-8 rounded-xl bg-zinc-900">
-                            <h3 className="text-xl font-bold mb-4">{item.title}</h3>
-                            <p className="text-gray-400">{item.description}</p>
-                        </HoverBorderGradient>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
+//                 <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+//                     {roadmapItems.map((item, index) => (
+//                         <HoverBorderGradient key={index} className="p-8 rounded-xl bg-zinc-900">
+//                             <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+//                             <p className="text-gray-400">{item.description}</p>
+//                         </HoverBorderGradient>
+//                     ))}
+//                 </div>
+//             </div>
+//         </section>
+//     );
+// }
 
 // 9. Get Started / Call to Action
 function CallToAction() {
     return (
-        <section className="py-20 relative">
-            <BackgroundBeams />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center">
-                    <h2 className="text-4xl font-bold mb-8">Ready to Lend or Borrow?</h2>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <HoverBorderGradient className="p-0.5 rounded-xl">
-                            <button className="px-8 py-4 rounded-xl bg-black text-white font-bold text-lg">
-                                Connect Wallet
-                            </button>
-                        </HoverBorderGradient>
-
-                        <HoverBorderGradient className="p-0.5 rounded-xl">
-                            <button className="px-8 py-4 rounded-xl bg-black text-white font-bold text-lg">
-                                Start Lending Now
-                            </button>
-                        </HoverBorderGradient>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <div className="relative overflow-hidden"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Want a professional, extraordinary website tailored to your needs? &nbsp;<span className="font-bold text-black dark:text-white">Get in touch</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">We've helped thousands of <span className="text-sky-700">founders and teams</span> build their products and apps from scratch, and we can help you too.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Talk to us</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">Manu literally took our requirements and quite literally ran with them. To anyone reading this - I can't recommend Manu enough, your job will be done exceptionally well, and you will be delighted with the end result.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">John Shahawy</p><p className="text-neutral-500 dark:text-neutral-400">Founder - Moonbeam, Rogue.</p></div></div></section></div>
     );
 }
