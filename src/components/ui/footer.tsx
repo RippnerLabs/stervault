@@ -9,23 +9,22 @@ export default function Footer() {
                             href="/"
                         >
                             <img
-                                alt="SolanaLend logo"
+                                alt="Rippner Labs logo"
                                 loading="lazy"
                                 width={30}
                                 height={30}
                                 decoding="async"
                                 data-nimg={1}
-                                srcSet="/_next/image?url=https%3A%2F%2Fassets.aceternity.com%2Flogo-dark.png&w=32&q=75 1x, /_next/image?url=https%3A%2F%2Fassets.aceternity.com%2Flogo-dark.png&w=64&q=75 2x"
-                                src="/_next/image?url=https%3A%2F%2Fassets.aceternity.com%2Flogo-dark.png&w=64&q=75"
+                                src="/logo.png"
                                 style={{ color: "transparent" }}
                             />
                             <span className="font-medium text-black dark:text-white">
-                                SolanaLend
+                                Rippner Labs
                             </span>
                         </a>
                     </div>
                     <div className="mt-2 ml-2">
-                        © 2024 SolanaLend. All rights reserved.
+                        © 2024 Rippner Labs. All rights reserved.
                     </div>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 items-start mt-10 sm:mt-0 md:mt-0">
@@ -84,7 +83,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="https://twitter.com"
+                                    href="https://x.com/RippnerLabs"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -94,7 +93,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="https://discord.com"
+                                    href="https://discord.gg/RippnerLabs"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -104,7 +103,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="https://telegram.org"
+                                    href="https://t.me/RippnerLabs"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -114,7 +113,7 @@ export default function Footer() {
                             <li className="list-none">
                                 <a
                                     className="transition-colors hover:text-text-neutral-800 "
-                                    href="https://github.com"
+                                    href="https://github.com/RippnerLabs"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
@@ -204,7 +203,7 @@ export default function Footer() {
                 </div>
             </div>
             <p className="text-center mt-20 text-5xl md:text-9xl lg:text-[12rem] xl:text-[13rem] font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 dark:from-neutral-950 to-neutral-200 dark:to-neutral-800 inset-x-0">
-                SolanaLend
+                Rippner Labs
             </p>
         </div>
 

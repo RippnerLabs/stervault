@@ -91,27 +91,27 @@ const cards = [
     content: <TVLCard />,
     className: "md:col-span-2",
     thumbnail:
-      "https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=3024&auto=format&fit=crop",
+      "/app/screens/35.png",
   },
   {
     id: 2,
     content: <APYCard />,
     className: "col-span-1",
     thumbnail:
-      "https://images.unsplash.com/photo-1534951009808-766178b47a4f?crop=entropy&cs=tinysrgb&fit=max&w=1080",
+      "/app/screens/28.png",
   },
   {
     id: 3,
     content: <TopPoolsCard />,
     className: "col-span-1",
     thumbnail:
-      "https://images.unsplash.com/photo-1640161704729-cbe966a08476?crop=entropy&cs=srgb&w=1080",
+      "/app/screens/27.png",
   },
   {
     id: 4,
     content: <TransactionsCard />,
     className: "md:col-span-2",
     thumbnail:
-      "https://images.unsplash.com/photo-1643488072086-9d7318c0a04b?crop=entropy&cs=srgb&w=1080",
+      "/app/screens/38.png",
   },
 ]; 

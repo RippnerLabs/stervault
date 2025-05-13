@@ -157,7 +157,7 @@ function Markets() {
             </div>
             <div className="bg-neutral-100 dark:bg-neutral-800 p-3 rounded-lg">
               <p className="text-sm text-neutral-500">TVL</p>
-              <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDepositedShares)}</p>
+              <p className="text-xl font-bold text-gray-600">{formatNumber(bank.account.totalDepositedShares)}</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -353,11 +353,11 @@ function Markets() {
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">TVL</p>
-                        <p className="text-xl font-bold text-white">{formatNumber(bank.account.totalDepositedShares)}</p>
+                        <p className="text-xl font-bold text-gray-600">{formatNumber(bank.account.totalDepositedShares)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">Max LTV</p>
-                        <p className="text-xl font-bold text-white">{bank.account.maxLtv}%</p>
+                        <p className="text-xl font-bold text-gray-600">{bank.account.maxLtv}%</p>
                       </div>
                     </div>
                     

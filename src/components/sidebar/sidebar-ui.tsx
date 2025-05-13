@@ -15,6 +15,8 @@ import {
     IconInfoCircle,
     IconPlus,
     IconHome,
+    IconWallet,
+    IconLogout,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -30,6 +32,8 @@ import {
 } from "@/components/ui/breadcrumb"
 import { ClusterUiTable } from "../cluster/cluster-ui";
 import { usePathname } from "next/navigation";
+import { useWalletDisconnect, WalletButton } from "../solana/solana-provider";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 // Define link type for better type safety
 interface SidebarLinkType {
@@ -168,7 +172,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
 
             <div className="flex flex-1">
                 <div className="rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-6 flex-1 w-full h-full overflow-y-auto">
-                    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between w-full">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 {/* Home breadcrumb */}
@@ -197,6 +201,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
+                        <WalletStatus />
                     </header>
                     <div className="px-2 md:px-10">
                         {children}
@@ -237,4 +242,42 @@ export const LogoIcon = () => {
     );
 };
 
-// Dummy dashboard component with content
+// New component for wallet status and disconnect option
+const WalletStatus = () => {
+    const { connected, disconnect, publicKey } = useWalletDisconnect();
+    
+    if (!connected) {
+        return (
+            <div className="flex items-center">
+                <WalletButton />
+            </div>
+        );
+    }
+    
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                    <div className="flex items-center gap-2">
+                        <IconWallet className="h-4 w-4 text-neutral-700 dark:text-neutral-200" />
+                        <span className="text-sm font-medium">
+                            {publicKey?.toString().slice(0, 4)}...{publicKey?.toString().slice(-4)}
+                        </span>
+                    </div>
+                </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-0" align="end" side="bottom">
+                <div className="p-1">
+                    <button
+                        onClick={() => disconnect()}
+                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                    >
+                        <IconLogout className="h-4 w-4" />
+                        <span>Disconnect Wallet</span>
+                    </button>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
+

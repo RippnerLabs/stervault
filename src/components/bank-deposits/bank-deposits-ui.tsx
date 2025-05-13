@@ -680,7 +680,7 @@ function BankFinancials() {
                                         <div className="grid grid-cols-3 gap-4 mb-6">
                                             <div className="bg-white/10 rounded-lg p-3">
                                                 <p className="text-sm text-neutral-400">Current Price</p>
-                                                <p className="text-xl font-bold text-white">{formatUsd(enhancedBanks[0].tokenPriceUsd)}</p>
+                                                <p className="text-xl font-bold text-gray-600">{formatUsd(enhancedBanks[0].tokenPriceUsd)}</p>
                                                 <p className={`text-xs ${enhancedBanks[0].change24h && enhancedBanks[0].change24h > 0 ? 'text-green-400' : 'text-red-400'}`}>
                                                     {enhancedBanks[0].change24h && enhancedBanks[0].change24h > 0 ? '↑' : '↓'} 
                                                     {enhancedBanks[0].change24h ? formatPercent(Math.abs(enhancedBanks[0].change24h)) : '0.00%'}
@@ -688,7 +688,7 @@ function BankFinancials() {
                                             </div>
                                             <div className="bg-white/10 rounded-lg p-3">
                                                 <p className="text-sm text-neutral-400">Market Size</p>
-                                                <p className="text-xl font-bold text-white">{formatLargeUsd(enhancedBanks[0].totalDepositedUsdValue)}</p>
+                                                <p className="text-xl font-bold text-gray-600">{formatLargeUsd(enhancedBanks[0].totalDepositedUsdValue)}</p>
                                                 <p className="text-xs text-neutral-400">{formatCompactNumber(enhancedBanks[0].account.totalDepositedShares / Math.pow(10, tokenMetadata[enhancedBanks[0].account.mintAddress.toString()]?.decimals || 9))} tokens</p>
                                             </div>
                                             <div className="bg-white/10 rounded-lg p-3">

@@ -110,11 +110,11 @@ export const SkeletonOne = () => {
         <div className="flex flex-1 w-full h-full flex-col space-y-2">
           {/* TODO */}
           <Image
-            src="/linear.webp"
+            src="/app/screens/33.png"
             alt="header"
             width={800}
             height={800}
-            className="h-full w-full aspect-square object-cover object-left-top rounded-sm"
+            className="h-full w-full aspect-square object-cover object-left rounded-sm"
           />
         </div>
       </div>
@@ -137,11 +137,11 @@ export const SkeletonThree = () => {
           {/* TODO */}
           <IconBrandYoutubeFilled className="h-20 w-20 absolute z-10 inset-0 text-red-500 m-auto " />
           <Image
-            src="https://assets.aceternity.com/fireship.jpg"
+            src="/app/screens/23.png"
             alt="header"
             width={800}
             height={800}
-            className="h-full w-full aspect-square object-cover object-center rounded-sm blur-none group-hover/image:blur-md transition-all duration-200"
+            className="h-full w-full aspect-square object-cover object-left rounded-sm blur-none group-hover/image:blur-md transition-all duration-200"
           />
         </div>
       </div>
@@ -151,11 +151,10 @@ export const SkeletonThree = () => {
 
 export const SkeletonTwo = () => {
   const images = [
-    "https://images.unsplash.com/photo-1517322048670-4fba75cbbb62?q=80&w=3000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1573790387438-4da905039392?q=80&w=3425&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1554931670-4ebfabf6e7a9?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1546484475-7f7bd55792da?q=80&w=2581&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "/app/screens/21.png",
+    "/app/screens/22.png",
+    "/app/screens/23.png",
+    "/app/screens/24.png",
   ];
 
   const imageVariants = {
@@ -257,6 +256,26 @@ export const Globe = ({ className }: { className?: string }) => {
         // longitude latitude
         { location: [37.7595, -122.4367], size: 0.03 },
         { location: [40.7128, -74.006], size: 0.1 },
+        { location: [51.5074, -0.1278], size: 0.05 },  // London
+        { location: [48.8566, 2.3522], size: 0.04 },   // Paris
+        { location: [35.6762, 139.6503], size: 0.06 }, // Tokyo
+        { location: [22.3193, 114.1694], size: 0.05 }, // Hong Kong
+        { location: [-33.8688, 151.2093], size: 0.04 }, // Sydney
+        { location: [19.4326, -99.1332], size: 0.05 }, // Mexico City
+        { location: [-23.5505, -46.6333], size: 0.06 }, // São Paulo
+        { location: [55.7558, 37.6173], size: 0.04 },  // Moscow
+        { location: [25.2048, 55.2708], size: 0.07 },  // Dubai
+        { location: [1.3521, 103.8198], size: 0.05 },  // Singapore
+        { location: [41.9028, 12.4964], size: 0.04 },  // Rome
+        { location: [52.5200, 13.4050], size: 0.05 },  // Berlin
+        { location: [31.2304, 121.4737], size: 0.06 }, // Shanghai
+        { location: [28.6139, 77.2090], size: 0.05 },  // New Delhi
+        { location: [-34.6037, -58.3816], size: 0.04 }, // Buenos Aires
+        { location: [30.0444, 31.2357], size: 0.05 },  // Cairo
+        { location: [59.3293, 18.0686], size: 0.04 },  // Stockholm
+        { location: [37.5665, 126.9780], size: 0.05 }, // Seoul
+        { location: [-6.2088, 106.8456], size: 0.04 }, // Jakarta
+        { location: [4.7110, -74.0721], size: 0.03 },  // Bogotá
       ],
       onRender: (state) => {
         // Called on every animation frame.

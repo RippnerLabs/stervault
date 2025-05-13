@@ -92,7 +92,7 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                     <NavItems items={navItems} />
                     <div className="flex items-center gap-4">
                         {/* <ThemeToggle /> */}
-                        <NavbarButton variant="secondary">Connect Wallet</NavbarButton>
+                        {/* <NavbarButton variant="secondary">Connect Wallet</NavbarButton> */}
                         <NavbarButton variant="primary" onClick={() => {
                             window.location.href = "/dashboard";
                         }}>Launch App</NavbarButton>
@@ -156,92 +156,77 @@ function HeroSection() {
         {
             title: "Earn Interest on SOL",
             link: "#lending",
-            thumbnail:
-                "https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=3024&auto=format&fit=crop",
+            thumbnail: "/app/screens/1.png",
         },
         {
             title: "Borrow Against Collateral",
             link: "#borrowing",
-            thumbnail:
-                "https://images.unsplash.com/photo-1534951009808-766178b47a4f?crop=entropy&cs=tinysrgb&fit=max&w=1080",
+            thumbnail: "/app/screens/2.png",
         },
         {
             title: "Ultra-Fast Transactions",
             link: "#features",
-            thumbnail:
-                "https://images.unsplash.com/photo-1531297484001-80022131f5a1?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/3.png",
         },
         {
             title: "Competitive APY Rates",
             link: "#rates",
-            thumbnail:
-                "https://images.unsplash.com/photo-1642465789831-a176eb4a1b14?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/4.png",
         },
         {
             title: "Secure Smart Contracts",
             link: "#security",
-            thumbnail:
-                "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/5.png",
         },
         {
             title: "Low Transaction Fees",
             link: "#fees",
-            thumbnail:
-                "https://images.unsplash.com/photo-1614787296891-d1b2b1aced36?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/6.png",
         },
         {
             title: "Multi-Asset Support",
             link: "#assets",
-            thumbnail:
-                "https://images.unsplash.com/photo-1640161704729-cbe966a08476?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/7.png",
         },
         {
             title: "Real-Time Monitoring",
             link: "#dashboard",
-            thumbnail:
-                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/8.png",
         },
         {
             title: "Liquidation Protection",
             link: "#protection",
-            thumbnail:
-                "https://images.unsplash.com/photo-1644363832001-0876e81f37a9?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/9.png",
         },
         {
             title: "Mobile Access",
             link: "#mobile",
-            thumbnail:
-                "https://images.unsplash.com/photo-1640228983634-e963bf92f89c?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/10.png",
         },
         {
             title: "Decentralized Governance",
             link: "#governance",
-            thumbnail:
-                "https://images.unsplash.com/photo-1643488072086-9d7318c0a04b?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/11.png",
         },
         {
             title: "Enterprise-Grade Security",
             link: "#security",
-            thumbnail:
-                "https://images.unsplash.com/photo-1640055704241-46bdb0bacbad?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/12.png",
         },
         {
             title: "Auto-Compounding Interest",
             link: "#interest",
-            thumbnail:
-                "https://images.unsplash.com/photo-1517754461499-9930e2b54957?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/13.png",
         },
         {
             title: "Flash Loans",
             link: "#flashloans",
-            thumbnail:
-                "https://images.unsplash.com/photo-1573164713988-8665fc963095?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/17.png",
         },
         {
             title: "Community Rewards",
             link: "#rewards",
-            thumbnail:
-                "https://images.unsplash.com/photo-1459257831348-f0cdd359235f?crop=entropy&cs=srgb&w=1080",
+            thumbnail: "/app/screens/16.png",
         },
     ];
 
@@ -273,19 +258,18 @@ function HowItWorks() {
 
 // 5. Lending & Borrowing Simulator
 function LendingSimulator() {
-    // Sample cards for FocusCards
     const focusCardsData = [
         {
             title: "Lending Opportunities",
-            src: "https://images.unsplash.com/photo-1534951009808-766178b47a4f?crop=entropy&cs=tinysrgb&fit=max&w=1080",
+            src: "/app/screens/16.png",
         },
         {
             title: "Borrowing Options",
-            src: "https://images.unsplash.com/photo-1642465789831-a176eb4a1b14?crop=entropy&cs=srgb&w=1080",
+            src: "/app/screens/17.png",
         },
         {
             title: "Market Analysis",
-            src: "https://images.unsplash.com/photo-1640161704729-cbe966a08476?crop=entropy&cs=srgb&w=1080",
+            src: "/app/screens/18.png",
         },
     ];
 
@@ -358,7 +342,7 @@ function LendingSimulator() {
 function UserTestimonials() {
     const testimonials = [
         {
-            quote: "SolanaLend revolutionized my passive income strategy. The high APY rates and lightning-fast transactions make it my top choice for DeFi lending.",
+            quote: "Rippner Labs revolutionized my passive income strategy. The high APY rates and lightning-fast transactions make it my top choice for DeFi lending.",
             name: "Alice M.",
             designation: "DeFi Enthusiast",
             src: "https://randomuser.me/api/portraits/women/1.jpg",
@@ -501,6 +485,6 @@ function SecuritySection() {
 // 9. Get Started / Call to Action
 function CallToAction() {
     return (
-        <div className="relative overflow-hidden" id="contact"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Ready to start earning passive income with your Solana assets? &nbsp;<span className="font-bold text-black dark:text-white">Get started today</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">Join thousands of <span className="text-sky-700">users and investors</span> who are already earning competitive returns and accessing liquidity on the Solana blockchain.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Launch App</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">SolanaLend has completely transformed how I manage my crypto portfolio. The ability to earn interest on my SOL while still having the option to borrow against it when needed has given me incredible financial flexibility.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">Michael Chen</p><p className="text-neutral-500 dark:text-neutral-400">Crypto Investor & DeFi Enthusiast</p></div></div></section></div>
+        <div className="relative overflow-hidden" id="contact"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Ready to start earning passive income with your Solana assets? &nbsp;<span className="font-bold text-black dark:text-white">Get started today</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">Join thousands of <span className="text-sky-700">users and investors</span> who are already earning competitive returns and accessing liquidity on the Solana blockchain.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Launch App</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">Rippner labs has completely transformed how I manage my crypto portfolio. The ability to earn interest on my SOL while still having the option to borrow against it when needed has given me incredible financial flexibility.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">Michael Chen</p><p className="text-neutral-500 dark:text-neutral-400">Crypto Investor & DeFi Enthusiast</p></div></div></section></div>
     );
 }
