@@ -123,7 +123,7 @@ export function useCheckWalletStatus() {
     queryKey: ['tokens'],
     queryFn: async () => {
       try {
-        const response = await fetch('/tokens_localnet.json');
+        const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
         if (!response.ok) {
           throw new Error('Failed to fetch tokens data');
         }
@@ -174,7 +174,7 @@ export function useCheckWalletStatus() {
             // Make sure token has a positive balance
             if (token.amount <= 0) return false;
             
-            // Check if this token mint is in our tokens_localnet.json
+            // Check if this token mint is in our `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
             const found = allTokens.some((t) => t.address === token.mint);
             console.log(`Token ${token.mint}: amount=${token.amount}, found in JSON=${found}`);
             return found;

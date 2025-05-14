@@ -164,7 +164,7 @@ function WithdrawForm() {
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <IconLoader2 className="w-12 h-12 animate-spin text-primary mb-4" />
                 <h3 className="text-xl font-medium">Loading your deposit...</h3>
-                <p className="text-sm text-neutral-500 mt-2">This won't take long</p>
+                <p className="text-sm text-neutral-500 mt-2">This won&apos;t take long</p>
             </div>
         );
     }
@@ -210,7 +210,7 @@ function WithdrawForm() {
                     <div className="text-center p-6">
                         <h1 className="text-4xl font-bold mb-4 text-red-500">Deposit Not Found</h1>
                         <p className="text-neutral-400 mb-6">
-                            We couldn't find the deposit you're looking for. It may have been withdrawn or moved.
+                            We couldn&apos;t find the deposit you&apos;re looking for. It may have been withdrawn or moved.
                         </p>
                         <div className="mt-6">
                             <Button 

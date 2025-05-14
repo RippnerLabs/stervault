@@ -126,7 +126,7 @@ export default function TimelineDemo() {
       content: (
         <div>
           <p className="text-foreground text-xs md:text-sm font-normal mb-4">
-            Flexible withdrawal options and repayment management with instant processing on Solana's high-speed network
+            Flexible withdrawal options and repayment management with instant processing on Solana&apos;s high-speed network
           </p>
           <div className="mb-8">
             <div className="flex gap-2 items-center text-muted-foreground text-xs md:text-sm">

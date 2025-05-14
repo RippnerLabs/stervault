@@ -109,7 +109,7 @@ function BankFinancials() {
     useEffect(() => {
         async function fetchTokenMetadata() {
             try {
-                const response = await fetch('/tokens_localnet.json');
+                const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
                 const data = await response.json() as TokenMetadata[];
                 
                 // Create a lookup table by address

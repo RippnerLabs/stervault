@@ -208,7 +208,7 @@ export function ActiveBorrowPositions({
                             </div>
                             <h3 className="text-xl font-medium mb-2">No Active Borrow Positions</h3>
                             <p className="text-neutral-600 dark:text-neutral-400 max-w-md mb-6">
-                                You don't have any active borrow positions. Borrow against your deposits to leverage your assets.
+                                You don&apos;t have any active borrow positions. Borrow against your deposits to leverage your assets.
                             </p>
                             <Button 
                                 onClick={() => router.push('/borrow')}

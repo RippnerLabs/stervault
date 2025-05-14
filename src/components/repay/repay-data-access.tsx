@@ -18,7 +18,7 @@ import { priceFeedIds } from '@/lib/constants'
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Define a helper function to safely handle PublicKey objects
 export const safePublicKey = (key: any): PublicKey => {

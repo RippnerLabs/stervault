@@ -18,6 +18,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Loader2, AlertTriangle, Coins, Check } from 'lucide-react';
+import Image from 'next/image';
 
 export default function OnboardingUI() {
   const { walletStatus, requestTokens } = useCheckWalletStatus();
@@ -111,8 +112,8 @@ export default function OnboardingUI() {
                 <span className="text-sm font-medium">{solBalance.toFixed(4)} SOL</span>
               </div>
               
-              <p className="text-sm">Welcome! It looks like you're new to our platform.</p>
-              <p className="text-sm text-muted-foreground">We'll provide you with SOL and tokens to get started with lending.</p>
+              <p className="text-sm">Welcome! It looks like you&apos;re new to our platform.</p>
+              <p className="text-sm text-muted-foreground">We&apos;ll provide you with SOL and tokens to get started with lending.</p>
               
               <div className="flex justify-center pt-4">
                 <Button 
@@ -154,11 +155,16 @@ export default function OnboardingUI() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="relative w-10 h-10 overflow-hidden rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                          <img 
+                          <Image 
                             src={solToken.logoURI} 
                             alt={solToken.name} 
-                            className="object-cover w-full h-full"
-                            onError={(e) => (e.currentTarget.src = "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png")}
+                            className="object-cover"
+                            width={40}
+                            height={40}
+                            onError={(e) => {
+                              // @ts-ignore - fallback to placeholder
+                              e.currentTarget.src = "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png";
+                            }}
                           />
                         </div>
                         <div>
@@ -193,11 +199,16 @@ export default function OnboardingUI() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="relative w-8 h-8 overflow-hidden rounded-full bg-muted flex items-center justify-center">
-                                <img 
+                                <Image 
                                   src={token.logoURI} 
                                   alt={token.name} 
-                                  className="object-cover w-full h-full"
-                                  onError={(e) => (e.currentTarget.src = "https://placehold.co/32x32")}
+                                  className="object-cover"
+                                  width={32}
+                                  height={32}
+                                  onError={(e) => {
+                                    // @ts-ignore - fallback to placeholder
+                                    e.currentTarget.src = "https://placehold.co/32x32";
+                                  }}
                                 />
                               </div>
                               <div>
@@ -256,7 +267,7 @@ export default function OnboardingUI() {
                   Network Warning
                 </p>
                 <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                  You're connected to {networkType}. This application is designed to work with Localnet or Devnet.
+                  You&apos;re connected to {networkType}. This application is designed to work with Localnet or Devnet.
                 </p>
               </div>
             </div>

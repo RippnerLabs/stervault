@@ -12,7 +12,7 @@ import { getMint } from '@solana/spl-token'
 import { useMarketsBanks } from '../markets/markets-data-access'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // User deposit data structure
 export interface UserDeposit {

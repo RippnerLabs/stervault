@@ -7,12 +7,11 @@ import * as path from 'path';
 // Load token information from JSON file
 async function getTokens() {
   try {
-    // Read tokens data
-    const filePath = path.join(process.cwd(), 'public', 'tokens_localnet.json');
-    const data = await fs.promises.readFile(filePath, 'utf8');
-    return JSON.parse(data);
+    const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error reading tokens file:', error);
+    console.error('Error fetching tokens:', error);
     return [];
   }
 }

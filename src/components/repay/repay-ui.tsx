@@ -252,7 +252,7 @@ function Repay() {
       <div className="flex flex-col items-center justify-center h-[80vh]">
         <IconLoader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
         <p className="text-lg font-medium">Loading your borrow positions...</p>
-        <p className="text-sm text-neutral-500 mt-2">This won't take long</p>
+        <p className="text-sm text-neutral-500 mt-2">This won&apos;t take long</p>
       </div>
     );
   }
@@ -294,7 +294,7 @@ function Repay() {
             <IconArrowsTransferDown className="h-12 w-12 text-neutral-800 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">No Active Borrow Positions</h2>
             <p className="text-neutral-400 mb-6">
-              You don't have any active loans to repay. Browse markets to borrow against your deposits.
+              You don&apos;t have any active loans to repay. Browse markets to borrow against your deposits.
             </p>
             <Button 
               onClick={() => router.push("/borrow")} 
@@ -350,7 +350,7 @@ function Repay() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div>
-                          <p className="text-sm text-neutral-500 mb-1">You're repaying</p>
+                          <p className="text-sm text-neutral-500 mb-1">You&apos;re repaying</p>
                           <div className="flex items-center gap-2">
                             {selectedPosition.borrowTokenInfo?.logoURI ? (
                               <Image

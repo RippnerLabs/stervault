@@ -38,7 +38,7 @@ export function useDashboardData() {
   const { cluster } = useCluster()
   const provider = useAnchorProvider()
   
-  // Get token metadata from tokens_localnet.json
+  // Get token metadata from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
   const tokenMetadata = useTokenMetadata()
   
   // Fetch user deposits

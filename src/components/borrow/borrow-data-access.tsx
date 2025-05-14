@@ -18,7 +18,7 @@ import { priceFeedIds } from '@/lib/constants'
 import { Connection } from '@solana/web3.js'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Define a helper function to safely handle PublicKey objects
 export const safePublicKey = (key: any): PublicKey => {
@@ -205,8 +205,8 @@ export function useBorrowTokens() {
     pythPriceFeed?: string;
   }> => {
     try {
-      // Fetch tokens from tokens_localnet.json
-      const response = await fetch('/tokens_localnet.json');
+      // Fetch tokens from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
+      const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
       const tokens = await response.json();
       
       // Find the token by address
@@ -282,7 +282,7 @@ export function useBorrowTokens() {
           throw new Error('Could not find bank information');
         }
 
-        // Get token info from tokens_localnet.json
+        // Get token info from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
         const borrowTokenInfo = await getTokenInfo(borrowMintAddress);
         const collateralTokenInfo = await getTokenInfo(collateralBank.account.mintAddress);
 
@@ -299,14 +299,14 @@ export function useBorrowTokens() {
           throw new Error('Could not determine token symbols. Please try again later.');
         }
 
-        // Get price feed IDs - first try from tokens_localnet.json
+        // Get price feed IDs - first try from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
         let borrowPriceFeedId: string | undefined = undefined;
         let collateralPriceFeedId: string | undefined = undefined;
 
-        // If pythPriceFeed is provided in tokens_localnet.json, we need to get the price feed ID from Pyth
+        // If pythPriceFeed is provided in `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`, we need to get the price feed ID from Pyth
         if (borrowTokenInfo.pythPriceFeed) {
           try {
-            // For tokens_localnet.json, the pythPriceFeed is actually the on-chain account address
+            // For `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`, the pythPriceFeed is actually the on-chain account address
             // We can use it directly instead of calling getPriceFeedAccountAddress
             console.log(`Found Pyth price feed account for ${borrowSymbol}: ${borrowTokenInfo.pythPriceFeed}`);
             // Store the direct account address for use later
@@ -417,12 +417,12 @@ export function useBorrowTokens() {
           throw new Error('Failed to set up price feed accounts. Please try again later.');
         }
 
-        // Get price feed accounts - use direct account addresses from tokens_localnet.json if available
+        // Get price feed accounts - use direct account addresses from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json` if available
         let borrowPriceFeedAccount: string;
         let collateralPriceFeedAccount: string;
         
         if (borrowTokenInfo.pythPriceFeed) {
-          // Use the direct account address from tokens_localnet.json
+          // Use the direct account address from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
           borrowPriceFeedAccount = borrowTokenInfo.pythPriceFeed;
           console.log(`Using direct price feed account for ${borrowSymbol}: ${borrowPriceFeedAccount}`);
         } else if (borrowPriceFeedId) {
@@ -436,7 +436,7 @@ export function useBorrowTokens() {
         }
         
         if (collateralTokenInfo.pythPriceFeed) {
-          // Use the direct account address from tokens_localnet.json
+          // Use the direct account address from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
           collateralPriceFeedAccount = collateralTokenInfo.pythPriceFeed;
           console.log(`Using direct price feed account for ${collateralSymbol}: ${collateralPriceFeedAccount}`);
         } else if (collateralPriceFeedId) {

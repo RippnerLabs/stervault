@@ -57,7 +57,7 @@ export function useTokenMetadata() {
     queryKey: ['token-metadata'],
     queryFn: async () => {
       try {
-        const response = await fetch('/tokens_localnet.json')
+        const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`)
         if (!response.ok) {
           throw new Error('Failed to fetch token metadata')
         }
@@ -194,8 +194,12 @@ export function usePythPrice(priceFeedId?: string) {
  */
 export function useTokenPrice(mintAddress?: string | PublicKey) {
   const [priceFeedId, setPriceFeedId] = useState<string | undefined>()
+  
+  // Fetch metadata first to get the price feed ID
+  const metadata = useTokenMetadata()
+  
   const tokenMetadata = useQuery({
-    queryKey: ['token-metadata-single', mintAddress?.toString()],
+    queryKey: ['token-metadata', mintAddress?.toString()],
     queryFn: async () => {
       if (!mintAddress) return null
       
@@ -205,8 +209,7 @@ export function useTokenPrice(mintAddress?: string | PublicKey) {
         return metadataCache[address]
       }
       
-      // Otherwise, fetch token metadata
-      const metadata = useTokenMetadata()
+      // Get metadata from already fetched data
       if (metadata.data) {
         const token = metadata.data.find(t => t.address === address)
         if (token) {
@@ -217,7 +220,7 @@ export function useTokenPrice(mintAddress?: string | PublicKey) {
       
       // If all else fails, fetch token metadata from the source
       try {
-        const response = await fetch('/tokens_localnet.json')
+        const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`)
         if (!response.ok) {
           return null
         }

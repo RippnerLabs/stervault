@@ -10,7 +10,7 @@ import { useAnchorProvider } from '../solana/solana-provider'
 import { BN } from '@coral-xyz/anchor'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Raw bank account data from the program
 interface RawBankAccount {
@@ -141,8 +141,8 @@ export function useMarketsBanks() {
                 }
               };
 
-              // Fetch token metadata from tokens_localnet.json
-              const response = await fetch('/tokens_localnet.json');
+              // Fetch token metadata from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
+              const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
               const tokens = await response.json();
               
               // Add debug logging

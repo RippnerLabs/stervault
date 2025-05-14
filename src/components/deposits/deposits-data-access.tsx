@@ -34,7 +34,7 @@ function stripHexPrefix(id: string): string {
 }
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Borrow position interface
 export interface BorrowPositionData {

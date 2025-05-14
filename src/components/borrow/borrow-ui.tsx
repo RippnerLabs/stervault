@@ -319,7 +319,7 @@ export function Borrow() {
       <div className="flex flex-col items-center justify-center h-[80vh]">
         <IconLoader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
         <p className="text-lg font-medium">Loading bank data from the blockchain...</p>
-        <p className="text-sm text-neutral-500 mt-2">This won't take long</p>
+        <p className="text-sm text-neutral-500 mt-2">This won&apos;t take long</p>
       </div>
     );
   }
@@ -421,7 +421,7 @@ export function Borrow() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div>
-                          <p className="text-sm text-neutral-500 mb-1">You're borrowing</p>
+                          <p className="text-sm text-neutral-500 mb-1">You&apos;re borrowing</p>
                           <div className="flex items-center gap-2">
                             {selectedBorrowBank.tokenInfo?.logoURI ? (
                               <Image

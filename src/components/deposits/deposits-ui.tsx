@@ -374,7 +374,7 @@ function Deposits() {
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <IconLoader2 className="w-12 h-12 animate-spin text-primary mb-4" />
                 <h3 className="text-xl font-medium">Loading your deposits...</h3>
-                <p className="text-sm text-neutral-500 mt-2">This won't take long</p>
+                <p className="text-sm text-neutral-500 mt-2">This won&apos;t take long</p>
             </div>
         );
     }
