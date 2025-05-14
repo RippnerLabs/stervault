@@ -4,12 +4,19 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
+// Parse command-line arguments
+const args = process.argv.slice(2);
+const envIndex = args.indexOf('--env');
+const targetEnv = envIndex >= 0 && args.length > envIndex + 1 ? args[envIndex + 1] : 'localnet';
+
+console.log(`Setting up Pyth price feeds for ${targetEnv}...`);
+
 /**
- * This script fetches Pyth oracle price feeds from devnet and creates a script to clone them into
- * the local test validator when it's restarted
+ * This script fetches Pyth oracle price feeds from devnet and creates necessary files
+ * for either localnet or devnet operation
  */
 async function main() {
-    console.log('Setting up Pyth price feeds from devnet to local test validator...');
+    console.log(`Setting up Pyth price feeds from devnet for ${targetEnv} environment...`);
     
     const priceFeedIds = {
         "SOL": "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
@@ -102,17 +109,19 @@ async function main() {
     }
     
     // Save mapping information for later use
-    const mappingPath = path.join(priceFeedsDir, 'pyth_mapping.json');
+    const mappingPath = path.join(priceFeedsDir, targetEnv === 'devnet' ? 'pyth_mapping_devnet.json' : 'pyth_mapping.json');
     fs.writeFileSync(
         mappingPath,
         JSON.stringify(priceFeedMapping, null, 2)
     );
     
-    // Create a clone script that will restart the validator with the Pyth accounts
-    console.log('Creating restart script with Pyth accounts...');
-    const restartScript = path.join(priceFeedsDir, 'restart_with_pyth.sh');
-    
-    let script = `#!/bin/bash
+    // If targeting localnet, create a restart script
+    if (targetEnv === 'localnet') {
+        // Create a clone script that will restart the validator with the Pyth accounts
+        console.log('Creating restart script with Pyth accounts...');
+        const restartScript = path.join(priceFeedsDir, 'restart_with_pyth.sh');
+        
+        let script = `#!/bin/bash
 
 # This script restarts the Solana validator with Pyth accounts cloned from devnet
 echo "Stopping existing validator..."
@@ -142,13 +151,13 @@ solana-test-validator \\
   --bpf-program \${METAPLEX_PROGRAM_ADDRESS} ./price-feeds/metaplex_program.so \\
   --bpf-program ${pythProgramId.toString()} ./price-feeds/pyth_program.so \\`;
 
-    // Add all price feed accounts to clone
-    for (const [symbol, feed] of Object.entries(priceFeedMapping.priceFeeds)) {
-        script += `\n  --clone ${feed.address} \\`;
-    }
-    
-    // Add validator URL only once at the end
-    script += `\n  -u devnet \\
+        // Add all price feed accounts to clone
+        for (const [symbol, feed] of Object.entries(priceFeedMapping.priceFeeds)) {
+            script += `\n  --clone ${feed.address} \\`;
+        }
+        
+        // Add validator URL only once at the end
+        script += `\n  -u devnet \\
   -r &
 
 # Wait for validator to start
@@ -165,26 +174,31 @@ echo "You can now view the Pyth accounts in Solana Explorer:"
 echo "- Pyth Program: https://explorer.solana.com/address/${pythProgramId.toString()}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
 `;
 
-    // Add explorer URLs for all price feeds
-    for (const [symbol, feed] of Object.entries(priceFeedMapping.priceFeeds)) {
-        script += `echo "- ${symbol} Price Feed: https://explorer.solana.com/address/${feed.address}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"\n`;
+        // Add explorer URLs for all price feeds
+        for (const [symbol, feed] of Object.entries(priceFeedMapping.priceFeeds)) {
+            script += `echo "- ${symbol} Price Feed: https://explorer.solana.com/address/${feed.address}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"\n`;
+        }
+        
+        fs.writeFileSync(restartScript, script);
+        fs.chmodSync(restartScript, 0o755); // Make executable
+        
+        console.log('\nSetup complete!');
+        console.log('Pyth price feed mapping saved to:', mappingPath);
+        console.log('\nTo deploy Pyth accounts to the local validator, run:');
+        console.log(`bash ${restartScript}`);
+    } else {
+        console.log('\nSetup for devnet complete!');
+        console.log('Pyth price feed mapping saved to:', mappingPath);
+        console.log('\nThese price feeds are already available on devnet. You can use them directly in your application.');
     }
     
-    fs.writeFileSync(restartScript, script);
-    fs.chmodSync(restartScript, 0o755); // Make executable
-    
-    console.log('\nSetup complete!');
-    console.log('Pyth price feed mapping saved to:', mappingPath);
-    console.log('\nTo deploy Pyth accounts to the local validator, run:');
-    console.log(`bash ${restartScript}`);
-    console.log('\nAfter running the restart script, you can use these price feeds in your application.');
-    console.log('Example code to access Pyth price feeds:');
+    console.log('\nExample code to access Pyth price feeds:');
     console.log(`
-// Example code to get price from a Pyth feed on localnet:
+// Example code to get price from a Pyth feed on ${targetEnv}:
 import { Connection, PublicKey } from '@solana/web3.js';
 import { PriceData } from '@pythnetwork/client';
 
-const connection = new Connection('http://localhost:8899');
+const connection = new Connection('${targetEnv === 'devnet' ? 'https://api.devnet.solana.com' : 'http://localhost:8899'}');
 const address = new PublicKey('${priceFeedMapping.priceFeeds['SOL']?.address || '[PRICE_FEED_ADDRESS]'}');
 
 // Fetch the Pyth account data

@@ -96,6 +96,6 @@ pub fn get_validated_price(
     let feed_id_bytes = get_feed_id_from_hex(feed_id.feed_id.as_str())
         .map_err(|_| ErrorCode::InvalidPriceFeed)?;
     msg!("[get_validated_price] Feed ID: {:?}", feed_id_bytes);
-    price_update.get_price(&Clock::get()?, MAXIMUM_AGE, &feed_id_bytes)
+    price_update.get_price_no_older_than(&Clock::get()?, MAXIMUM_AGE, &feed_id_bytes)
         .map_err(|_| ErrorCode::StalePrice.into())
 }
