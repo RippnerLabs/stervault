@@ -408,8 +408,10 @@ describe('Lending Smart Contract Tests', () => {
   });
   
   it('Test Borrow', async () => {
-    // Reduce borrow amount to 10 SOL (10,000,000,000 lamports)
-    const borrowAmount = 5 * 10**9;
+    // Reduce borrow amount to 2 SOL (2,000,000,000 lamports)
+    const borrowAmount = 1 * 10**9;
+    const positionId1 = 1;
+    const positionId2 = 2;
 
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
@@ -436,12 +438,27 @@ describe('Lending Smart Contract Tests', () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     };
 
-    // Add required accounts
+    const borrowAccounts1 = {
+      ...accounts
+    };
+
     const borrowSOL = await program.methods
-      .borrow(new BN(borrowAmount))
-      .accounts(accounts)
+      .borrow(new BN(positionId1), new BN(borrowAmount))
+      .accounts(borrowAccounts1)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
     expect(borrowSOL).toBeTruthy();
+
+    // Borrow again with the same pair but different position id but smaller amount to stay within LTV limits
+    const secondBorrowAmount = 0.1 * 10 ** 9; // 1 SOL
+    const borrowAccounts2 = {
+      ...accounts,
+    };
+
+    const borrowSOLSecond = await program.methods
+      .borrow(new BN(positionId2), new BN(secondBorrowAmount))
+      .accounts(borrowAccounts2)
+      .rpc({ commitment: 'confirmed', skipPreflight: true });
+    expect(borrowSOLSecond).toBeTruthy();
   });
 
   it('Test Repay', async () => {
@@ -472,9 +489,10 @@ describe('Lending Smart Contract Tests', () => {
     };
 
 
-    const repayAmount = 5 * 10**9;
+    const repayAmount = 2 * 10**9;
+    const positionIdToRepay = 1; // Repay first position
     const repaySOL = await program.methods
-      .repay(new BN(repayAmount))
+      .repay(new BN(positionIdToRepay), new BN(repayAmount))
       .accounts(accounts)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
     expect(repaySOL).toBeTruthy();

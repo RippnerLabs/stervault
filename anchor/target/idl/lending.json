@@ -280,6 +280,10 @@
               {
                 "kind": "account",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -337,6 +341,10 @@
         }
       ],
       "args": [
+        {
+          "name": "position_id",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -685,6 +693,10 @@
               {
                 "kind": "arg",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -702,6 +714,10 @@
         {
           "name": "mint_borrow",
           "type": "pubkey"
+        },
+        {
+          "name": "position_id",
+          "type": "u64"
         }
       ]
     },
@@ -1128,6 +1144,10 @@
               {
                 "kind": "account",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -1162,6 +1182,10 @@
         }
       ],
       "args": [
+        {
+          "name": "position_id",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -1613,6 +1637,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
           {
             "name": "owner",
             "type": "pubkey"

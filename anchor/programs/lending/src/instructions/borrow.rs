@@ -10,6 +10,7 @@ use crate::error::ErrorCode;
 use crate::utils::*;
 
 #[derive(Accounts)]
+#[instruction(position_id: u64)]
 pub struct Borrow<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -89,7 +90,8 @@ pub struct Borrow<'info> {
             b"position",
             signer.key().as_ref(),
             mint_collateral.key().as_ref(),
-            mint_borrow.key().as_ref()
+            mint_borrow.key().as_ref(),
+            &position_id.to_le_bytes()
         ],
         bump,
     )]
@@ -112,7 +114,7 @@ pub struct Borrow<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
+pub fn process_borrow(ctx: Context<Borrow>, position_id: u64, amount: u64) -> Result<()> {
     msg!("Starting borrow process for amount: {}", amount);
     msg!("User: {}", ctx.accounts.signer.key());
     msg!("Borrow mint: {}", ctx.accounts.mint_borrow.key());
@@ -337,6 +339,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
 
     msg!("Updating borrow position");
     let position = &mut ctx.accounts.borrow_position;
+    position.position_id = position_id;
     position.owner = ctx.accounts.signer.key();
     position.collateral_mint = ctx.accounts.mint_collateral.key();
     position.borrow_mint = ctx.accounts.mint_borrow.key();

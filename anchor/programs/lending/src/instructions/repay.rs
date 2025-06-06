@@ -8,6 +8,7 @@ use crate::error::{ErrorCode};
 use crate::utils::*;
 
 #[derive(Accounts)]
+#[instruction(position_id: u64)]
 pub struct Repay<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -95,6 +96,7 @@ pub struct Repay<'info> {
             signer.key().as_ref(), 
             mint_collateral.key().as_ref(),
             mint_borrow.key().as_ref(),
+            &position_id.to_le_bytes(),
         ],
         bump
     )]
@@ -108,7 +110,7 @@ pub struct Repay<'info> {
     pub user_global_state: Account<'info, UserGlobalState>,
 }
 
-pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
+pub fn process_repay(ctx: Context<Repay>, _position_id: u64, amount: u64) -> Result<()> {
     msg!("Starting repay process for amount: {}", amount);
     msg!("User: {}", ctx.accounts.signer.key());
     msg!("Borrow mint: {}", ctx.accounts.mint_borrow.key());

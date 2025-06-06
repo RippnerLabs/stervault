@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, createTransferInstruction, getAccount } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, createTransferInstruction, getAccount, getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
 import * as fs from 'fs';
 import * as path from 'path';
 
 // Load token information from JSON file
 async function getTokens() {
   try {
-    const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
-    const data = await response.json();
-    return data;
+    const env = process.env.NEXT_PUBLIC_SOLANA_ENV || 'localnet';
+    // Use path.join to build the local file path within the project
+    const filePath = path.join(process.cwd(), 'public', `tokens_${env}.json`);
+    
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return data;
+    } else {
+      console.error(`Token file not found: ${filePath}`);
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching tokens:', error);
     return [];
@@ -53,23 +61,36 @@ export async function POST(req: NextRequest) {
     const connection = new Connection(connectionUrl, 'confirmed');
     let solSignature = '';
 
-    // Send SOL to the user
-    try {
-      // Send enough SOL to cover transaction fees and simulate having tokens
-      console.log(`Sending SOL to: ${recipientPubkey.toString()}`);
-      const solTransferTx = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: funderKeypair.publicKey,
-          toPubkey: recipientPubkey,
-          lamports: 1 * LAMPORTS_PER_SOL, // 1 SOL
-        })
-      );
+    // First, check funder balance
+    const funderBalance = await connection.getBalance(funderKeypair.publicKey);
+    console.log(`Funder SOL balance: ${funderBalance / LAMPORTS_PER_SOL} SOL`);
+    
+    // Determine how much SOL to send based on available balance
+    // Keep at least 0.05 SOL for fees
+    const reserveAmount = 0.05 * LAMPORTS_PER_SOL;
+    const maxTransferAmount = Math.max(0, funderBalance - reserveAmount);
+    const solToSend = Math.min(0.1 * LAMPORTS_PER_SOL, maxTransferAmount);
+    
+    // Only transfer SOL if we have enough to send
+    if (solToSend > 1000) { // At least 1000 lamports
+      try {
+        console.log(`Sending ${solToSend / LAMPORTS_PER_SOL} SOL to: ${recipientPubkey.toString()}`);
+        const solTransferTx = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: funderKeypair.publicKey,
+            toPubkey: recipientPubkey,
+            lamports: solToSend,
+          })
+        );
 
-      solSignature = await sendAndConfirmTransaction(connection, solTransferTx, [funderKeypair]);
-      console.log(`SOL transfer successful: ${solSignature}`);
-    } catch (error) {
-      console.error('Error transferring SOL:', error);
-      // Continue anyway - we'll try to transfer tokens
+        solSignature = await sendAndConfirmTransaction(connection, solTransferTx, [funderKeypair]);
+        console.log(`SOL transfer successful: ${solSignature}`);
+      } catch (error) {
+        console.error('Error transferring SOL:', error);
+        // Continue anyway - we'll try to transfer tokens
+      }
+    } else {
+      console.warn("Not enough SOL in funder account to transfer");
     }
 
     // Get tokens from our JSON file
@@ -85,9 +106,9 @@ export async function POST(req: NextRequest) {
         console.log(`Processing token: ${token.symbol} (${token.address})`);
         
         const mintPubkey = new PublicKey(token.address);
-        const amount = 500 * (10 ** token.decimals); // 500 tokens
-
-        // Try creating sender's ATA if needed (some local mints may need this)
+        const amount = 10 * (10 ** token.decimals); // Reduce to just 10 tokens
+        
+        // Get or create sender's token account
         let senderATA;
         try {
           senderATA = await getAssociatedTokenAddress(
@@ -95,16 +116,87 @@ export async function POST(req: NextRequest) {
             funderKeypair.publicKey
           );
           
-          // Check if sender's token account exists
+          // Check if sender's token account exists and has a balance
           try {
-            await getAccount(connection, senderATA);
+            const accountInfo = await getAccount(connection, senderATA);
             console.log(`Sender token account exists: ${senderATA.toString()}`);
+            console.log(`Sender token balance: ${accountInfo.amount.toString()}`);
+            
+            // Skip if balance is 0
+            if (accountInfo.amount === BigInt(0)) {
+              console.log(`Sender has 0 balance of ${token.symbol} - skipping token`);
+              results.push({
+                token: token.symbol,
+                success: false,
+                error: "Sender token account has 0 balance"
+              });
+              continue; // Skip to next token
+            }
+            
+            // Adjust amount to available balance
+            const amountToSend = BigInt(amount) > accountInfo.amount ? 
+              accountInfo.amount : 
+              BigInt(amount);
+              
+            if (amountToSend === BigInt(0)) {
+              console.log(`Cannot send 0 tokens of ${token.symbol}`);
+              results.push({
+                token: token.symbol,
+                success: false,
+                error: "Cannot send 0 tokens"
+              });
+              continue; // Skip to next token
+            }
+            
+            console.log(`Will send ${amountToSend.toString()} tokens of ${token.symbol}`);
+            
+            // Get or create recipient's token account
+            const recipientATA = await getOrCreateAssociatedTokenAccount(
+              connection,
+              funderKeypair,
+              mintPubkey,
+              recipientPubkey
+            );
+            
+            console.log(`Recipient ATA: ${recipientATA.address.toString()}`);
+            
+            // Create transfer transaction
+            const transaction = new Transaction().add(
+              createTransferInstruction(
+                senderATA, // source
+                recipientATA.address, // destination
+                funderKeypair.publicKey, // owner
+                amountToSend // amount
+              )
+            );
+            
+            // Send and confirm transaction
+            const signature = await sendAndConfirmTransaction(
+              connection,
+              transaction,
+              [funderKeypair]
+            );
+
+            console.log(`Transaction successful: ${signature}`);
+            
+            // Verify the transfer happened
+            const newRecipientBalance = await connection.getTokenAccountBalance(recipientATA.address);
+            console.log(`New recipient balance: ${newRecipientBalance.value.uiAmount} ${token.symbol}`);
+            
+            results.push({
+              token: token.symbol,
+              success: true,
+              signature,
+              amount: amountToSend.toString(),
+              newBalance: newRecipientBalance.value.uiAmount,
+            });
+            
           } catch (error) {
-            console.log(`Sender token account doesn't exist - skipping token ${token.symbol}`);
+            console.log(`Sender token account doesn't exist or error checking balance: ${error}`);
             results.push({
               token: token.symbol,
               success: false,
-              error: "Sender token account doesn't exist"
+              error: "Sender token account doesn't exist or has no balance"
             });
             continue; // Skip to next token
           }
@@ -116,106 +208,6 @@ export async function POST(req: NextRequest) {
             error: "Failed to get sender token account"
           });
           continue; // Skip to next token
-        }
-
-        // Now try to get or create recipient ATA
-        let recipientATA;
-        try {
-          recipientATA = await getAssociatedTokenAddress(
-            mintPubkey,
-            recipientPubkey
-          );
-          
-          console.log(`Recipient ATA: ${recipientATA.toString()}`);
-        } catch (error) {
-          console.error(`Error getting recipient ATA for ${token.symbol}:`, error);
-          results.push({
-            token: token.symbol,
-            success: false,
-            error: "Failed to get recipient token account"
-          });
-          continue; // Skip to next token
-        }
-
-        // Check if recipient's token account exists
-        let recipientAccountExists = false;
-        try {
-          await getAccount(connection, recipientATA);
-          recipientAccountExists = true;
-          console.log('Recipient token account exists');
-        } catch (error) {
-          console.log('Recipient token account does not exist, will create');
-        }
-
-        // Prepare transaction
-        const transaction = new Transaction();
-
-        // Create recipient's token account if it doesn't exist
-        if (!recipientAccountExists) {
-          try {
-            console.log('Creating recipient token account');
-            transaction.add(
-              createAssociatedTokenAccountInstruction(
-                funderKeypair.publicKey, // payer
-                recipientATA, // associated token account
-                recipientPubkey, // owner
-                mintPubkey // mint
-              )
-            );
-          } catch (error) {
-            console.error(`Error creating ATA instruction for ${token.symbol}:`, error);
-            results.push({
-              token: token.symbol,
-              success: false,
-              error: "Failed to create ATA instruction"
-            });
-            continue; // Skip to next token
-          }
-        }
-
-        // Add transfer instruction
-        try {
-          console.log(`Adding transfer instruction for ${amount} tokens`);
-          transaction.add(
-            createTransferInstruction(
-              senderATA, // source
-              recipientATA, // destination
-              funderKeypair.publicKey, // owner
-              BigInt(amount) // amount
-            )
-          );
-        } catch (error) {
-          console.error(`Error creating transfer instruction for ${token.symbol}:`, error);
-          results.push({
-            token: token.symbol,
-            success: false,
-            error: "Failed to create transfer instruction"
-          });
-          continue; // Skip to next token
-        }
-
-        // Send and confirm transaction
-        try {
-          console.log('Sending transaction');
-          const signature = await sendAndConfirmTransaction(
-            connection,
-            transaction,
-            [funderKeypair]
-          );
-
-          console.log(`Transaction successful: ${signature}`);
-          results.push({
-            token: token.symbol,
-            success: true,
-            signature,
-          });
-        } catch (error) {
-          console.error(`Error sending transaction for ${token.symbol}:`, error);
-          results.push({
-            token: token.symbol,
-            success: false,
-            error: (error as Error).message
-          });
         }
       } catch (error) {
         console.error(`Error processing token ${token.symbol}:`, error);
@@ -232,6 +224,7 @@ export async function POST(req: NextRequest) {
       message: 'SOL and available tokens transferred',
       solSignature,
       results,
+      funderBalance: funderBalance / LAMPORTS_PER_SOL,
     });
 
   } catch (error) {

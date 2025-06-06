@@ -25,8 +25,8 @@ pub mod lending {
     return process_init_user_token_state(ctx, mint_address);
   }
 
-  pub fn init_borrow_position(ctx: Context<InitBorrowPosition>, mint_collateral: Pubkey, mint_borrow: Pubkey) -> Result<()> {
-    return process_init_borrow_position(ctx, mint_collateral, mint_borrow);
+  pub fn init_borrow_position(ctx: Context<InitBorrowPosition>, mint_collateral: Pubkey, mint_borrow: Pubkey, position_id: u64) -> Result<()> {
+    return process_init_borrow_position(ctx, mint_collateral, mint_borrow, position_id);
   }
 
   pub fn init_bank(ctx: Context<InitBank>, 
@@ -64,16 +64,16 @@ pub mod lending {
     return process_deposit(ctx, amount);
   }
 
-  pub fn borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
-    return process_borrow(ctx, amount);
+  pub fn borrow(ctx: Context<Borrow>, position_id: u64, amount: u64) -> Result<()> {
+    return process_borrow(ctx, position_id, amount);
   }
 
   pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     return process_withdraw(ctx,amount);
   }
 
-  pub fn repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
-    return process_repay(ctx, amount);
+  pub fn repay(ctx: Context<Repay>, position_id: u64, amount: u64) -> Result<()> {
+    return process_repay(ctx, position_id, amount);
   }
 
   // pub fn liquidate(ctx: Context<Liquidate>) -> Result<()> {

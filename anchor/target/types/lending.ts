@@ -286,6 +286,10 @@ export type Lending = {
               {
                 "kind": "account",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -343,6 +347,10 @@ export type Lending = {
         }
       ],
       "args": [
+        {
+          "name": "positionId",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -691,6 +699,10 @@ export type Lending = {
               {
                 "kind": "arg",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -708,6 +720,10 @@ export type Lending = {
         {
           "name": "mintBorrow",
           "type": "pubkey"
+        },
+        {
+          "name": "positionId",
+          "type": "u64"
         }
       ]
     },
@@ -1134,6 +1150,10 @@ export type Lending = {
               {
                 "kind": "account",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -1168,6 +1188,10 @@ export type Lending = {
         }
       ],
       "args": [
+        {
+          "name": "positionId",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -1619,6 +1643,10 @@ export type Lending = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "positionId",
+            "type": "u64"
+          },
           {
             "name": "owner",
             "type": "pubkey"
