@@ -36,6 +36,11 @@
       "feedId": "0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996",
       "address": "7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5"
     },
+    "USDS": {
+      "symbol": "USDS",
+      "feedId": "0x6968a8641208463d17ae3b9cfa0e4841a7aa7a5d54122b9f692b84fe9ce3409f",
+      "address": "3SmySDQib16wqTdGpBDYPtfUsg6G45HftVhhrCVn8hbr"
+    },
     "WBTC": {
       "symbol": "WBTC",
       "feedId": "0xc9d8b075a5c69303365ae23633d4e085199bf5c520a3b90fed1322a0342ffc33",
@@ -45,6 +50,11 @@
       "symbol": "ETH",
       "feedId": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
       "address": "42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC"
+    },
+    "Fartcoin": {
+      "symbol": "Fartcoin",
+      "feedId": "0x89fa109abd89f62776032713216d8692e4c33b446ec405a8252c8975345c1788",
+      "address": "3vwnXSc1SzooUeeayXxCVptswEuZGUi9dRhuQQK484fC"
     }
   }
 }

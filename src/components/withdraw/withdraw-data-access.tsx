@@ -11,7 +11,7 @@ import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from '@coral-xyz/anchor'
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getMint, getAssociatedTokenAddress } from '@solana/spl-token'
-import { useDeposits, UserDeposit } from '../deposits/deposits-data-access'
+import { useBankDeposits, UserDeposit } from '../bank-deposits/bank-deposits-data-access'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
@@ -26,17 +26,21 @@ export function useWithdraw() {
     return getLendingProgram(provider, programId);
   }, [provider, programId])
   
-  const { userDeposits, fetchMintInfo } = useDeposits();
+  const { userDeposits, fetchMintInfo } = useBankDeposits();
 
   // Find specific deposit by bank ID and mint address
   const getDeposit = (bankId: string, mintAddress: string): UserDeposit | undefined => {
     if (!userDeposits.data) return undefined;
     
-    return userDeposits.data.find(
-      (deposit) => 
-        deposit.bankPublicKey.toString() === bankId && 
-        deposit.mintAddress.toString() === mintAddress
-    );
+    return userDeposits.data.find((deposit: UserDeposit) => {
+      const matchesMint = deposit.mintAddress.toString() === mintAddress;
+      if (!matchesMint) return false;
+      // If bankPublicKey is available, ensure it matches as well, otherwise ignore
+      if (deposit.bankPublicKey) {
+        return deposit.bankPublicKey.toString() === bankId;
+      }
+      return true;
+    });
   };
 
   // Helper function to get or create a token account

@@ -267,6 +267,11 @@ function BankFinancials() {
         router.push(`/deposit-tokens?bankId=${bankId}`);
     };
     
+    // Navigate to withdraw page for a specific user deposit
+    const handleWithdraw = (bankId: string, mintAddress: string) => {
+        router.push(`/withdraw?bankId=${bankId}&mintAddress=${mintAddress}`);
+    };
+    
     // Refresh data
     const handleRefresh = () => {
         setIsRefreshing(true);
@@ -360,10 +365,10 @@ function BankFinancials() {
                         transition={{ duration: 0.5 }}
                         className="text-center max-w-3xl mx-auto z-10"
                     >
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+                        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white">
                             DeFi Bank Explorer
                         </h1>
-                        <p className="text-lg text-neutral-300 mb-8">
+                        <p className="text-lg dark:text-neutral-300 mb-8">
                             Connect your wallet to explore real-time data from DeFi banks and liquidity markets.
                         </p>
                         <WalletButton />
@@ -421,7 +426,7 @@ function BankFinancials() {
                         >
                             <TextGenerateEffect 
                                 words="DeFi Bank Explorer" 
-                                className="text-4xl md:text-5xl font-bold text-white mb-4" 
+                                className="text-4xl md:text-5xl font-bold mb-4 text-cyan-50" 
                             />
                             <p className="text-lg text-neutral-200 mb-6">
                                 Real-time market data from on-chain banking protocols
@@ -521,13 +526,39 @@ function BankFinancials() {
                                             <span className="text-neutral-500">Utilization:</span>
                                             <span className="font-medium">{formatPercent(bank.utilizationRate)}</span>
                                         </div>
-                                        <Button 
-                                            size="sm" 
-                                            className="w-full mt-2" 
-                                            onClick={() => handleDeposit(bank.publicKey.toString())}
-                                        >
-                                            Deposit
-                                        </Button>
+                                        <div className="flex gap-2 mt-2">
+                                            <Button 
+                                                size="sm" 
+                                                className="flex-1" 
+                                                onClick={() => handleDeposit(bank.publicKey.toString())}
+                                            >
+                                                Deposit
+                                            </Button>
+                                            {/* Show withdraw button only if user has deposits in this bank */}
+                                            {userDeposits.data?.find((deposit: UserDeposit) => 
+                                                deposit.mintAddress.toString() === bank.account.mintAddress.toString() &&
+                                                deposit.depositAmount > 0
+                                            ) && (
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    className="flex-1"
+                                                    onClick={() => {
+                                                        const userDeposit = userDeposits.data?.find((deposit: UserDeposit) => 
+                                                            deposit.mintAddress.toString() === bank.account.mintAddress.toString()
+                                                        );
+                                                        if (userDeposit) {
+                                                            handleWithdraw(
+                                                                bank.publicKey.toString(), 
+                                                                userDeposit.mintAddress.toString()
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    Withdraw
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 }
                                 header={
@@ -572,7 +603,7 @@ function BankFinancials() {
                                 <th className="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Total Deposits</th>
                                 <th className="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">APY</th>
                                 <th className="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Utilization</th>
-                                <th className="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Action</th>
+                                <th className="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -631,12 +662,37 @@ function BankFinancials() {
                                         </div>
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-right">
-                                        <Button 
-                                            size="sm" 
-                                            onClick={() => handleDeposit(bank.publicKey.toString())}
-                                        >
-                                            Deposit
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button 
+                                                size="sm" 
+                                                onClick={() => handleDeposit(bank.publicKey.toString())}
+                                            >
+                                                Deposit
+                                            </Button>
+                                            {/* Show withdraw button only if user has deposits in this bank */}
+                                            {userDeposits.data?.find((deposit: UserDeposit) => 
+                                                deposit.mintAddress.toString() === bank.account.mintAddress.toString() &&
+                                                deposit.depositAmount > 0
+                                            ) && (
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        const userDeposit = userDeposits.data?.find((deposit: UserDeposit) => 
+                                                            deposit.mintAddress.toString() === bank.account.mintAddress.toString()
+                                                        );
+                                                        if (userDeposit) {
+                                                            handleWithdraw(
+                                                                bank.publicKey.toString(), 
+                                                                userDeposit.mintAddress.toString()
+                                                            );
+                                                        }
+                                                    }}
+                                                >
+                                                    Withdraw
+                                                </Button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -724,13 +780,39 @@ function BankFinancials() {
                                 translateZ="80"
                                 className="absolute -bottom-4 left-1/2 -translate-x-1/2"
                             >
-                                <Button 
-                                    onClick={() => handleDeposit(enhancedBanks[0].publicKey.toString())}
-                                    className="group bg-indigo-600 hover:bg-indigo-700 px-8 py-3 text-lg"
-                                >
-                                    <span>Deposit Now</span>
-                                    <IconArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                                </Button>
+                                <div className="flex gap-3">
+                                    <Button 
+                                        onClick={() => handleDeposit(enhancedBanks[0].publicKey.toString())}
+                                        className="group bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-lg"
+                                    >
+                                        <span>Deposit</span>
+                                        <IconArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                    </Button>
+                                    {/* Show withdraw button only if user has deposits in this bank */}
+                                    {userDeposits.data?.find((deposit: UserDeposit) => 
+                                        deposit.mintAddress.toString() === enhancedBanks[0].account.mintAddress.toString() &&
+                                        deposit.depositAmount > 0
+                                    ) && (
+                                        <Button 
+                                            variant="outline"
+                                            onClick={() => {
+                                                const userDeposit = userDeposits.data?.find((deposit: UserDeposit) => 
+                                                    deposit.mintAddress.toString() === enhancedBanks[0].account.mintAddress.toString()
+                                                );
+                                                if (userDeposit) {
+                                                    handleWithdraw(
+                                                        enhancedBanks[0].publicKey.toString(), 
+                                                        userDeposit.mintAddress.toString()
+                                                    );
+                                                }
+                                            }}
+                                            className="group bg-transparent border-white text-white hover:bg-white hover:text-black px-6 py-3 text-lg"
+                                        >
+                                            <span>Withdraw</span>
+                                            <IconArrowDownRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                        </Button>
+                                    )}
+                                </div>
                             </CardItem>
                         </CardBody>
                     </CardContainer>

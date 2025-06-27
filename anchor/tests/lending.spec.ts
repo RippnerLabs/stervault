@@ -1,6 +1,6 @@
 import { BN, Program } from '@coral-xyz/anchor';
 import { BankrunProvider } from 'anchor-bankrun';
-import { TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID} from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { createAccount, createMint, mintTo } from 'spl-token-bankrun';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { startAnchor, BanksClient, ProgramTestContext } from 'solana-bankrun';

@@ -208,7 +208,7 @@ function WithdrawForm() {
             <div className="container mx-auto px-4 py-8">
                 <Card className="max-w-2xl mx-auto">
                     <div className="text-center p-6">
-                        <h1 className="text-4xl font-bold mb-4 text-red-500">Deposit Not Found</h1>
+                        <h1 className="text-xl font-bold mb-4 text-red-300">Deposit Not Found</h1>
                         <p className="text-neutral-400 mb-6">
                             We couldn&apos;t find the deposit you&apos;re looking for. It may have been withdrawn or moved.
                         </p>
