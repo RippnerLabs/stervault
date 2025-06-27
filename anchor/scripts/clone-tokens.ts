@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { getExplorerLink } from "@solana-developers/helpers";
 import { Connection, Keypair, LAMPORTS_PER_SOL, Cluster } from '@solana/web3.js';
-import { createAccount, createAssociatedTokenAccount, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
+import { createAssociatedTokenAccount, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
 
 // Parse command-line arguments
 const args = process.argv.slice(2);

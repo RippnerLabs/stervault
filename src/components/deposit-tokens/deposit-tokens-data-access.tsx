@@ -2,7 +2,7 @@
 
 import { getLendingProgram } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
-import { PublicKey, SystemProgram } from '@solana/web3.js'
+import { ComputeBudgetProgram, PublicKey, SystemProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import toast from 'react-hot-toast'
@@ -127,6 +127,9 @@ export function useDepositTokens() {
           throw new Error('User does not have a token account for this mint');
         }
 
+        const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
+          units: 1000000,
+        });
         // Call the deposit method
         const tx = await program.methods
           .deposit(amount)
@@ -135,6 +138,7 @@ export function useDepositTokens() {
             mint: mintAddress,
             tokenProgram: TOKEN_PROGRAM_ID,
           } as any)
+          .preInstructions([computeBudgetIx])
           .rpc({ commitment: 'confirmed' });
         
         console.log('Deposit transaction:', tx);

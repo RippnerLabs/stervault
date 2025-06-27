@@ -1580,6 +1580,11 @@ export type Lending = {
       "code": 6015,
       "name": "insufficientCollateral",
       "msg": "Insufficient Collateral"
+    },
+    {
+      "code": 6016,
+      "name": "alreadyRepayed",
+      "msg": "Already Repayed"
     }
   ],
   "types": [
@@ -1847,6 +1852,10 @@ export type Lending = {
             "type": {
               "vec": "pubkey"
             }
+          },
+          {
+            "name": "positions",
+            "type": "u64"
           },
           {
             "name": "bump",

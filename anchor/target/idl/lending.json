@@ -1574,6 +1574,11 @@
       "code": 6015,
       "name": "InsufficientCollateral",
       "msg": "Insufficient Collateral"
+    },
+    {
+      "code": 6016,
+      "name": "AlreadyRepayed",
+      "msg": "Already Repayed"
     }
   ],
   "types": [
@@ -1841,6 +1846,10 @@
             "type": {
               "vec": "pubkey"
             }
+          },
+          {
+            "name": "positions",
+            "type": "u64"
           },
           {
             "name": "bump",

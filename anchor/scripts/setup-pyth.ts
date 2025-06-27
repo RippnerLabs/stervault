@@ -2,7 +2,6 @@ import { Connection, Keypair, PublicKey, Transaction, SystemProgram, sendAndConf
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
 // Parse command-line arguments
 const args = process.argv.slice(2);

@@ -111,8 +111,7 @@ pub struct Repay<'info> {
 }
 
 pub fn process_repay(ctx: Context<Repay>, _position_id: u64, amount: u64) -> Result<()> {
-
-    require(ctx.accounts.position.active, "Borrow position alreadt repayed in full");
+    require!(ctx.accounts.borrow_position.active, ErrorCode::AlreadyRepayed);
 
     msg!("Starting repay process for amount: {}", amount);
     msg!("User: {}", ctx.accounts.signer.key());

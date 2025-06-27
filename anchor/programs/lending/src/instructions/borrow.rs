@@ -376,6 +376,7 @@ pub fn process_borrow(ctx: Context<Borrow>, position_id: u64, amount: u64) -> Re
     } else {
         msg!("  Position already in active positions");
     }
+    global_state.positions += 1;
     msg!("  Updated active positions: {:?}", global_state.active_positions);
 
     msg!("Borrow successful");

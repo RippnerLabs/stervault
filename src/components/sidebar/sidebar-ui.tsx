@@ -54,7 +54,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             icon: <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
             breadcrumbText: "Overview"
         },
-    {
+        {
             label: "Deposits",
             href: "/deposits",
             icon: <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
@@ -100,6 +100,12 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             breadcrumbText: "Transaction History"
         },
         {
+            label: "Faucet",
+            href: "/faucet",
+            icon: <IconWallet className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Token Faucet"
+        },
+        {
             label: "Settings",
             href: "/settings",
             icon: <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
@@ -113,7 +119,6 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             parent: "Token Banks"
         },
     ];
-    
     const [open, setOpen] = useState(false);
     
     // Find the current active link based on pathname

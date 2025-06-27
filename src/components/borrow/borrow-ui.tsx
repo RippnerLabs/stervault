@@ -472,7 +472,7 @@ export function Borrow() {
                         </div>
                         <div className="flex justify-between">
                           <p className="text-sm text-neutral-500">Max LTV Allowed</p>
-                          <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 75)}%</p>
+                          <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 75) / 100}%</p>
                         </div>
                       </div>
                       

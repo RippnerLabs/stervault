@@ -4,7 +4,7 @@ import { getLendingProgram } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, SystemProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
@@ -17,6 +17,7 @@ import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver'
 import { priceFeedIds } from '@/lib/constants'
 import { Connection } from '@solana/web3.js'
 import { ComputeBudgetProgram } from '@solana/web3.js'
+import { useBatchPythPrices } from '../pyth/pyth-data-access'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
@@ -110,6 +111,9 @@ const safeGetBnValue = (value: any, defaultValue = 0): number => {
     return defaultValue;
   }
 };
+
+// Local helper to remove optional 0x prefix from hex strings
+const stripHexPrefixLocal = (id: string): string => id.startsWith('0x') ? id.slice(2) : id;
 
 export function useBorrowTokens() {
   const { connection } = useConnection()
@@ -464,7 +468,7 @@ export function useBorrowTokens() {
 
           // Attempt to fetch the user's global state; if it doesn't exist yet we'll default to positionId = 1
           const userGlobalState = await (program.account as any).userGlobalState.fetch(userGlobalStatePDA);
-          positionId = (userGlobalState?.activePositions?.length || 0) + 1;
+          positionId = userGlobalState.positions + 1;
         } catch (fetchError) {
           // It's possible the user doesn't have a global state account yet (e.g. first interaction).
           // In that case we safely default to positionId = 1.
@@ -588,7 +592,7 @@ export function useBorrowTokens() {
       
       // Get price data for the collateral
       const collateralPrice = userDeposit.priceData?.price || 
-        (userDeposit.tokenInfo?.symbol ? getDefaultTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
+        (userDeposit.tokenInfo?.symbol ? getTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
       
       // Get price data for the borrowed token
       let borrowPrice = 1; // Default to 1 for stablecoins
@@ -596,7 +600,7 @@ export function useBorrowTokens() {
         const borrowToken = banks.data?.find(b => b.publicKey.toString() === borrowBankId);
         // Use priceData or get a default price based on symbol
         if (borrowToken?.tokenInfo?.symbol) {
-          borrowPrice = getDefaultTokenPrice(borrowToken.tokenInfo.symbol) || 1;
+          borrowPrice = getTokenPrice(borrowToken.tokenInfo.symbol) || 1;
         }
       }
       
@@ -645,27 +649,11 @@ export function useBorrowTokens() {
   };
 
   // Helper to get default token prices when price data is not available
-  const getDefaultTokenPrice = (symbol?: string): number => {
+  const getTokenPrice = (symbol?: string): number | undefined => {
     if (!symbol) return 0;
-    
-    // Default prices for common tokens (approximations)
-    // These values should be updated regularly or replaced with actual oracle data
-    const defaultPrices: Record<string, number> = {
-      "SOL": 60, // Solana
-      "USDC": 1, // USD Coin
-      "USDT": 1, // Tether
-      "BTC": 50000, // Bitcoin
-      "ETH": 3000, // Ethereum
-      "mSOL": 65, // Marinade Staked SOL
-      "stSOL": 65, // Lido Staked SOL
-      "RAY": 0.5, // Raydium
-      "SRM": 0.5, // Serum
-      "BONK": 0.00000005, // Bonk
-      // Add more tokens as needed
-    };
-    
-    // Return the default price if available, otherwise 0
-    return defaultPrices[symbol.toUpperCase()] || 0;
+    const pythPrice = getPythTokenPrice(symbol);
+    if (typeof pythPrice === 'number') return pythPrice;
+    return undefined;
   };
 
   // Calculate max borrowing power based on user deposits with better error handling
@@ -693,20 +681,22 @@ export function useBorrowTokens() {
       
       // Get max LTV (loan-to-value) ratio
       // Convert from percentage to decimal (e.g., 75% -> 0.75)
-      const maxLTV = safeGetBnValue(borrowBank.account.maxLtv, 75) / 100;
+      const maxLTV = safeGetBnValue(borrowBank.account.maxLtv) / 10_000;
       
       // Get prices for both tokens to convert to USD values
       const collateralPrice = userDeposit.priceData?.price || 
-        (userDeposit.tokenInfo?.symbol ? getDefaultTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
+        (userDeposit.tokenInfo?.symbol ? getTokenPrice(userDeposit.tokenInfo.symbol) : undefined);
         
-      let borrowPrice = 1; // Default to 1 for stablecoins like USDC
-      if (borrowBank.tokenInfo?.symbol) {
-        borrowPrice = getDefaultTokenPrice(borrowBank.tokenInfo.symbol) || 1;
-      }
+      const borrowPrice = getTokenPrice(borrowBank.tokenInfo?.symbol && borrowBank.tokenInfo.symbol);
       
       // If we don't have price data for collateral, we can't calculate max borrow amount properly
       if (!collateralPrice) {
         console.warn('Missing price data for collateral token', userDeposit.tokenInfo?.symbol);
+        return 0;
+      }
+
+      if(!borrowPrice) {
+        console.warn('Missing price data for borrow token', borrowBank.tokenInfo);
         return 0;
       }
       
@@ -737,6 +727,57 @@ export function useBorrowTokens() {
       return 0;
     }
   };
+
+  const [activePriceFeedIds, setActivePriceFeedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!banks.data) return;
+
+    const ids: string[] = [];
+
+    banks.data.forEach((b: BankData) => {
+      const symbol = b.tokenInfo?.symbol?.toUpperCase();
+      if (!symbol) return;
+
+      // 1️⃣ Preferred: explicit feed in token metadata
+      if ((b.tokenInfo as any)?.pythPriceFeed) {
+        ids.push(stripHexPrefixLocal((b.tokenInfo as any).pythPriceFeed));
+        return;
+      }
+
+      // 2️⃣ Fallback: constants map
+      const idFromConst = priceFeedIds[symbol as keyof typeof priceFeedIds];
+      if (idFromConst) {
+        ids.push(stripHexPrefixLocal(idFromConst));
+      }
+    });
+
+    setActivePriceFeedIds(Array.from(new Set(ids)));
+  }, [banks.data]);
+
+  const pythPrices = useBatchPythPrices(activePriceFeedIds);
+
+  /* Helper to obtain token price from pythPrices cache */
+  const getPythTokenPrice = useCallback((symbol?: string): number | undefined => {
+    if (!symbol || !pythPrices.data) return undefined;
+
+    const upper = symbol.toUpperCase();
+
+    // Try explicit constant map first → gives us feedId
+    let feedId = priceFeedIds[upper as keyof typeof priceFeedIds] as string | undefined;
+
+    // Override with token metadata feed if available
+    const tokenFromBanks = banks.data?.find(b => b.tokenInfo?.symbol?.toUpperCase() === upper)?.tokenInfo as any;
+    if (tokenFromBanks?.pythPriceFeed) {
+      feedId = tokenFromBanks.pythPriceFeed;
+    }
+
+    if (!feedId) return undefined;
+
+    const cleanId = stripHexPrefixLocal(feedId);
+    const pd = pythPrices.data[cleanId] || pythPrices.data[feedId];
+    return pd?.price;
+  }, [banks.data, pythPrices.data]);
 
   return {
     program,

@@ -56,6 +56,7 @@ pub struct UserGlobalState {
     pub deposited_mints: Vec<Pubkey>,
     #[max_len(MAX_BORROW_POSITIONS)]
     pub active_positions: Vec<Pubkey>,
+    pub positions: u64,
     pub bump: u8,
 }
 

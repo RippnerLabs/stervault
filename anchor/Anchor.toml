@@ -8,11 +8,14 @@ skip-lint = false
 [programs.localnet]
 lending = "FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD"
 
+[programs.devnet]
+lending = "FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "./keys/signer.json"
 
 [scripts]
