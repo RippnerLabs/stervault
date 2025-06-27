@@ -14,14 +14,6 @@ function loadSignerKeypair(): Keypair {
       return Keypair.fromSecretKey(secretKey);
     }
     
-    // Fallback to file-based loading
-    const signerPath = path.resolve(process.cwd(), 'anchor/keys/signer.json');
-    if (fs.existsSync(signerPath)) {
-      const secretKeyString = fs.readFileSync(signerPath, 'utf-8');
-      const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
-      return Keypair.fromSecretKey(secretKey);
-    }
-    
     throw new Error('Signer keypair not found in environment or file');
   } catch (error) {
     console.error('Error loading signer keypair:', error);
@@ -30,13 +22,13 @@ function loadSignerKeypair(): Keypair {
 }
 
 // Load available tokens
-function loadTokens(): any[] {
+async function loadTokens(): Promise<any[]> {
   try {
     const env = process.env.NEXT_PUBLIC_SOLANA_ENV || 'localnet';
-    const tokensPath = path.resolve(process.cwd(), 'public', `tokens_${env}.json`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/tokens_${env}.json`);
     
-    if (fs.existsSync(tokensPath)) {
-      const data = JSON.parse(fs.readFileSync(tokensPath, 'utf8'));
+    if (response.ok) {
+      const data = await response.json();
       return Array.isArray(data) ? data : [];
     }
     return [];
@@ -49,7 +41,7 @@ function loadTokens(): any[] {
 // GET endpoint to check faucet status and available tokens
 export async function GET() {
   try {
-    const tokens = loadTokens();
+    const tokens = await loadTokens();
     const signer = loadSignerKeypair();
     
     // Get connection
@@ -194,7 +186,7 @@ export async function POST(req: NextRequest) {
     const connectionUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'http://localhost:8899';
     const connection = new Connection(connectionUrl, 'confirmed');
     
-    const tokens = loadTokens();
+    const tokens = await loadTokens();
     const splTokens = tokens;
     const results: any[] = [];
     

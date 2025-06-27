@@ -1,6 +1,6 @@
 [
   {
-    "address": "HjEQFptzsFzDDYkvWhRp22sDRxGq2rAUi8oHRVmsrBge",
+    "address": "5DwMFAhFy4ETxs3fXdqWWdF2yEwAD7bxCxYdXsYTibsG",
     "name": "Wrapped SOL",
     "symbol": "SOL",
     "decimals": 9,
@@ -22,7 +22,7 @@
     "pythPriceFeed": "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"
   },
   {
-    "address": "BdX75PjXTeS1vTgHby9EcdCtxQtruxxk6Z2xXpsEpExA",
+    "address": "5sUXJPPU48qmNMNm3Fy74aMLvRMKtBH3ia8XsMC9AAiC",
     "name": "USD Coin",
     "symbol": "USDC",
     "decimals": 6,
@@ -44,7 +44,7 @@
     "pythPriceFeed": "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"
   },
   {
-    "address": "EgKh2EZ7m64pmLY8tTLRnEDUmHtZtfbAq2kMA3Q4vmdL",
+    "address": "J5Q74JmUiL6ReL8XjyjdiU1fxBHcSJNX8ubDnMY7F7kM",
     "name": "USDT",
     "symbol": "USDT",
     "decimals": 6,
@@ -66,7 +66,7 @@
     "pythPriceFeed": "HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM"
   },
   {
-    "address": "Cyc4Db176aPhbaTgZAiHmSymhUQ7CTLVY9Uho6dypJv6",
+    "address": "7gvqAMk7j69d2qn94bJLaYjqXAtALKhMHLKu31rnbt6k",
     "name": "OFFICIAL TRUMP",
     "symbol": "TRUMP",
     "decimals": 6,
@@ -88,7 +88,7 @@
     "pythPriceFeed": "9vNb2tQoZ8bB4vzMbQLWViGwNaDJVtct13AGgno1wazp"
   },
   {
-    "address": "6PqPxx1oA5dwyk37ft279VaBP5u8JppK9mBxcGibbvZY",
+    "address": "9yMVAVu3qA6bv2VLcFYKUsDutWK29kBM2UFSvVr15R39",
     "name": "Jupiter Perps",
     "symbol": "JLP",
     "decimals": 6,
@@ -110,7 +110,7 @@
     "pythPriceFeed": "2TTGSRSezqFzeLUH8JwRUbtN66XLLaymfYsWRTMjfiMw"
   },
   {
-    "address": "41xtxC8aQh222WeEAcv3d8PaD3KUs1sojFLEn2ou4Aix",
+    "address": "EssQEvvavksE8Z3VeCc7CZWkTUV6Cgn6aJQGgYVXGq9Y",
     "name": "Jito Staked SOL",
     "symbol": "JitoSOL",
     "decimals": 9,
@@ -133,7 +133,7 @@
     "pythPriceFeed": "AxaxyeDT8JnWERSaTKvFXvPKkEdxnamKSqpWbsSjYg1g"
   },
   {
-    "address": "CYD6M1AUvx7FckCiaq8qUJJrLKuMuApjUcTccspkj9ZN",
+    "address": "6akLLVCf6qpvLPKqfBCeYqQ634M8rAa5FfGf3xmqrvt8",
     "name": "Jupiter",
     "symbol": "JUP",
     "decimals": 6,
@@ -156,7 +156,7 @@
     "pythPriceFeed": "7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5"
   },
   {
-    "address": "FLojm22WMNzsVQN8eaHonRX8sALEZXv8m3qMeSUFpNim",
+    "address": "4ZKt8S47VtC5n6StQmNJ7HG92tdMZonXjZw3HQboZaPd",
     "name": "USDS",
     "symbol": "USDS",
     "decimals": 6,
@@ -176,7 +176,7 @@
     }
   },
   {
-    "address": "6ww6JRkGUDHVCuPoyDX5hGfdT2JSLTZqWzxgEfgWq2oi",
+    "address": "6br2RqEANc1AswyvHSXjt2bA3NcgciXzDNXk91mWEupb",
     "name": "Wrapped BTC (Portal)",
     "symbol": "WBTC",
     "decimals": 8,
@@ -199,7 +199,7 @@
     "pythPriceFeed": "9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG"
   },
   {
-    "address": "4o7oqv5R6UowJkfbvo1x95NpQMZjzeT3zHe1rLRbJw9Q",
+    "address": "3wMhj1Hsvw4SY2KVhHt67GZPsyWYvVamVNotcEResaJr",
     "name": "Ether (Portal)",
     "symbol": "ETH",
     "decimals": 8,
@@ -222,7 +222,7 @@
     "pythPriceFeed": "42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC"
   },
   {
-    "address": "E5ogVTFfJH2qN4ys2iRpmqqZ5av6XNQ7gBS39kHPUk3c",
+    "address": "Fsr9wy3bAAwWeCcHNNKKc3jNhPwhkLmNWF2cfiYJxKEe",
     "name": "Fartcoin",
     "symbol": "Fartcoin",
     "decimals": 6,
