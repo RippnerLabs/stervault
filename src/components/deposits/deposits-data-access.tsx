@@ -192,8 +192,8 @@ export function useActiveBorrowPositions() {
                 banks.data?.find(b => b.account.mintAddress.toString() === borrowMintStr)?.tokenInfo;
               
               // Get decimals for collateral and borrow tokens
-              const collateralDecimals = collateralTokenInfo?.decimals || 9;
-              const borrowDecimals = borrowTokenInfo?.decimals || 9;
+              const collateralDecimals = collateralTokenInfo?.decimals;
+              const borrowDecimals = borrowTokenInfo?.decimals;
               
               // Convert shares to amounts
               // This is a simple conversion - in a real system you'd need to use the conversion rate from the bank
@@ -279,7 +279,6 @@ export function useActiveBorrowPositions() {
                   : parseInt(positionAccount.borrowedShares.toString()),
                 lastUpdated,
                 active: positionAccount.active,
-                // Additional UI fields
                 collateralTokenInfo,
                 borrowTokenInfo,
                 collateralAmount,

@@ -126,15 +126,23 @@ export function useBankProgram() {
         );
         console.log('Bank Token Account PDA:', bankTokenAccountPDA.toString());
 
+        // Convert percentage-based fields to basis points (1% = 100) before passing to the program
+        const liquidationThresholdBps = Math.floor(liquidationThreshold * 100);
+        const liquidationBonusBps = Math.floor(liquidationBonus * 100);
+        const liquidationCloseFactorBps = Math.floor(liquidationCloseFactor * 100);
+        const maxLtvBps = Math.floor(maxLtv * 100);
+        const depositInterestRateBps = Math.floor(depositInterestRate * 100);
+        const borrowInterestRateBps = Math.floor(borrowInterestRate * 100);
+
         // Convert values to BN (BigNumber) as required by the contract
         const tx = await program.methods
           .initBank(
-            new BN(liquidationThreshold),
-            new BN(liquidationBonus),
-            new BN(liquidationCloseFactor),
-            new BN(maxLtv),
-            new BN(depositInterestRate),
-            new BN(borrowInterestRate),
+            new BN(liquidationThresholdBps),
+            new BN(liquidationBonusBps),
+            new BN(liquidationCloseFactorBps),
+            new BN(maxLtvBps),
+            new BN(depositInterestRateBps),
+            new BN(borrowInterestRateBps),
             name,
             description,
             new BN(depositFee),
@@ -163,6 +171,7 @@ export function useBankProgram() {
           
           // Check for specific error codes
           const errorMessage = error.message;
+          console.log("errorMessage", errorMessage);
           if (errorMessage.includes('custom program error: 0x1004')) {
             throw new Error('Error 4100: The declared program ID does not match the actual program ID. This has been fixed, please try again.');
           } else if (errorMessage.includes('AccountOwnedByWrongProgram') || errorMessage.includes('3007')) {

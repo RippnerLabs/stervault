@@ -1,0 +1,48 @@
+warning: unused import: `Add`
+ --> programs/lending/src/instructions/borrow.rs:1:16
+  |
+1 | use std::ops::{Add, Div, Mul};
+  |                ^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Add`, `Div`, `Mul`
+ --> programs/lending/src/utils.rs:1:16
+  |
+1 | use std::ops::{Add, Div, Mul};
+  |                ^^^  ^^^  ^^^
+
+warning: unused import: `pyth_solana_receiver_sdk::price_update::VerificationLevel`
+ --> programs/lending/src/utils.rs:6:5
+  |
+6 | use pyth_solana_receiver_sdk::price_update::VerificationLevel;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: variable does not need to be mutable
+   --> programs/lending/src/instructions/repay.rs:222:9
+    |
+222 |     let mut collateral_shares_to_unlock = calculated_shares.min(ctx.accounts.borrow_position.collateral_shares)
+    |         ----^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `mint_collateral`
+  --> programs/lending/src/instructions/init_borrow_position.rs:29:71
+   |
+29 | pub fn process_init_borrow_position(ctx: Context<InitBorrowPosition>, mint_collateral: Pubkey, mint_borrow: Pubkey, position_id: u64) -> Result<()> {
+   |                                                                       ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mint_collateral`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `mint_borrow`
+  --> programs/lending/src/instructions/init_borrow_position.rs:29:96
+   |
+29 | pub fn process_init_borrow_position(ctx: Context<InitBorrowPosition>, mint_collateral: Pubkey, mint_borrow: Pubkey, position_id: u64) -> Result<()> {
+   |                                                                                                ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_mint_borrow`
+
+warning: `lending` (lib) generated 6 warnings (run `cargo fix --lib -p lending` to apply 4 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.41s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests src/lib.rs (/Users/jayanthkumar/Downloads/work/web3/bootcamp/lending/anchor/target/debug/deps/lending-16b4430e18f156c4)

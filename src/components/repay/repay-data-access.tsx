@@ -2,7 +2,7 @@
 
 import { getLendingProgram } from '@project/anchor'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey, SystemProgram } from '@solana/web3.js'
+import { PublicKey, SystemProgram, ComputeBudgetProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -204,11 +204,34 @@ export function useRepayOperations() {
         const decimals = position.borrowTokenInfo?.decimals || 9;
         const amountBN = new BN(Math.floor(amount * (10 ** decimals)));
         
-        // Get the user's ATA for the borrow token
-        const userTokenAccount = await getAssociatedTokenAddress(
+        // Get the user's ATA for the borrow token (this will be passed as `userBorrowTokenAccount`)
+        const userBorrowTokenAccount = await getAssociatedTokenAddress(
           position.borrowMint,
           provider.publicKey
         );
+        
+        // Derive the user's ATA for the collateral token (might be required by the program)
+        const userCollateralTokenAccount = await getAssociatedTokenAddress(
+          position.collateralMint,
+          provider.publicKey
+        );
+        
+        // ------------------------------------------------------------------
+        // Fetch the on-chain borrow position account to obtain its position_id
+        // We cannot reliably derive this number from the PDA so we read it
+        // directly.  The Anchor generated TypeScript types expose it as either
+        // `positionId` (camelCase) or `position_id` depending on version.
+        // ------------------------------------------------------------------
+        let positionId = 1;
+        try {
+          const onChainPosition: any = await (program.account as any).borrowPosition.fetch(position.publicKey);
+          positionId = (
+            onChainPosition?.positionId ?? // newer Anchor camelCase field
+            onChainPosition?.position_id   // fallback snake_case field
+          ) || 1;
+        } catch (err) {
+          console.warn('Could not fetch on-chain borrow position, defaulting positionId to 1', err);
+        }
         
         // Get Pyth price feed details for both tokens
         // Derive PythNetworkFeedId accounts
@@ -216,12 +239,12 @@ export function useRepayOperations() {
         const collateralSymbol = position.collateralTokenInfo?.symbol || "UNKNOWN";
         
         const [borrowPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-          [Buffer.from(borrowSymbol)],
+          [Buffer.from('pyth_network_feed_id'), Buffer.from(borrowSymbol)],
           program.programId
         );
         
         const [collateralPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-          [Buffer.from(collateralSymbol)],
+          [Buffer.from('pyth_network_feed_id'), Buffer.from(collateralSymbol)],
           program.programId
         );
         
@@ -283,21 +306,26 @@ export function useRepayOperations() {
           pythNetworkFeedIdCollateralToken: collateralPythNetworkFeedId,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
-          // Include borrowPosition which is required for the repay operation
+          // Explicitly pass the PDA of the borrow position
           borrowPosition: position.publicKey,
-          // Include the user's token account for the repayment transfer
-          userTokenAccount: userTokenAccount
-        };
+          // Pass the user borrow ATA so the program can debit tokens
+          userBorrowTokenAccount: userBorrowTokenAccount,
+          userCollateralTokenAccount: userCollateralTokenAccount,
+        } as any; // cast to any to avoid TS strict account name mismatches
         
         console.log('About to send repay transaction with accounts:', {
           ...accounts,
+          positionId,
           amount: amountBN.toString(),
         });
         
-        // Create the transaction to repay the loan
+        // Bump compute budget to be safe for large repayments
+        const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 });
+
         const tx = await program.methods
-          .repay(amountBN)
+          .repay(new BN(positionId), amountBN)
           .accounts(accounts)
+          .preInstructions([computeBudgetIx])
           .rpc({ 
             commitment: 'confirmed',
             skipPreflight: true

@@ -6,7 +6,7 @@ mod error;
 mod utils;
 mod constants;
 
-declare_id!("EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G");
+declare_id!("FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD");
 
 #[program]
 pub mod lending {

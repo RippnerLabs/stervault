@@ -166,6 +166,7 @@ function DepositTokens() {
         });
         
         setShowConfirmation(true);
+        console.log('reached');
     }
 
     // Process the deposit

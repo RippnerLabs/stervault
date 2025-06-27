@@ -1,6 +1,6 @@
 import { BN, Program } from '@coral-xyz/anchor';
 import { BankrunProvider } from 'anchor-bankrun';
-import { TOKEN_PROGRAM_ID} from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import { createAccount, createMint, mintTo } from 'spl-token-bankrun';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { startAnchor, BanksClient, ProgramTestContext } from 'solana-bankrun';
@@ -92,7 +92,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      6 // Changed to 6 decimals for USDC
+      6
     );
 
     mintSOL = await createMint(
@@ -101,7 +101,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      9 // Changed to 9 decimals for SOL
+      9
     );
 
     [usdcBankAccount] = PublicKey.findProgramAddressSync(
@@ -232,7 +232,7 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test Init and Fund USDC Bank', async () => {
-    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
+    const amount = 10_000 * 10 ** 6;
     const mintTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -275,7 +275,7 @@ describe('Lending Smart Contract Tests', () => {
 
     expect(USDCTokenAccount).toBeTruthy();
 
-    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
+    const amount = 10_000 * 10 ** 6;
     const mintUSDCTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -314,7 +314,6 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test Deposit', async () => {
-    // For 200 USDC (6 decimals)
     const depositAmount = 1000 * 10**6;
     const depositUSDC = await program.methods
       .deposit(new BN(depositAmount))
@@ -339,11 +338,9 @@ describe('Lending Smart Contract Tests', () => {
     const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
     console.log("USDC User Token State after deposit:", userTokenState);
     
-    // Verify deposit shares are greater than 0
     expect(userTokenState.depositedShares.toString()).not.toBe('0');
     console.log("USDC Deposited Shares:", userTokenState.depositedShares.toString());
     
-    // Get user global state to verify mint was added
     const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("user_global"), signer.publicKey.toBuffer()],
       program.programId
@@ -361,7 +358,6 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test SOL Deposit', async () => {
-    // For 200 SOL (9 decimals)
     const depositAmount = 1000 * 10**9;
     const depositSOL = await program.methods
       .deposit(new BN(depositAmount))
@@ -415,11 +411,11 @@ describe('Lending Smart Contract Tests', () => {
 
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
+      [Buffer.from("pyth_network_feed_id"),Buffer.from("SOL")],
       program.programId
     );
     const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
+      [Buffer.from("pyth_network_feed_id"),Buffer.from("USDC")],
       program.programId
     );
 
@@ -449,7 +445,7 @@ describe('Lending Smart Contract Tests', () => {
     expect(borrowSOL).toBeTruthy();
 
     // Borrow again with the same pair but different position id but smaller amount to stay within LTV limits
-    const secondBorrowAmount = 0.1 * 10 ** 9; // 1 SOL
+    const secondBorrowAmount = 1 * 10 ** 9; // 1 SOL
     const borrowAccounts2 = {
       ...accounts,
     };
@@ -464,11 +460,11 @@ describe('Lending Smart Contract Tests', () => {
   it('Test Repay', async () => {
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("SOL")],
       program.programId
     );
     const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("USDC")],
       program.programId
     );
 
@@ -488,27 +484,49 @@ describe('Lending Smart Contract Tests', () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     };
 
-
-    const repayAmount = 2 * 10**9;
-    const positionIdToRepay = 1; // Repay first position
     const repaySOL = await program.methods
-      .repay(new BN(positionIdToRepay), new BN(repayAmount))
+      .repay(new BN(1), new BN(1 * 10**9))
       .accounts(accounts)
-      .rpc({ commitment: 'confirmed', skipPreflight: true });
+      .rpc({ commitment: 'confirmed', skipPreflight: true});
+    expect(repaySOL).toBeTruthy();
+  });
+
+
+  it('Test Repay 2', async () => {
+    // derive PythNetworkFeedId account
+    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("SOL")],
+      program.programId
+    );
+    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("USDC")],
+      program.programId
+    );
+
+    const accounts = {
+      signer: signer.publicKey,
+      mintBorrow: mintSOL,
+      mintCollateral: mintUSDC,
+
+      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
+
+      tokenProgram: TOKEN_PROGRAM_ID,
+    };
+
+    const repaySOL = await program.methods
+      .repay(new BN(2), new BN(1 * 10**9))
+      .accounts(accounts)
+      .rpc({ commitment: 'confirmed', skipPreflight: true});
     expect(repaySOL).toBeTruthy();
   });
 
   it('Test Withdraw', async () => {
-    // derive PythNetworkFeedId account
-    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
-      program.programId
-    );
-    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
-      program.programId
-    );
-
     const accounts = {
       signer: signer.publicKey,
       mint: mintUSDC,
@@ -519,7 +537,7 @@ describe('Lending Smart Contract Tests', () => {
     const withdrawSOL = await program.methods
       .withdraw(new BN(withdrawAmount))
       .accounts(accounts)
-      .rpc({ commitment: 'confirmed', skipPreflight: true });
+      .rpc({ commitment: 'confirmed' });
     expect(withdrawSOL).toBeTruthy();
   });
 

@@ -16,6 +16,7 @@ import { useDeposits, UserDeposit } from '../deposits/deposits-data-access'
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver'
 import { priceFeedIds } from '@/lib/constants'
 import { Connection } from '@solana/web3.js'
+import { ComputeBudgetProgram } from '@solana/web3.js'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
@@ -361,11 +362,11 @@ export function useBorrowTokens() {
 
         // Derive PythNetworkFeedId accounts
         const [borrowPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-          [Buffer.from(borrowSymbol)],
+          [Buffer.from("pyth_network_feed_id"),Buffer.from(borrowSymbol)],
           program.programId
         );
         const [collateralPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-          [Buffer.from(collateralSymbol)],
+          [Buffer.from("pyth_network_feed_id"),Buffer.from(collateralSymbol)],
           program.programId
         );
 
@@ -452,6 +453,24 @@ export function useBorrowTokens() {
         // Get or create token account
         const userTokenAccountPubkey = await createTokenAccountIfNeeded(borrowMintAddress);
 
+        // Determine the position ID based on the current number of active positions in the user's global state
+        let positionId = 1;
+        try {
+          // Derive the PDA for the user's global state account
+          const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from('user_global'), provider.publicKey.toBuffer()],
+            program.programId,
+          );
+
+          // Attempt to fetch the user's global state; if it doesn't exist yet we'll default to positionId = 1
+          const userGlobalState = await (program.account as any).userGlobalState.fetch(userGlobalStatePDA);
+          positionId = (userGlobalState?.activePositions?.length || 0) + 1;
+        } catch (fetchError) {
+          // It's possible the user doesn't have a global state account yet (e.g. first interaction).
+          // In that case we safely default to positionId = 1.
+          console.warn('Could not fetch user global state, defaulting positionId to 1', fetchError);
+        }
+
         // Prepare the accounts object
         const accounts = {
           signer: provider.publicKey,
@@ -467,15 +486,20 @@ export function useBorrowTokens() {
 
         console.log('About to send borrow transaction with accounts:', {
           ...accounts,
+          positionId,
           amount: amount.toString(),
         });
 
         // Call the borrow method
         let tx;
         try {
+          const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
+            units: 1000000,
+          });
           tx = await program.methods
-            .borrow(amount)
+            .borrow(new BN(positionId), amount)
             .accounts(accounts)
+            .preInstructions([computeBudgetIx])
             .rpc({ 
               commitment: 'confirmed',
               skipPreflight: true

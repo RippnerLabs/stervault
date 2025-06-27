@@ -1,12 +1,12 @@
 [toolchain]
-anchor_version = "0.31.0"
+anchor_version = "0.31.1"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-lending = "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G"
+lending = "FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD"
 
 [registry]
 url = "https://api.apr.dev"

@@ -133,13 +133,7 @@ export function useDepositTokens() {
           .accounts({
             signer: provider.publicKey,
             mint: mintAddress,
-            bank: bankPublicKey,
-            bankTokenAccount: bankTokenAccountPDA,
-            userAccount: userAccountPDA,
-            userTokenAccount: userTokenAccount.pubkey,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
           } as any)
           .rpc({ commitment: 'confirmed' });
         

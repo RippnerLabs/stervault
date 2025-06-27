@@ -2,11 +2,10 @@ import '../../app/globals.css'
 import { ClusterProvider } from '@/components/cluster/cluster-data-access'
 import { SolanaProvider } from '@/components/solana/solana-provider'
 import { ReactQueryProvider } from '../../app/react-query-provider'
-import { Toaster } from 'react-hot-toast'
 
 export const metadata = {
-  title: 'Deposit Tokens',
-  description: 'Deposit tokens into a bank',
+  title: 'User Deposits',
+  description: 'View your deposits',
 }
 
 export default function RootLayout({
@@ -21,7 +20,6 @@ export default function RootLayout({
           <ClusterProvider>
             <SolanaProvider>
               {children}
-              <Toaster />
             </SolanaProvider>
           </ClusterProvider>
         </ReactQueryProvider>
