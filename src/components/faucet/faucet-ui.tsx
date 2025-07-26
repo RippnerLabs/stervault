@@ -87,85 +87,78 @@ function Faucet() {
 
     if (!connected) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 relative">
-                <BackgroundBeams />
-                <Spotlight className="absolute -top-40 left-0 md:left-60 md:-top-20" fill="blue" />
-                <ShootingStars />
-                
-                <div className="text-center mb-8 relative z-10 max-w-4xl">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <TypewriterEffectSmooth words={words} />
-                    </motion.div>
-                    
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="mt-8"
-                    >
-                        <TextGenerateEffect 
-                            words="Connect your wallet to access the Solana test token faucet. Get SOL and popular SPL tokens for development and testing."
-                            className="text-lg text-neutral-300 max-w-2xl mx-auto"
-                        />
-                    </motion.div>
-                    
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                        className="mt-12"
-                    >
-                        <BackgroundGradient className="rounded-[22px] p-1">
-                            <div className="bg-black rounded-[20px] p-8">
-                                <WalletButton />
+            <div className="flex flex-col items-center justify-center min-h-[80vh] p-6">
+                <div className="text-center mb-12 max-w-4xl">
+                    <div className="mb-8">
+                        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                            Get Test Tokens Instantly
+                        </h1>
+                        
+                        <p className="text-xl text-neutral-300 max-w-2xl mx-auto mb-8">
+                            Connect your wallet to access the Solana test token faucet. Get SOL and popular SPL tokens for development and testing.
+                        </p>
+                        
+                        <div className="mb-8">
+                            <WalletButton />
+                        </div>
+                        
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 max-w-2xl mx-auto">
+                            <div className="flex items-center justify-center gap-2 text-blue-400 text-sm">
+                                <IconInfoCircle className="h-4 w-4" />
+                                <span>
+                                    Test environment on <strong>{process.env.NEXT_PUBLIC_SOLANA_ENV || 'localnet'}</strong>
+                                </span>
                             </div>
-                        </BackgroundGradient>
-                    </motion.div>
+                        </div>
+                    </div>
                 </div>
                 
                 {/* Feature Cards */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.9 }}
-                    className="mt-16 relative z-10 w-full max-w-6xl"
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <GlowingStarsBackgroundCard>
-                            <div className="flex items-center mb-4">
-                                <IconBolt className="h-8 w-8 text-blue-400 mr-3" />
-                                <GlowingStarsTitle>Instant Claims</GlowingStarsTitle>
-                            </div>
-                            <GlowingStarsDescription>
-                                Get test tokens instantly with no delays. Perfect for development and testing.
-                            </GlowingStarsDescription>
-                        </GlowingStarsBackgroundCard>
+                <div className="w-full max-w-4xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Card className="text-center">
+                            <CardContent className="p-6">
+                                <div className="flex justify-center mb-4">
+                                    <div className="p-3 bg-blue-500/10 rounded-full">
+                                        <IconBolt className="h-8 w-8 text-blue-400" />
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-semibold mb-2">Instant Claims</h3>
+                                <p className="text-sm text-neutral-400">
+                                    Get test tokens instantly with no delays. Perfect for development and testing.
+                                </p>
+                            </CardContent>
+                        </Card>
                         
-                        <GlowingStarsBackgroundCard>
-                            <div className="flex items-center mb-4">
-                                <IconShield className="h-8 w-8 text-green-400 mr-3" />
-                                <GlowingStarsTitle>No Limits</GlowingStarsTitle>
-                            </div>
-                            <GlowingStarsDescription>
-                                No rate limiting or cooldowns. Claim as many times as you need for testing.
-                            </GlowingStarsDescription>
-                        </GlowingStarsBackgroundCard>
+                        <Card className="text-center">
+                            <CardContent className="p-6">
+                                <div className="flex justify-center mb-4">
+                                    <div className="p-3 bg-green-500/10 rounded-full">
+                                        <IconShield className="h-8 w-8 text-green-400" />
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-semibold mb-2">No Limits</h3>
+                                <p className="text-sm text-neutral-400">
+                                    No rate limiting or cooldowns. Claim as many times as you need for testing.
+                                </p>
+                            </CardContent>
+                        </Card>
                         
-                        <GlowingStarsBackgroundCard>
-                            <div className="flex items-center mb-4">
-                                <IconCoins className="h-8 w-8 text-purple-400 mr-3" />
-                                <GlowingStarsTitle>SPL Tokens</GlowingStarsTitle>
-                            </div>
-                            <GlowingStarsDescription>
-                                Access popular SPL tokens including USDC, USDT, JUP, and more from our faucet wallet.
-                            </GlowingStarsDescription>
-                        </GlowingStarsBackgroundCard>
+                        <Card className="text-center">
+                            <CardContent className="p-6">
+                                <div className="flex justify-center mb-4">
+                                    <div className="p-3 bg-purple-500/10 rounded-full">
+                                        <IconCoins className="h-8 w-8 text-purple-400" />
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-semibold mb-2">SPL Tokens</h3>
+                                <p className="text-sm text-neutral-400">
+                                    Access popular SPL tokens including USDC, USDT, JUP, and more from our faucet wallet.
+                                </p>
+                            </CardContent>
+                        </Card>
                     </div>
-                </motion.div>
+                </div>
             </div>
         );
     }

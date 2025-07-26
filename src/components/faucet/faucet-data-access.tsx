@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+// New: detect active cluster to load the right token list (devnet vs localnet)
+import { useCluster } from '../cluster/cluster-data-access';
 import { PublicKey } from '@solana/web3.js';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
@@ -183,15 +185,24 @@ export function useFaucet() {
 export function useUserTokenBalances() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const { cluster } = useCluster();
 
   return useQuery({
-    queryKey: ['user-token-balances', publicKey?.toString()],
+    queryKey: ['user-token-balances', publicKey?.toString(), cluster?.name],
     queryFn: async () => {
       if (!publicKey || !connection) return [];
 
       try {
-        // Load available tokens from the same source as the faucet
-        const env = process.env.NEXT_PUBLIC_SOLANA_ENV || 'localnet';
+        // Determine which token list to load based on the active cluster
+        let env: string;
+        if (cluster?.network === 'devnet' || cluster?.name === 'devnet') {
+          env = 'devnet';
+        } else if (cluster?.name === 'local' || process.env.NEXT_PUBLIC_SOLANA_ENV === 'localnet') {
+          env = 'localnet';
+        } else {
+          env = process.env.NEXT_PUBLIC_SOLANA_ENV || 'localnet';
+        }
+
         const tokensResponse = await fetch(`/tokens_${env}.json`);
         const availableTokens = tokensResponse.ok ? await tokensResponse.json() : [];
         

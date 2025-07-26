@@ -52,6 +52,7 @@
     "@types/react-datepicker": "^7.0.0",
     "@types/three": "^0.174.0",
     "anchor-bankrun": "^0.4.0",
+    "bs58": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cobe": "^0.6.3",

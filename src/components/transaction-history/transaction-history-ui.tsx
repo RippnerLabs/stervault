@@ -59,6 +59,7 @@ import {
   IconLoader,
   IconExternalLink
 } from "@tabler/icons-react";
+import { useCluster } from "../cluster/cluster-data-access";
 
 function formatDate(date: number): string {
   return new Date(date).toLocaleString("en-US", {
@@ -136,6 +137,7 @@ function TransactionHistory() {
     isError,
     error,
     refetch,
+    fetchTransactionDetails,
     startDate,
     setStartDate,
     endDate,
@@ -145,6 +147,10 @@ function TransactionHistory() {
     typeFilter,
     setTypeFilter,
   } = useTransactionHistory();
+
+  const { cluster } = useCluster();
+  const [detailsMap, setDetailsMap] = useState<Record<string, TransactionHistoryItem>>({});
+  const [loadingSig, setLoadingSig] = useState<string | null>(null);
   
   const { connected, publicKey } = useWallet();
   const router = useRouter();
@@ -161,7 +167,9 @@ function TransactionHistory() {
   ).sort();
   
   // Apply search filter
-  const filteredTransactions = transactionHistory.filter(tx => {
+  const mergedTxs = transactionHistory.map(tx => detailsMap[tx.id] ? { ...tx, ...detailsMap[tx.id] } : tx);
+
+  const filteredTransactions = mergedTxs.filter(tx => {
     if (!searchQuery) return true;
     
     const query = searchQuery.toLowerCase();
@@ -172,6 +180,8 @@ function TransactionHistory() {
       (tx.token?.name && tx.token.name.toLowerCase().includes(query))
     );
   });
+
+  console.log('filteredTransactions', filteredTransactions);
   
   // Function to reset all filters
   const resetFilters = () => {
@@ -227,7 +237,8 @@ function TransactionHistory() {
   
   // Open explorer link for transaction
   const openExplorerLink = (txId: string) => {
-    window.open(`https://explorer.solana.com/tx/${txId}`, "_blank");
+    const clusterParam = cluster.name !== 'mainnet' ? `?cluster=${cluster.name}` : ''
+    window.open(`https://explorer.solana.com/tx/${txId}${clusterParam}`, "_blank");
   };
   
   return (
@@ -459,7 +470,24 @@ function TransactionHistory() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {formatAmount(tx.amount, tx.token?.symbol)}
+                          {tx.type === TransactionType.UNKNOWN && tx.amount === undefined ? (
+                            <button
+                              className="text-xs underline"
+                              disabled={loadingSig === tx.id}
+                              onClick={async () => {
+                                setLoadingSig(tx.id);
+                                const detail = await fetchTransactionDetails(tx.id)
+                                if (detail) {
+                                  setDetailsMap(prev => ({ ...prev, [tx.id]: detail }))
+                                }
+                                setLoadingSig(null);
+                              }}
+                            >
+                              {loadingSig === tx.id ? '...' : 'Load'}
+                            </button>
+                          ) : (
+                              formatAmount(tx.amount, tx.token?.symbol) 
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">

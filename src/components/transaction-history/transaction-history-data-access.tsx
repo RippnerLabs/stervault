@@ -4,18 +4,52 @@ import { getLendingProgram } from '@project/anchor'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, SystemProgram, ParsedTransactionWithMeta, Connection, PartiallyDecodedInstruction } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from '@coral-xyz/anchor'
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getMint, getAssociatedTokenAddress } from '@solana/spl-token'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { useDeposits, UserDeposit } from '../deposits/deposits-data-access'
 import { useTokenMetadata, TokenMetadata } from '../pyth/pyth-data-access'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
+
+// Production-ready caching and rate limiting
+const transactionCache = new Map<string, any>()
+const CACHE_DURATION = 15 * 60 * 1000 // 15 minutes cache for transaction data
+const MAX_TRANSACTIONS_PER_FETCH = 10 // Reduced from 50 to 10
+const REQUEST_DELAY = 2000 // 2 second delay between batches
+
+// Exponential backoff utility
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function withExponentialBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 2000
+): Promise<T> {
+  let retries = 0
+  
+  while (retries < maxRetries) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      if (error?.status === 429 || error?.message?.includes('429')) {
+        const delay = baseDelay * Math.pow(2, retries) + Math.random() * 1000
+        console.warn(`Transaction history rate limited, retrying in ${delay}ms...`)
+        await sleep(delay)
+        retries++
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  throw new Error(`Transaction history max retries (${maxRetries}) exceeded`)
+}
 
 // Transaction types for the lending program
 export enum TransactionType {
@@ -92,6 +126,8 @@ function determineTransactionType(
   return TransactionType.UNKNOWN;
 }
 
+// Removed remote getMint calls to eliminate extra RPC requests. Decimals are derived from token metadata or token balance objects.
+
 // Helper to extract amount and token mint from transaction if possible
 async function extractTokenDetails(
   transaction: ParsedTransactionWithMeta,
@@ -119,7 +155,9 @@ async function extractTokenDetails(
       if (transaction.meta.postTokenBalances && transaction.meta.postTokenBalances.length > 0) {
         const tokenChange = transaction.meta.postTokenBalances[0];
         tokenMint = tokenChange.mint;
-        
+        // Get tokenInfo early
+        tokenInfo = tokenMetadataMap[tokenMint] ?? undefined;
+
         // Calculate approximate amount from pre/post balances
         if (transaction.meta.preTokenBalances) {
           const preBalance = transaction.meta.preTokenBalances.find(
@@ -127,20 +165,28 @@ async function extractTokenDetails(
           );
           
           if (preBalance) {
-            // Get token decimals - this could be stored in a cache for better performance
-            const tokenDetails = await getMint(connection, new PublicKey(tokenMint));
-            const decimals = tokenDetails.decimals;
+            // Prefer decimals from token metadata or token balance object
+            const decimals = tokenInfo?.decimals ?? tokenChange.uiTokenAmount.decimals ?? preBalance?.uiTokenAmount.decimals ?? 9;
             
-            // Calculate the amount based on the transaction type
-            const preAmount = Number(preBalance.uiTokenAmount.amount) / Math.pow(10, decimals);
-            const postAmount = Number(tokenChange.uiTokenAmount.amount) / Math.pow(10, decimals);
-            
-            // For deposits and borrows, the amount increases
-            // For withdrawals and repayments, the amount decreases
+            // Fallback to 0 if no preBalance exists (e.g. brand-new associated token account)
+            const preAmountRaw = preBalance ? Number(preBalance.uiTokenAmount.amount) : 0;
+            const postAmountRaw = Number(tokenChange.uiTokenAmount.amount);
+
+            const preAmount = preAmountRaw / Math.pow(10, decimals);
+            const postAmount = postAmountRaw / Math.pow(10, decimals);
+
+            /*
+             * Determine the net amount moved, with semantics:
+             *  - DEPOSIT / BORROW   → positive delta (post ‑ pre)
+             *  - WITHDRAW / REPAY   → positive delta (pre  ‑ post)
+             *  - UNKNOWN / others   → absolute delta |post ‑ pre|  (generic transfer)
+             */
             if (transactionType === TransactionType.DEPOSIT || transactionType === TransactionType.BORROW) {
               amount = Math.max(0, postAmount - preAmount);
             } else if (transactionType === TransactionType.WITHDRAW || transactionType === TransactionType.REPAY) {
               amount = Math.max(0, preAmount - postAmount);
+            } else {
+              amount = Math.abs(postAmount - preAmount);
             }
           }
         }
@@ -166,6 +212,7 @@ export function useTransactionHistory() {
   const provider = useAnchorProvider();
   const programId = useMemo(() => LENDING_PROGRAM_ID, []);
   const tokenMetadata = useTokenMetadata();
+  const lastFetchTime = useRef<number>(0)
   
   // Filters state
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -173,13 +220,28 @@ export function useTransactionHistory() {
   const [tokenFilter, setTokenFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionType | null>(null);
 
-  // Query to fetch transaction history
-  const transactionHistoryQuery = useQuery({
-    queryKey: ['transaction-history', 
-      { cluster, wallet: publicKey?.toString(), startDate, endDate, tokenFilter, typeFilter }
+  // STEP 1: lightweight summary query – just fetch signatures (1 RPC)
+  const signaturesQuery = useQuery({
+    queryKey: ['transaction-history-summaries', 
+      { cluster, wallet: publicKey?.toString(), startDate, endDate }
     ],
     queryFn: async (): Promise<TransactionHistoryItem[]> => {
       if (!publicKey) return [];
+      
+      // Throttle requests - don't fetch more than once every 30 seconds
+      const now = Date.now()
+      if (now - lastFetchTime.current < 30000) {
+        console.log('Throttling transaction history request...')
+        return []
+      }
+      lastFetchTime.current = now
+      
+      const cacheKey = `tx-history-summaries-${publicKey.toString()}-${cluster.name}-${startDate}-${endDate}`
+      const cached = transactionCache.get(cacheKey)
+      
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        return cached.data
+      }
       
       try {
         // Create a map of token metadata for lookup
@@ -190,13 +252,14 @@ export function useTransactionHistory() {
           });
         }
         
-        // Fetch the user's transaction signatures involving the lending program
-        const signatures = await connection.getSignaturesForAddress(
-          programId,
-          {
-            limit: 50, // Reasonable limit to avoid long loading times
-          },
-          'confirmed'
+        const signatures = await withExponentialBackoff(() =>
+          connection.getSignaturesForAddress(
+            publicKey, // Use user's address instead of program address
+            {
+              limit: MAX_TRANSACTIONS_PER_FETCH,
+            },
+            'confirmed'
+          )
         );
         
         // Filter signatures by date if filters are set
@@ -215,100 +278,124 @@ export function useTransactionHistory() {
           
           return true;
         });
-        
-        // Fetch full transaction details for each signature
-        const transactions = await connection.getParsedTransactions(
-          filteredSignatures.map(sig => sig.signature),
-          { commitment: 'confirmed', maxSupportedTransactionVersion: 0 }
-        );
-        
-        // Process transactions to create history items
-        const historyItems = await Promise.all(
-          transactions.map(async (tx, index) => {
-            if (!tx) return null;
-            
-            const signature = filteredSignatures[index].signature;
-            let transactionType = TransactionType.UNKNOWN;
-            
-            // Find the first instruction that calls our lending program
-            const programInstruction = tx.transaction.message.instructions.find(
-              ix => ix.programId.toString() === programId.toString()
-            ) as PartiallyDecodedInstruction;
-            
-            if (programInstruction) {
-              const accountKeys = tx.transaction.message.accountKeys.map(key => key.pubkey.toString());
-              transactionType = determineTransactionType(programId.toString(), programInstruction, accountKeys);
-            }
-            
-            // Skip if we have a type filter and this transaction doesn't match
-            if (typeFilter && transactionType !== typeFilter) {
-              return null;
-            }
-            
-            // Extract token details if available
-            const { amount, tokenMint, tokenInfo } = await extractTokenDetails(
-              tx, 
-              transactionType,
-              connection,
-              tokenMetadataMap
-            );
-            
-            // Skip if we have a token filter and this transaction doesn't match
-            if (tokenFilter && tokenMint !== tokenFilter) {
-              return null;
-            }
-            
-            // Create the history item - ensure blockTime is a number or default to 0
-            const blockTime = tx.blockTime !== null && tx.blockTime !== undefined ? tx.blockTime : 0;
-            
-            const historyItem: TransactionHistoryItem = {
-              id: signature,
-              type: transactionType,
-              timestamp: blockTime * 1000, // Convert to milliseconds
-              status: tx.meta?.err ? 'error' : 'success',
-              fee: tx.meta?.fee ? tx.meta.fee / 1e9 : undefined, // Convert lamports to SOL
-              blockTime: blockTime,
-              slot: tx.slot,
-              parsedInstruction: programInstruction,
-              rawData: tx
-            };
-            
-            // Add token details if available
-            if (amount !== undefined && tokenInfo) {
-              historyItem.amount = amount;
-              historyItem.token = {
-                symbol: tokenInfo.symbol || 'Unknown',
-                name: tokenInfo.name || 'Unknown Token',
-                logoURI: tokenInfo.logoURI || '',
-                mint: tokenMint!,
-                decimals: tokenInfo.decimals || 9
-              };
-            }
-            
-            return historyItem;
-          })
-        );
-        
-        // Filter out null items and sort by timestamp (newest first)
-        const validItems = historyItems
-          .filter(item => item !== null) as TransactionHistoryItem[];
-        
-        return validItems.sort((a, b) => b.timestamp - a.timestamp);
+        console.log("filteredSignatures", filteredSignatures);
+
+        // Map to lightweight summary objects (NO heavy parsing)
+        const summaries: TransactionHistoryItem[] = filteredSignatures.map(sig => ({
+          id: sig.signature,
+          type: TransactionType.UNKNOWN,
+          timestamp: (sig.blockTime || 0) * 1000,
+          status: sig.err ? 'error' : 'success',
+          blockTime: sig.blockTime || 0,
+        }))
+
+        // Cache
+        transactionCache.set(cacheKey, {
+          data: summaries,
+          timestamp: Date.now()
+        })
+
+        return summaries
       } catch (error) {
         console.error('Error fetching transaction history:', error);
+        // Return cached data if available, even if stale
+        const cached = transactionCache.get(cacheKey)
+        if (cached) {
+          console.log('Returning stale transaction history data due to error')
+          return cached.data
+        }
         throw error;
       }
     },
     enabled: !!publicKey && !!connection,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: CACHE_DURATION,
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
   });
 
+  // STEP 2: optional details fetch per signature (called lazily)
+  const fetchTransactionDetails = useCallback(async (signature: string): Promise<TransactionHistoryItem | null> => {
+    const cacheKey = `tx-detail-${signature}`
+    const cached = transactionCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data
+    }
+
+    try {
+      const tx = await withExponentialBackoff(() =>
+        connection.getParsedTransaction(signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 })
+      )
+      console.log("tx", tx);
+      if (!tx) return null
+      let transactionType = TransactionType.UNKNOWN
+      const programInstruction = tx.transaction.message.instructions.find(
+        ix => ix.programId.toString() === programId.toString()
+      ) as PartiallyDecodedInstruction
+      console.log("programInstruction", programInstruction);
+      
+      if (programInstruction) {
+        const accountKeys = tx.transaction.message.accountKeys.map(key => key.pubkey.toString())
+        transactionType = determineTransactionType(programId.toString(), programInstruction, accountKeys)
+      }
+
+      // Extract token details (using existing helper)
+      const tokenMetadataMap: Record<string, TokenMetadata> = {}
+      tokenMetadata.data?.forEach(t => { tokenMetadataMap[t.address] = t })
+
+      const { amount, tokenMint, tokenInfo } = await extractTokenDetails(tx, transactionType, connection, tokenMetadataMap)
+
+      const blockTime = tx.blockTime !== null && tx.blockTime !== undefined ? tx.blockTime : 0
+
+      const detail: TransactionHistoryItem = {
+        id: signature,
+        type: transactionType,
+        timestamp: blockTime * 1000,
+        status: tx.meta?.err ? 'error' : 'success',
+        fee: tx.meta?.fee ? tx.meta.fee / 1e9 : undefined,
+        blockTime,
+        slot: tx.slot,
+        parsedInstruction: programInstruction,
+        rawData: tx,
+      }
+
+      if (amount !== undefined && tokenInfo) {
+        detail.amount = amount
+        detail.token = {
+          symbol: tokenInfo.symbol || 'Unknown',
+          name: tokenInfo.name || 'Unknown Token',
+          logoURI: tokenInfo.logoURI || '',
+          mint: tokenMint!,
+          decimals: tokenInfo.decimals || 9,
+        }
+      }
+
+      transactionCache.set(cacheKey, { data: detail, timestamp: Date.now() })
+      return detail
+    } catch (err) {
+      console.error('Error fetching tx detail', err)
+      return null
+    }
+  }, [connection, programId, tokenMetadata])
+
+  // Cleanup function for cache management
+  const cleanupCache = useCallback(() => {
+    const now = Date.now()
+    // Clean transaction cache
+    Array.from(transactionCache.entries()).forEach(([key, value]) => {
+      if (now - value.timestamp > CACHE_DURATION) {
+        transactionCache.delete(key)
+      }
+    })
+  }, [])
+
   return {
-    transactionHistory: transactionHistoryQuery.data || [],
-    isLoading: transactionHistoryQuery.isLoading,
-    isError: transactionHistoryQuery.isError,
-    error: transactionHistoryQuery.error,
-    refetch: transactionHistoryQuery.refetch,
+    transactionHistory: signaturesQuery.data || [],
+    isLoading: signaturesQuery.isLoading,
+    isError: signaturesQuery.isError,
+    error: signaturesQuery.error,
+    refetch: signaturesQuery.refetch,
+    fetchTransactionDetails,
     // Filters
     startDate,
     setStartDate,
