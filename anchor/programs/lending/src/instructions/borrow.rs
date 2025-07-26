@@ -10,6 +10,7 @@ use crate::error::ErrorCode;
 use crate::utils::*;
 
 #[derive(Accounts)]
+#[instruction(position_id: u64)]
 pub struct Borrow<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -89,7 +90,8 @@ pub struct Borrow<'info> {
             b"position",
             signer.key().as_ref(),
             mint_collateral.key().as_ref(),
-            mint_borrow.key().as_ref()
+            mint_borrow.key().as_ref(),
+            &position_id.to_le_bytes()
         ],
         bump,
     )]
@@ -112,7 +114,7 @@ pub struct Borrow<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
+pub fn process_borrow(ctx: Context<Borrow>, position_id: u64, amount: u64) -> Result<()> {
     msg!("Starting borrow process for amount: {}", amount);
     msg!("User: {}", ctx.accounts.signer.key());
     msg!("Borrow mint: {}", ctx.accounts.mint_borrow.key());
@@ -217,15 +219,23 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("Requested borrow value in USD: {}", borrow_value);
 
     let max_borrow_value = collateral_value
-        .mul(bank_borrow.max_ltv as f64)
+        .mul(bank_collateral.max_ltv as f64)
         .div(10_000.0);
-    msg!("Max LTV: {}%", bank_borrow.max_ltv as f64 / 100.0);
+    msg!("Max LTV: {}%", bank_collateral.max_ltv as f64 / 100.0);
     msg!("Max borrow value allowed in USD: {}", max_borrow_value);
     
-    let total_debt_value = (existing_debt as f64)
+    // Convert the existing debt (denominated in smallest units of the borrow token)
+    // into its USD value by accounting for the token decimals first and then the
+    // oracle price exponent. Without dividing by the token decimals, the USD value
+    // would be overstated by several orders of magnitude, which incorrectly
+    // triggers the LTV check.
+    let existing_debt_value = (existing_debt as f64)
+        .div(10u128.pow(ctx.accounts.mint_borrow.decimals as u32) as f64)
         .mul(borrow_price.price as f64)
-        .div(10u128.pow((-1 * borrow_price.exponent) as u32) as f64)
-        .add(borrow_value);
+        .div(10u128.pow((-1 * borrow_price.exponent) as u32) as f64);
+
+    let total_debt_value = existing_debt_value + borrow_value;
+    msg!("Existing debt value in USD: {}", existing_debt_value);
     msg!("Total debt value after this borrow in USD: {}", total_debt_value);
     
     if total_debt_value > max_borrow_value {
@@ -337,6 +347,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
 
     msg!("Updating borrow position");
     let position = &mut ctx.accounts.borrow_position;
+    position.position_id = position_id;
     position.owner = ctx.accounts.signer.key();
     position.collateral_mint = ctx.accounts.mint_collateral.key();
     position.borrow_mint = ctx.accounts.mint_borrow.key();
@@ -365,6 +376,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     } else {
         msg!("  Position already in active positions");
     }
+    global_state.positions += 1;
     msg!("  Updated active positions: {:?}", global_state.active_positions);
 
     msg!("Borrow successful");
@@ -376,7 +388,7 @@ pub fn process_borrow(ctx: Context<Borrow>, amount: u64) -> Result<()> {
     msg!("  New total debt value in USD: {}", total_debt_value);
     msg!("  Max allowed debt value in USD: {}", max_borrow_value);
     msg!("  Current LTV: {}%", (total_debt_value / collateral_value) * 100.0);
-    msg!("  Max LTV: {}%", bank_borrow.max_ltv as f64 / 100.0);
+    msg!("  Max LTV: {}%", bank_collateral.max_ltv as f64 / 100.0);
     
     Ok(())
 }

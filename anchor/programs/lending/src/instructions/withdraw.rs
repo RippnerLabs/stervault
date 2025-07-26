@@ -51,30 +51,53 @@ pub struct Withdraw<'info> {
 
 pub fn process_withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     msg!("Processing withdrawal of {} tokens", amount);
-    msg!("User deposited shares: {}", ctx.accounts.user_token_state.deposited_shares);
-    msg!("User collateral shares: {}", ctx.accounts.user_token_state.collateral_shares);
+    msg!("User deposited shares (free): {}", ctx.accounts.user_token_state.deposited_shares);
+    msg!("User collateral shares (locked): {}", ctx.accounts.user_token_state.collateral_shares);
 
-    // Compute available shares (deposited minus collateral locked)
-    let available = ctx.accounts.user_token_state.deposited_shares
-        .checked_sub(ctx.accounts.user_token_state.collateral_shares)
-        .ok_or(ErrorCode::MathOverflow)?;
-    msg!("Available shares for withdrawal: {}", available);
+    // ---------------------------------------------------------------------
+    // 1. Convert the requested token *amount* into the equivalent number of
+    //    *shares* using the current bank share-to-asset ratio.
+    // ---------------------------------------------------------------------
+    let bank_total_assets = crate::utils::calculate_total_assets(&ctx.accounts.bank);
+    msg!("Bank total deposited assets (tokens): {}", bank_total_assets);
+    msg!("Bank total deposited shares: {}", ctx.accounts.bank.total_deposited_shares);
 
-    if amount > available {
-        msg!("Insufficient funds: requested {} but only {} available", amount, available);
+    let shares_to_withdraw = if ctx.accounts.bank.total_deposited_shares == 0 {
+        // Should never happen because we have already verified the user holds
+        // shares, but handle the edge case defensively.
+        msg!("Bank has zero deposit shares – treating tokens and shares 1:1");
+        amount
+    } else {
+        // shares = amount * totalShares / totalAssets
+        ((amount as u128)
+            .checked_mul(ctx.accounts.bank.total_deposited_shares as u128)
+            .and_then(|v| v.checked_div(bank_total_assets))
+            .ok_or(ErrorCode::MathOverflow)?) as u64
+    };
+
+    msg!("Shares equivalent for {} tokens: {}", amount, shares_to_withdraw);
+
+    // ---------------------------------------------------------------------
+    // 2. Ensure the user actually has enough FREE shares to burn.
+    // ---------------------------------------------------------------------
+    let available_shares = ctx.accounts.user_token_state.deposited_shares;
+    msg!("Available shares for withdrawal: {}", available_shares);
+
+    if shares_to_withdraw > available_shares {
+        msg!("Insufficient funds: requested {} tokens ({} shares) but only {} shares available", amount, shares_to_withdraw, available_shares);
         return Err(ErrorCode::InsufficientFunds.into());
     }
 
-    msg!("Updating user state - reducing deposited shares by {}", amount);
+    msg!("Updating user state - reducing deposited shares by {}", shares_to_withdraw);
     ctx.accounts.user_token_state.deposited_shares = ctx.accounts.user_token_state.deposited_shares
-        .checked_sub(amount)
+        .checked_sub(shares_to_withdraw)
         .ok_or(ErrorCode::MathOverflow)?;
     msg!("New user deposited shares: {}", ctx.accounts.user_token_state.deposited_shares);
 
-    msg!("Updating bank state - reducing total deposited shares by {}", amount);
+    msg!("Updating bank state - reducing total deposited shares by {}", shares_to_withdraw);
     msg!("Current bank total deposited shares: {}", ctx.accounts.bank.total_deposited_shares);
     ctx.accounts.bank.total_deposited_shares = ctx.accounts.bank.total_deposited_shares
-        .checked_sub(amount)
+        .checked_sub(shares_to_withdraw)
         .ok_or(ErrorCode::MathOverflow)?;
     msg!("New bank total deposited shares: {}", ctx.accounts.bank.total_deposited_shares);
 

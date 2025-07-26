@@ -32,11 +32,16 @@ solana-test-validator \
   --clone HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM \
   --clone 9vNb2tQoZ8bB4vzMbQLWViGwNaDJVtct13AGgno1wazp \
   --clone 2TTGSRSezqFzeLUH8JwRUbtN66XLLaymfYsWRTMjfiMw \
+  --clone AxaxyeDT8JnWERSaTKvFXvPKkEdxnamKSqpWbsSjYg1g \
+  --clone 7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5 \
+  --clone 9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG \
+  --clone 42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC \
+  --clone 2t8eUbYKjidMs3uSeYM9jXM9uudYZwGkSeTB4TKjmvnC \
   -u devnet \
   -r &
 
 # Wait for validator to start
-sleep 10
+sleep 20
 
 # Configure solana CLI to use local validator and signer keypair
 solana config set --url http://localhost:8899 --keypair ${SIGNER_KEYPAIR}
@@ -52,3 +57,8 @@ echo "- USDC Price Feed: https://explorer.solana.com/address/Dpw1EAVrSB1ibxiDQyT
 echo "- USDT Price Feed: https://explorer.solana.com/address/HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
 echo "- TRUMP Price Feed: https://explorer.solana.com/address/9vNb2tQoZ8bB4vzMbQLWViGwNaDJVtct13AGgno1wazp?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
 echo "- JLP Price Feed: https://explorer.solana.com/address/2TTGSRSezqFzeLUH8JwRUbtN66XLLaymfYsWRTMjfiMw?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- JitoSOL Price Feed: https://explorer.solana.com/address/AxaxyeDT8JnWERSaTKvFXvPKkEdxnamKSqpWbsSjYg1g?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- JUP Price Feed: https://explorer.solana.com/address/7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- WBTC Price Feed: https://explorer.solana.com/address/9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- ETH Price Feed: https://explorer.solana.com/address/42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- Fartcoin Price Feed: https://explorer.solana.com/address/2t8eUbYKjidMs3uSeYM9jXM9uudYZwGkSeTB4TKjmvnC?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"

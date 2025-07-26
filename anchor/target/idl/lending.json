@@ -1,5 +1,5 @@
 {
-  "address": "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G",
+  "address": "FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD",
   "metadata": {
     "name": "lending",
     "version": "0.1.0",
@@ -280,6 +280,10 @@
               {
                 "kind": "account",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -337,6 +341,10 @@
         }
       ],
       "args": [
+        {
+          "name": "position_id",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -685,6 +693,10 @@
               {
                 "kind": "arg",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -702,6 +714,10 @@
         {
           "name": "mint_borrow",
           "type": "pubkey"
+        },
+        {
+          "name": "position_id",
+          "type": "u64"
         }
       ]
     },
@@ -1128,6 +1144,10 @@
               {
                 "kind": "account",
                 "path": "mint_borrow"
+              },
+              {
+                "kind": "arg",
+                "path": "position_id"
               }
             ]
           }
@@ -1163,6 +1183,10 @@
       ],
       "args": [
         {
+          "name": "position_id",
+          "type": "u64"
+        },
+        {
           "name": "amount",
           "type": "u64"
         }
@@ -1191,6 +1215,31 @@
           "writable": true,
           "pda": {
             "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  121,
+                  116,
+                  104,
+                  95,
+                  110,
+                  101,
+                  116,
+                  119,
+                  111,
+                  114,
+                  107,
+                  95,
+                  102,
+                  101,
+                  101,
+                  100,
+                  95,
+                  105,
+                  100
+                ]
+              },
               {
                 "kind": "arg",
                 "path": "symbol"
@@ -1525,6 +1574,11 @@
       "code": 6015,
       "name": "InsufficientCollateral",
       "msg": "Insufficient Collateral"
+    },
+    {
+      "code": 6016,
+      "name": "AlreadyRepayed",
+      "msg": "Already Repayed"
     }
   ],
   "types": [
@@ -1613,6 +1667,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
           {
             "name": "owner",
             "type": "pubkey"
@@ -1788,6 +1846,10 @@
             "type": {
               "vec": "pubkey"
             }
+          },
+          {
+            "name": "positions",
+            "type": "u64"
           },
           {
             "name": "bump",

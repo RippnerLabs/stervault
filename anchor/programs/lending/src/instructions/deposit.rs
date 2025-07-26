@@ -168,6 +168,12 @@ fn accrue_interest(bank: &mut Account<Bank>, current_time: i64) -> Result<()> {
     msg!("Interest accrual periods: {}", periods);
     
     if periods > 0 {
+        // If the bank has no assets yet, skip compounding to avoid divide-by-zero / overflow
+        if bank.total_deposited_shares == 0 {
+            msg!("Bank has zero deposited shares – skip interest accrual for now");
+            bank.last_compound_time = current_time;
+            return Ok(());
+        }
         msg!("Accruing interest for {} periods", periods);
         // Compound interest formula: A = P*(1 + r/n)^(n*t)
         let rate_factor = 1_000_000u128; // Precision factor
@@ -179,6 +185,11 @@ fn accrue_interest(bank: &mut Account<Bank>, current_time: i64) -> Result<()> {
 
         let total_assets = calculate_total_deposited_assets(bank);
         msg!("Total assets before compounding: {}", total_assets);
+        if total_assets == 0 {
+            msg!("Total assets is zero – skipping compounding to avoid division by zero");
+            bank.last_compound_time += periods * bank.interest_accrual_period;
+            return Ok(());
+        }
         let compounded = compound_interest(total_assets, rate_per_period, periods as u32)?;
         msg!("Total assets after compounding: {}", compounded);
         

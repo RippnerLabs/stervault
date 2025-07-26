@@ -10,7 +10,7 @@ pub struct InitBank<'info> {
     pub mint: InterfaceAccount<'info, Mint>,
  
     #[account(
-        init,
+        init_if_needed,
         space = 8 + Bank::INIT_SPACE,
         payer = signer,
         seeds = [mint.key().as_ref()],
@@ -19,7 +19,7 @@ pub struct InitBank<'info> {
     pub bank: Account<'info, Bank>,
 
     #[account(
-        init,
+        init_if_needed,
         token::mint = mint,
         token::authority = bank_token_account,
         payer = signer,

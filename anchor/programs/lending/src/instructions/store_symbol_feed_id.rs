@@ -12,7 +12,7 @@ pub struct StoreSymbolFeedId<'info> {
         init,
         payer = signer,
         space = 8 + PythNetworkFeedId::INIT_SPACE,
-        seeds = [symbol.as_bytes()],
+        seeds = [b"pyth_network_feed_id", symbol.as_bytes()],
         bump,
     )]
     pub pyth_network_feed_id: Account<'info, PythNetworkFeedId>,

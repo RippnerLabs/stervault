@@ -7,8 +7,22 @@ import { fromWeb3JsPublicKey, toWeb3JsPublicKey } from '@metaplex-foundation/umi
 import fs from 'fs';
 import path from 'path';
 import { getExplorerLink } from "@solana-developers/helpers";
-import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { createAccount, createAssociatedTokenAccount, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
+import { Connection, Keypair, LAMPORTS_PER_SOL, Cluster } from '@solana/web3.js';
+import { createAssociatedTokenAccount, getAssociatedTokenAddress, mintTo } from '@solana/spl-token';
+
+// Parse command-line arguments
+const args = process.argv.slice(2);
+const envIndex = args.indexOf('--env');
+const targetEnv = envIndex >= 0 && args.length > envIndex + 1 ? args[envIndex + 1] : 'localnet';
+// Type guard for the targetEnv to ensure it's a valid Cluster type for explorer links
+const getCluster = (env: string): Cluster | 'localnet' => {
+    if (env === 'localnet' || env === 'devnet' || env === 'testnet' || env === 'mainnet-beta') {
+        return env as Cluster | 'localnet';
+    }
+    return 'localnet';
+};
+
+console.log(`Cloning tokens for ${targetEnv} environment...`);
 
 // Define types for Pyth mapping
 interface PythPriceFeedInfo {
@@ -52,7 +66,8 @@ async function main() {
     const user = Keypair.fromSecretKey(secretKey);
 
     // Check for Pyth price feed mapping
-    const pythMappingPath = path.resolve(__dirname, '../price-feeds/pyth_mapping.json');
+    const pythMappingPath = path.resolve(__dirname, '../price-feeds', 
+        targetEnv === 'devnet' ? 'pyth_mapping_devnet.json' : 'pyth_mapping.json');
     let pythMapping: PythMapping | null = null;
     if (fs.existsSync(pythMappingPath)) {
         try {
@@ -67,32 +82,42 @@ async function main() {
             console.warn("Failed to parse Pyth mapping file:", error);
         }
     } else {
-        console.warn("No Pyth price feed mapping found. Make sure to run setup-pyth.ts first.");
+        console.warn(`No Pyth price feed mapping found at ${pythMappingPath}. Make sure to run setup-pyth.ts first.`);
     }
 
-    const connection = new Connection("http://localhost:8899");
+    // Set up connection based on target environment
+    const rpcUrl = targetEnv === 'devnet' 
+        ? "https://api.devnet.solana.com" 
+        : "http://localhost:8899";
+    const connection = new Connection(rpcUrl);
     
     // Check connection and user balance
     try {
         const balance = await connection.getBalance(user.publicKey);
-        console.log(`Signer account balance: ${balance / LAMPORTS_PER_SOL} SOL`);
+        console.log(`Signer account balance on ${targetEnv}: ${balance / LAMPORTS_PER_SOL} SOL`);
         
         if (balance < 1 * LAMPORTS_PER_SOL) {
             console.warn("Warning: Low balance might cause transaction failures");
-            try {
-                console.log("Requesting an airdrop...");
-                await connection.requestAirdrop(user.publicKey, 10 * LAMPORTS_PER_SOL);
-                console.log("Airdrop requested. Waiting for confirmation...");
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                const newBalance = await connection.getBalance(user.publicKey);
-                console.log(`New balance after airdrop: ${newBalance / LAMPORTS_PER_SOL} SOL`);
-            } catch (error) {
-                console.error("Airdrop failed:", error);
+            if (targetEnv === 'localnet') {
+                try {
+                    console.log("Requesting an airdrop...");
+                    await connection.requestAirdrop(user.publicKey, 10 * LAMPORTS_PER_SOL);
+                    console.log("Airdrop requested. Waiting for confirmation...");
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    const newBalance = await connection.getBalance(user.publicKey);
+                    console.log(`New balance after airdrop: ${newBalance / LAMPORTS_PER_SOL} SOL`);
+                } catch (error) {
+                    console.error("Airdrop failed:", error);
+                }
+            } else {
+                console.log(`For ${targetEnv}, you need to fund this address manually: ${user.publicKey.toString()}`);
             }
         }
     } catch (error) {
-        console.error("Error connecting to Solana validator:", error);
-        console.error("Make sure the validator is running properly!");
+        console.error(`Error connecting to Solana ${targetEnv}:`, error);
+        if (targetEnv === 'localnet') {
+            console.error("Make sure the validator is running properly!");
+        }
         process.exit(1);
     }
 
@@ -203,7 +228,7 @@ async function main() {
                 newTokensData.push(tokenData);
                 
                 // Log the Solana explorer link
-                console.log(`Explorer Link: ${getExplorerLink("address", mint.publicKey.toString(), "localnet")}`);
+                console.log(`Explorer Link: ${getExplorerLink("address", mint.publicKey.toString(), getCluster(targetEnv))}`);
                 successCount++;
             } catch (error) {
                 console.error(`Error minting tokens into the associated token account:`, error);
@@ -217,7 +242,7 @@ async function main() {
     }
 
     // Save the new tokens data
-    const outputPath = path.resolve(__dirname, '../keys/tokens/tokens_localnet.json');
+    const outputPath = path.resolve(__dirname, `../keys/tokens/tokens_${targetEnv}.json`);
     fs.writeFileSync(outputPath, JSON.stringify(newTokensData, null, 2));
 
     console.log("\n===== Token Setup Summary =====");
@@ -229,15 +254,15 @@ async function main() {
     if (pythMapping) {
         console.log("\n===== Pyth Price Feeds =====");
         console.log(`Pyth Program ID: ${pythMapping.pythProgramId}`);
-        console.log(`Explorer Link: ${getExplorerLink("address", pythMapping.pythProgramId, "localnet")}`);
+        console.log(`Explorer Link: ${getExplorerLink("address", pythMapping.pythProgramId, getCluster(targetEnv))}`);
         console.log("Price Feeds:");
         for (const [symbol, feed] of Object.entries(pythMapping.priceFeeds)) {
             console.log(`- ${symbol}: ${feed.address}`);
-            console.log(`  Explorer Link: ${getExplorerLink("address", feed.address, "localnet")}`);
+            console.log(`  Explorer Link: ${getExplorerLink("address", feed.address, getCluster(targetEnv))}`);
         }
     }
 
-    console.log("\nToken minting and metadata creation completed!");
+    console.log(`\nToken minting and metadata creation for ${targetEnv} completed!`);
 }
 
 main().catch(console.error);

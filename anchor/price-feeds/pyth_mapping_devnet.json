@@ -1,0 +1,60 @@
+{
+  "pythProgramId": "pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT",
+  "priceFeeds": {
+    "SOL": {
+      "symbol": "SOL",
+      "feedId": "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+      "address": "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"
+    },
+    "USDC": {
+      "symbol": "USDC",
+      "feedId": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+      "address": "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"
+    },
+    "USDT": {
+      "symbol": "USDT",
+      "feedId": "0x2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
+      "address": "HT2PLQBcG5EiCcNSaMHAjSgd9F98ecpATbk4Sk5oYuM"
+    },
+    "TRUMP": {
+      "symbol": "TRUMP",
+      "feedId": "0x879551021853eec7a7dc827578e8e69da7e4fa8148339aa0d3d5296405be4b1a",
+      "address": "9vNb2tQoZ8bB4vzMbQLWViGwNaDJVtct13AGgno1wazp"
+    },
+    "JLP": {
+      "symbol": "JLP",
+      "feedId": "0xc811abc82b4bad1f9bd711a2773ccaa935b03ecef974236942cec5e0eb845a3a",
+      "address": "2TTGSRSezqFzeLUH8JwRUbtN66XLLaymfYsWRTMjfiMw"
+    },
+    "JitoSOL": {
+      "symbol": "JitoSOL",
+      "feedId": "0x67be9f519b95cf24338801051f9a808eff0a578ccb388db73b7f6fe1de019ffb",
+      "address": "AxaxyeDT8JnWERSaTKvFXvPKkEdxnamKSqpWbsSjYg1g"
+    },
+    "JUP": {
+      "symbol": "JUP",
+      "feedId": "0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996",
+      "address": "7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5"
+    },
+    "USDS": {
+      "symbol": "USDS",
+      "feedId": "0x6968a8641208463d17ae3b9cfa0e4841a7aa7a5d54122b9f692b84fe9ce3409f",
+      "address": "3SmySDQib16wqTdGpBDYPtfUsg6G45HftVhhrCVn8hbr"
+    },
+    "WBTC": {
+      "symbol": "WBTC",
+      "feedId": "0xc9d8b075a5c69303365ae23633d4e085199bf5c520a3b90fed1322a0342ffc33",
+      "address": "9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG"
+    },
+    "ETH": {
+      "symbol": "ETH",
+      "feedId": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+      "address": "42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC"
+    },
+    "Fartcoin": {
+      "symbol": "Fartcoin",
+      "feedId": "0x58cd29ef0e714c5affc44f269b2c1899a52da4169d7acc147b9da692e6953608",
+      "address": "3ZoSb6GSxzhkhy6muoRvPukUCzHnN7dwVhXNda2WDsDX"
+    }
+  }
+}

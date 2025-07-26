@@ -4,8 +4,8 @@ import { SolanaProvider } from '@/components/solana/solana-provider'
 import { ReactQueryProvider } from '@/app/react-query-provider'
 
 export const metadata = {
-  title: 'Deposit Tokens',
-  description: 'Deposit tokens into a bank',
+  title: 'Stervault',
+  description: 'Lend, borrow, and earn with ultra-fast transactions and competitive rates. Our secure platform makes DeFi accessible to everyone on the Solana blockchain.',
 }
 
 export default function RootLayout({

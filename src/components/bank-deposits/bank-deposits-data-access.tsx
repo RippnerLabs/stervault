@@ -12,15 +12,17 @@ import { getMint } from '@solana/spl-token'
 import { useMarketsBanks } from '../markets/markets-data-access'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // User deposit data structure
 export interface UserDeposit {
   publicKey: PublicKey;
-  bankPublicKey: PublicKey;
+  bankPublicKey?: PublicKey;
   mintAddress: PublicKey;
   depositAmount: number;
   depositShares: number;
+  collateralShares: number;
+  borrowedShares: number;
   lastUpdateTime: number;
   bank?: {
     name: string;
@@ -50,6 +52,7 @@ export function useBankDeposits() {
   // Fetch mint info function
   const fetchMintInfo = async (mintAddress: PublicKey) => {
     try {
+      console.log("mintAddress", mintAddress.toString());
       const mintInfo = await getMint(connection, mintAddress);
       return mintInfo;
     } catch (error) {
@@ -67,8 +70,8 @@ export function useBankDeposits() {
       try {
         console.log('Fetching user deposits for wallet:', provider.publicKey.toString());
         
-        // Get all user accounts for the current wallet
-        const userAccounts = await program.account.userTokenState.all([
+        // Get all user token state accounts for the current wallet
+        const userAccounts = await (program.account as any).userTokenState.all([
           {
             memcmp: {
               offset: 8, // After the account discriminator
@@ -81,9 +84,10 @@ export function useBankDeposits() {
         
         // Process each user account
         const deposits = await Promise.all(
-          userAccounts.map(async (account) => {
+          userAccounts.map(async (account: any) => {
             const userAccount = account.account;
-            const mintAddress = new PublicKey(userAccount.mint);
+            // Use mint_address from Rust struct (camelCase conversion)
+            const mintAddress = new PublicKey(userAccount.mintAddress);
             
             // Find the bank for this mint
             const bank = banks.data?.find(b => 
@@ -98,24 +102,33 @@ export function useBankDeposits() {
             } catch (error) {
               console.error(`Error fetching mint info for ${mintAddress.toString()}:`, error);
               mintDecimals = bank?.tokenInfo?.decimals || 9;
+              return undefined;
             }
             
-            // Convert BN values to numbers with proper decimals
-            const depositAmount = userAccount.depositAmount 
-              ? new BN(userAccount.depositAmount.toString()).toNumber() / Math.pow(10, mintDecimals)
+            console.log("userAccount", userAccount);
+            
+            // Use deposited_shares from Rust struct (camelCase conversion)
+            const depositShares = userAccount.depositedShares
+              ? new BN(userAccount.depositedShares.toString()).toNumber() / Math.pow(10, mintDecimals)
               : 0;
             
-            const depositShares = userAccount.depositShares
-              ? new BN(userAccount.depositShares.toString()).toNumber() / Math.pow(10, mintDecimals)
+            const collateralShares = userAccount.collateralShares
+              ? new BN(userAccount.collateralShares.toString()).toNumber() / Math.pow(10, mintDecimals)
+              : 0;
+            
+            const borrowedShares = userAccount.borrowedShares
+              ? new BN(userAccount.borrowedShares.toString()).toNumber() / Math.pow(10, mintDecimals)
               : 0;
             
             return {
               publicKey: account.publicKey,
-              bankPublicKey: userAccount.bank,
+              bankPublicKey: bank?.publicKey,
               mintAddress,
-              depositAmount,
+              depositAmount: depositShares, // For compatibility with existing code
               depositShares,
-              lastUpdateTime: userAccount.lastUpdateTime,
+              collateralShares,
+              borrowedShares,
+              lastUpdateTime: userAccount.lastUpdatedDeposited || 0,
               bank: bank ? {
                 name: bank.account.name,
                 apy: bank.account.apy,
@@ -129,7 +142,7 @@ export function useBankDeposits() {
         );
         
         // Filter out deposits with zero amount
-        return deposits.filter(deposit => deposit.depositAmount > 0);
+        return deposits.filter((x: any) => x != undefined).filter((deposit: any) => deposit.depositShares > 0);
       } catch (error) {
         console.error('Error fetching user deposits:', error);
         return [];

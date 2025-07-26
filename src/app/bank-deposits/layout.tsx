@@ -1,7 +1,6 @@
 import '../../app/globals.css'
 import { ClusterProvider } from '@/components/cluster/cluster-data-access'
 import { SolanaProvider } from '@/components/solana/solana-provider'
-import { UiLayout } from '@/components/ui/ui-layout'
 import { ReactQueryProvider } from '../../app/react-query-provider'
 
 export const metadata = {

@@ -150,7 +150,27 @@ Here’s a **comprehensive UI layout** for your **Solana Token Lending Dashboard
 - **Security & Notifications**  
 - **User Preferences**  
 
+
 ---
+
+### **🔟 Faucet (Token Distribution)**
+**Main Components:**  
+- `faucet-card`
+- `token-selector`
+- `claim-button`
+- `cooldown-timer`
+- `balance-display`
+
+**Main Content:**  
+- **Available Test Tokens:** Display list of tokens available for claiming (USDC, SOL, USDT, etc.)
+- **Claim Amount:** Pre-defined amounts per token with daily/hourly limits
+- **Cooldown Status:** Show remaining time before next claim is available
+- **Wallet Balance:** Current balance of claimed tokens
+- **Claim History:** Recent faucet transactions and amounts claimed
+- **Network Status:** Display current network (Devnet/Testnet) with connection indicator
+
+---
+
 
 ## **🎯 Next Steps**
 - Would you like a basic **Next.js layout** with these sections pre-defined? 🚀

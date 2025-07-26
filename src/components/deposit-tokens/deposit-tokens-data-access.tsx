@@ -2,7 +2,7 @@
 
 import { getLendingProgram } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
-import { PublicKey, SystemProgram } from '@solana/web3.js'
+import { ComputeBudgetProgram, PublicKey, SystemProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import toast from 'react-hot-toast'
@@ -13,7 +13,7 @@ import { BN } from '@coral-xyz/anchor'
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getMint } from '@solana/spl-token'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 export function useDepositTokens() {
   const { connection } = useConnection()
@@ -104,7 +104,7 @@ export function useDepositTokens() {
           supply: mintInfo.supply.toString(),
         });
 
-        // Find the PDA for the user account
+        // Derive PDA for the user token state account (userAccount)
         const [userAccountPDA] = PublicKey.findProgramAddressSync(
           [provider.publicKey.toBuffer(), mintAddress.toBuffer()],
           programId
@@ -118,6 +118,29 @@ export function useDepositTokens() {
         );
         console.log('Bank Token Account PDA:', bankTokenAccountPDA.toString());
 
+        // 1️⃣ Ensure the on-chain UserTokenState account exists. If not, initialise it.
+        const userAccountInfo = await connection.getAccountInfo(userAccountPDA);
+        if (!userAccountInfo) {
+          console.log('UserAccount not initialised – calling initUserTokenState');
+
+          const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from('user_global'), provider.publicKey.toBuffer()],
+            programId
+          );
+
+          await program.methods
+            .initUserTokenState(mintAddress)
+            .accounts({
+              signer: provider.publicKey,
+              userAccount: userAccountPDA,
+              userGlobalState: userGlobalStatePDA,
+              systemProgram: SystemProgram.programId,
+            })
+            .rpc({ commitment: 'confirmed' });
+
+          console.log('initUserTokenState succeeded');
+        }
+
         // Get the user's associated token account
         const userTokenAccount = (await getUserTokenAccounts.refetch()).data?.find(
           account => account.mint.equals(mintAddress)
@@ -127,21 +150,19 @@ export function useDepositTokens() {
           throw new Error('User does not have a token account for this mint');
         }
 
+        const computeBudgetIx = ComputeBudgetProgram.setComputeUnitLimit({
+          units: 1000000,
+        });
         // Call the deposit method
         const tx = await program.methods
           .deposit(amount)
           .accounts({
             signer: provider.publicKey,
             mint: mintAddress,
-            bank: bankPublicKey,
-            bankTokenAccount: bankTokenAccountPDA,
-            userAccount: userAccountPDA,
-            userTokenAccount: userTokenAccount.pubkey,
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
           } as any)
-          .rpc({ commitment: 'confirmed' });
+          .preInstructions([computeBudgetIx])
+          .rpc({ commitment: 'confirmed', skipPreflight: true });
         
         console.log('Deposit transaction:', tx);
         console.log('Solana Explorer URL:', `https://explorer.solana.com/tx/${tx}?cluster=devnet`);

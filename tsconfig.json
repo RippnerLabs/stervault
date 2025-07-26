@@ -45,6 +45,8 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "anchor",
+    "anchor/node_modules"
   ]
 }

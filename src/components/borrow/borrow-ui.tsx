@@ -260,23 +260,39 @@ export function Borrow() {
     try {
       setIsSubmitting(true);
       
-      // Call borrow function from hook - modified to use correct parameter format
-      // This is a placeholder - actual implementation depends on your API
-      // Replace this with your actual borrow implementation
-      console.log("Borrowing", {
-        borrowBank: selectedBorrowBank.publicKey.toString(),
-        collateralBank: selectedCollateralDeposit.bankPublicKey,
-        amount: form.getValues("amount")
+      // Get the amount as a string and convert to BN for the borrow function
+      const amountStr = form.getValues("amount");
+      const amountValue = parseFloat(amountStr);
+      
+      // Convert to the token's native decimals (e.g., for USDC with 6 decimals, 1.0 -> 1000000)
+      const decimals = selectedBorrowBank.tokenInfo?.decimals || 6;
+      const amountInSmallestUnit = new BN(Math.floor(amountValue * 10 ** decimals));
+      
+      console.log("Executing borrow with parameters:", {
+        borrowBankPublicKey: selectedBorrowBank.publicKey.toString(),
+        collateralBankPublicKey: selectedCollateralDeposit.bankPublicKey.toString(),
+        borrowMintAddress: selectedBorrowBank.account.mintAddress.toString(),
+        amount: amountInSmallestUnit.toString()
       });
       
-      // Simulate success for now
-      setTimeout(() => {
-        setConfirmationStep(false);
-        form.reset();
-        setSelectedBorrowBank(null);
-        setSelectedCollateralDeposit(null);
-        router.push('/deposits');
-      }, 2000);
+      // Call the actual borrow mutation from the hook
+      const tx = await borrow.mutateAsync({
+        borrowBankPublicKey: selectedBorrowBank.publicKey,
+        collateralBankPublicKey: selectedCollateralDeposit.bankPublicKey,
+        borrowMintAddress: selectedBorrowBank.account.mintAddress,
+        amount: amountInSmallestUnit
+      });
+      
+      console.log("Borrow transaction successful:", tx);
+      
+      // Reset UI state after successful borrow
+      setConfirmationStep(false);
+      form.reset();
+      setSelectedBorrowBank(null);
+      setSelectedCollateralDeposit(null);
+      
+      // Navigate to deposits page to see updated balances
+      router.push('/deposits');
     } catch (error) {
       console.error("Borrow error:", error);
       setErrorMessage(error instanceof Error ? error.message : "Failed to complete borrow transaction");
@@ -303,7 +319,7 @@ export function Borrow() {
       <div className="flex flex-col items-center justify-center h-[80vh]">
         <IconLoader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
         <p className="text-lg font-medium">Loading bank data from the blockchain...</p>
-        <p className="text-sm text-neutral-500 mt-2">This won't take long</p>
+        <p className="text-sm text-neutral-500 mt-2">This won&apos;t take long</p>
       </div>
     );
   }
@@ -405,7 +421,7 @@ export function Borrow() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                         <div>
-                          <p className="text-sm text-neutral-500 mb-1">You're borrowing</p>
+                          <p className="text-sm text-neutral-500 mb-1">You&apos;re borrowing</p>
                           <div className="flex items-center gap-2">
                             {selectedBorrowBank.tokenInfo?.logoURI ? (
                               <Image
@@ -456,7 +472,7 @@ export function Borrow() {
                         </div>
                         <div className="flex justify-between">
                           <p className="text-sm text-neutral-500">Max LTV Allowed</p>
-                          <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 75)}%</p>
+                          <p className="font-medium">{safeGetBnValue(selectedBorrowBank.account.maxLtv, 75) / 100}%</p>
                         </div>
                       </div>
                       
@@ -616,7 +632,7 @@ export function Borrow() {
                                     ) : (
                                       getDefaultTokenIcon(bank.tokenInfo?.symbol || "")
                                     )}
-                                    <span>{bank.tokenInfo?.symbol}</span>
+                                    <span>{bank.tokenInfo?.name}</span>
                                   </div>
                                 </SelectItem>
                               ))

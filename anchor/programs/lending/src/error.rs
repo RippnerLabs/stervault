@@ -34,4 +34,6 @@ pub enum ErrorCode {
     InsufficientFunds,
     #[msg("Insufficient Collateral")]
     InsufficientCollateral,
+    #[msg("Already Repayed")]
+    AlreadyRepayed,
 }

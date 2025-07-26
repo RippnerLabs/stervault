@@ -196,7 +196,6 @@ import {
     }
     async sendRawTransaction(
       rawTransaction: Buffer | Uint8Array | Array<number>,
-      // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
       _options?: any
     ): Promise<TransactionSignature> {
       const tx = Transaction.from(rawTransaction);

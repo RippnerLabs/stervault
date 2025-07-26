@@ -8,6 +8,7 @@ use crate::error::{ErrorCode};
 use crate::utils::*;
 
 #[derive(Accounts)]
+#[instruction(position_id: u64)]
 pub struct Repay<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -95,6 +96,7 @@ pub struct Repay<'info> {
             signer.key().as_ref(), 
             mint_collateral.key().as_ref(),
             mint_borrow.key().as_ref(),
+            &position_id.to_le_bytes(),
         ],
         bump
     )]
@@ -108,7 +110,9 @@ pub struct Repay<'info> {
     pub user_global_state: Account<'info, UserGlobalState>,
 }
 
-pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
+pub fn process_repay(ctx: Context<Repay>, _position_id: u64, amount: u64) -> Result<()> {
+    require!(ctx.accounts.borrow_position.active, ErrorCode::AlreadyRepayed);
+
     msg!("Starting repay process for amount: {}", amount);
     msg!("User: {}", ctx.accounts.signer.key());
     msg!("Borrow mint: {}", ctx.accounts.mint_borrow.key());
@@ -155,52 +159,50 @@ pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
     msg!("  Last updated deposited: {}", user_collateral.last_updated_deposited);
     msg!("  Last updated collateral: {}", user_collateral.last_updated_collateral);
 
-    msg!("Calculating user's current debt");
-    let user_debt_assets = calculate_user_assets(
-        bank_borrow,
-        user_borrow.borrowed_shares,
-        user_borrow.last_updated_borrowed
-    )?;
-    msg!("Current debt value: {} assets", user_debt_assets);
-    
+    // ------------------------------------------------------------------
+    // The client passes `amount` as the **borrow shares** it wants to repay
+    // (see tests which call `repay(position.borrowedShares)`).
+    // Convert those shares to the equivalent token amount for the token
+    // transfer and USD calculations.
+    // ------------------------------------------------------------------
+
+    let shares_to_burn = amount; // interpret param as shares
+
+    msg!("Calculating token amount that corresponds to {} borrow shares", shares_to_burn);
+    let total_borrowed_assets = calculate_borrowed_assets(bank_borrow);
+    msg!("Total borrowed assets in bank (tokens): {}", total_borrowed_assets);
+
+    let token_amount = if bank_borrow.total_borrowed_shares == 0 {
+        0u64
+    } else {
+        ((shares_to_burn as u128)
+            .checked_mul(total_borrowed_assets)
+            .and_then(|v| v.checked_div(bank_borrow.total_borrowed_shares as u128))
+            .ok_or(ErrorCode::MathOverflow)?) as u64
+    };
+    msg!("Token amount to transfer back: {}", token_amount);
+
+    // Validate the user is not over-repaying in shares
+    if shares_to_burn > user_borrow.borrowed_shares {
+        msg!("ERROR: Attempting to repay more borrow shares than owed: {} > {}", shares_to_burn, user_borrow.borrowed_shares);
+        return Err(ErrorCode::OverRepayRequest.into());
+    }
+
+    // ------------------------------------------------------------------
+    // For stats / collateral unlock we still need the USD value of the
+    // *token* amount computed above.
+    // ------------------------------------------------------------------
+
     msg!("Getting borrow token price from Pyth oracle");
-    msg!("Borrow price feed account: {}", ctx.accounts.price_update_borrow_token.key());
-    msg!("Borrow Pyth network feed ID: {}", ctx.accounts.pyth_network_feed_id_borrow_token.key());
     let borrow_price = get_validated_price(
         &ctx.accounts.price_update_borrow_token,
         &ctx.accounts.pyth_network_feed_id_borrow_token
     )?;
-    msg!("Borrow token price: {} with exponent {}", borrow_price.price, borrow_price.exponent);
-    
-    let repay_amount_usd = (amount as f64)
+    let repay_amount_usd = (token_amount as f64)
         .mul(borrow_price.price as f64)
         .div(10u128.pow((-1 * borrow_price.exponent) as u32) as f64)
         .div(10u128.pow(ctx.accounts.mint_borrow.decimals as u32) as f64);
     msg!("Repay amount in USD: {}", repay_amount_usd);
-
-    msg!("Validating repay amount against user debt");
-    if amount as u128 > user_debt_assets {
-        msg!("ERROR: Attempting to repay more than owed: {} > {}", amount, user_debt_assets);
-        return Err(ErrorCode::OverRepayRequest.into());
-    }
-    msg!("Repay amount is valid: {} <= {}", amount, user_debt_assets);
-
-    msg!("Calculating shares to burn");
-    let shares_to_burn = if bank_borrow.total_borrowed_shares == 0 {
-        msg!("Bank has no borrowed shares, setting shares to burn to 0");
-        0
-    } else {
-        msg!("Calculating shares based on existing borrowed assets");
-        let total_borrowed = calculate_borrowed_assets(bank_borrow);
-        msg!("Total borrowed assets: {}", total_borrowed);
-        msg!("Total borrowed shares: {}", bank_borrow.total_borrowed_shares);
-        let shares = (amount as u128)
-            .checked_mul(bank_borrow.total_borrowed_shares as u128)
-            .and_then(|v| v.checked_div(calculate_borrowed_assets(bank_borrow)))
-            .ok_or(ErrorCode::MathOverflow)? as u64;
-        msg!("Calculated shares to burn: {}", shares);
-        shares
-    };
 
     msg!("Getting collateral token price from Pyth oracle");
     msg!("Collateral price feed account: {}", ctx.accounts.price_update_collateral_token.key());
@@ -225,7 +227,7 @@ pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
     msg!("Position collateral shares: {}", ctx.accounts.borrow_position.collateral_shares);
     msg!("User collateral shares: {}", user_collateral.collateral_shares);
     
-    msg!("Transferring {} tokens from user to bank", amount);
+    msg!("Transferring {} tokens from user to bank", token_amount);
     let transfer_ctx = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         TransferChecked {
@@ -235,7 +237,7 @@ pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
             to: ctx.accounts.bank_borrow_token_account.to_account_info(),
         }
     );
-    transfer_checked(transfer_ctx, amount, ctx.accounts.mint_borrow.decimals)?;
+    transfer_checked(transfer_ctx, token_amount, ctx.accounts.mint_borrow.decimals)?;
     msg!("Token transfer successful");
 
     msg!("Updating bank borrow state");
@@ -302,8 +304,8 @@ pub fn process_repay(ctx: Context<Repay>, amount: u64) -> Result<()> {
 
     msg!("Repay successful");
     msg!("Summary:");
-    msg!("  Repaid amount: {}", amount);
-    msg!("  Burned shares: {}", shares_to_burn);
+    msg!("  Repaid shares: {}", shares_to_burn);
+    msg!("  Token amount transferred: {}", token_amount);
     msg!("  Unlocked collateral shares: {}", collateral_shares_to_unlock);
     msg!("  Repay value in USD: {}", repay_amount_usd);
     msg!("  Remaining borrowed shares: {}", user_borrow.borrowed_shares);

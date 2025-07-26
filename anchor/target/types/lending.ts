@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/lending.json`.
  */
 export type Lending = {
-  "address": "EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G",
+  "address": "FYkahL7zxyc3cS9wwA8b45JUNKoHSw6R4Ln5t7GXU5oD",
   "metadata": {
     "name": "lending",
     "version": "0.1.0",
@@ -286,6 +286,10 @@ export type Lending = {
               {
                 "kind": "account",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -343,6 +347,10 @@ export type Lending = {
         }
       ],
       "args": [
+        {
+          "name": "positionId",
+          "type": "u64"
+        },
         {
           "name": "amount",
           "type": "u64"
@@ -691,6 +699,10 @@ export type Lending = {
               {
                 "kind": "arg",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -708,6 +720,10 @@ export type Lending = {
         {
           "name": "mintBorrow",
           "type": "pubkey"
+        },
+        {
+          "name": "positionId",
+          "type": "u64"
         }
       ]
     },
@@ -1134,6 +1150,10 @@ export type Lending = {
               {
                 "kind": "account",
                 "path": "mintBorrow"
+              },
+              {
+                "kind": "arg",
+                "path": "positionId"
               }
             ]
           }
@@ -1169,6 +1189,10 @@ export type Lending = {
       ],
       "args": [
         {
+          "name": "positionId",
+          "type": "u64"
+        },
+        {
           "name": "amount",
           "type": "u64"
         }
@@ -1197,6 +1221,31 @@ export type Lending = {
           "writable": true,
           "pda": {
             "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  121,
+                  116,
+                  104,
+                  95,
+                  110,
+                  101,
+                  116,
+                  119,
+                  111,
+                  114,
+                  107,
+                  95,
+                  102,
+                  101,
+                  101,
+                  100,
+                  95,
+                  105,
+                  100
+                ]
+              },
               {
                 "kind": "arg",
                 "path": "symbol"
@@ -1531,6 +1580,11 @@ export type Lending = {
       "code": 6015,
       "name": "insufficientCollateral",
       "msg": "Insufficient Collateral"
+    },
+    {
+      "code": 6016,
+      "name": "alreadyRepayed",
+      "msg": "Already Repayed"
     }
   ],
   "types": [
@@ -1619,6 +1673,10 @@ export type Lending = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "positionId",
+            "type": "u64"
+          },
           {
             "name": "owner",
             "type": "pubkey"
@@ -1794,6 +1852,10 @@ export type Lending = {
             "type": {
               "vec": "pubkey"
             }
+          },
+          {
+            "name": "positions",
+            "type": "u64"
           },
           {
             "name": "bump",

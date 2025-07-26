@@ -42,3 +42,14 @@ export function useAnchorProvider() {
 
   return new AnchorProvider(connection, wallet as AnchorWallet, { commitment: 'confirmed' })
 }
+
+// Hook to provide wallet disconnect functionality
+export function useWalletDisconnect() {
+  const { disconnect, connected, publicKey } = useWallet()
+  
+  return {
+    disconnect,
+    connected,
+    publicKey
+  }
+}

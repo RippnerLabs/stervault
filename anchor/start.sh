@@ -108,15 +108,8 @@ echo "You can view accounts in Solana Explorer: https://explorer.solana.com/?clu
 echo "To stop the validator, run: kill $VALIDATOR_PID"
 
 # Deploy the program (if needed)
-echo "Would you like to deploy the lending program now? (y/n)"
-read -r deploy_answer
-if [[ "$deploy_answer" == "y" ]]; then
-  echo "Deploying the lending program..."
-  anchor deploy --program-name lending --program-keypair target/deploy/lending-keypair.json
-else
-  echo "Skipping program deployment. You can deploy later with:"
-  echo "anchor deploy --program-name lending --program-keypair target/deploy/lending-keypair.json"
-fi
+echo "Deploying the lending program..."
+anchor deploy --program-name lending --program-keypair target/deploy/lending-keypair.json
 
 # Keep script running so the validator stays alive
 echo "Validator is running. Press Ctrl+C to stop."

@@ -37,3 +37,6 @@ next-env.d.ts
 tmp
 notes.md
 anchor/keys/
+.env.devnet
+DEPLOYMENT.md
+test-ledger/

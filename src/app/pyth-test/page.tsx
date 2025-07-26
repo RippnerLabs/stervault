@@ -18,7 +18,7 @@ export default function PythTestPage() {
   // Set up price feed IDs when metadata loads
   useEffect(() => {
     // Use price feed IDs directly from constants
-    const feedIds = Object.values(priceFeedIdsLocal).slice(0, 3); // Only use the first 3 for testing
+    const feedIds = Object.values(priceFeedIdsLocal);
     setPriceFeedIds(feedIds);
     setTestResults([`Using ${feedIds.length} price feeds to test: ${feedIds.map(id => id.substring(0, 8) + '...').join(', ')}`]);
   }, []);

@@ -1,18 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { HeroHighlight, Highlight } from "@/components/ui/hero-highlight";
 import { HeroParallax } from "@/components/ui/hero-parallax";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
-import { HoverEffect } from "@/components/ui/card-hover-effect";
-import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
-import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
-import { FlipWords } from "@/components/ui/flip-words";
-import { TextRevealCard } from "@/components/ui/text-reveal-card";
-import { Spotlight } from "@/components/ui/spotlight";
 import { GlareCard } from "@/components/ui/glare-card";
 import { FocusCards } from "@/components/ui/focus-cards";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
@@ -20,441 +9,272 @@ import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 import { CardStack } from "@/components/ui/card-stack";
 import { LampContainer } from "@/components/ui/lamp";
 import { TypewriterEffect } from "@/components/ui/typewriter-effect";
-import { MacbookScroll } from "@/components/ui/macbook-scroll";
-import { ImagesSlider } from "@/components/ui/images-slider";
-import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
-import { BackgroundBeams } from "@/components/ui/background-beams";
-import { FloatingNav } from "../ui/floating-navbar";
-import { cn } from "@/lib/utils";
+import {
+    Navbar,
+    NavBody,
+    NavItems,
+    MobileNav,
+    NavbarLogo,
+    NavbarButton,
+    MobileNavHeader,
+    MobileNavToggle,
+    MobileNavMenu,
+} from "@/components/ui/resizable-navbar";
+import { useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import FeaturesSectionDemo from "@/components/ui/features-section-demo-3";
+import LayoutGridDemo from "@/components/ui/layout-grid-demo";
+import TimelineDemo from "@/components/ui/timeline-demo";
+import Footer from "@/components/ui/footer";
 
 export default function HomeUI() {
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
-            {/* 1. Hero Section */}
-            <HeroSection />
+            <NavbarDemo >
 
-            {/* 2. Featured Highlights */}
-            <FeaturedHighlights />
+                {/* 1. Hero Section */}
+                <HeroSection />
 
-            {/* 3. Live Market Stats */}
-            <LiveMarketStats />
+                {/* 2. Featured Highlights */}
+                <FeaturedHighlights />
 
-            {/* 4. How It Works */}
-            <HowItWorks />
+                {/* 3. Live Market Stats */}
+                <LiveMarketStats />
 
-            {/* 5. Lending & Borrowing Simulator */}
-            <LendingSimulator />
+                {/* 4. How It Works */}
+                <HowItWorks />
 
-            {/* 6. User Testimonials */}
-            <UserTestimonials />
+                {/* 5. Lending & Borrowing Simulator */}
+                {/* <LendingSimulator /> */}
 
-            {/* 7. Security & Transparency */}
-            <SecuritySection />
+                {/* 6. User Testimonials */}
+                {/* <UserTestimonials /> */}
 
-            {/* 8. Roadmap & Future Features */}
-            <RoadmapSection />
+                {/* 7. Security & Transparency */}
+                {/* <SecuritySection /> */}
 
-            {/* 9. Get Started / Call to Action */}
-            <CallToAction />
+                {/* 8. Roadmap & Future Features */}
+                {/* <RoadmapSection /> */}
+
+                {/* 9. Get Started / Call to Action */}
+                <CallToAction />
+
+                <Footer />
+            </NavbarDemo>
         </div>
     );
 }
 
-import {
-    NavigationMenu,
-    NavigationMenuContent,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-
-function Navbar() {
-    const components: { title: string; href: string; description: string }[] = [
-        {
-            title: "Alert Dialog",
-            href: "/docs/primitives/alert-dialog",
-            description:
-                "A modal dialog that interrupts the user with important content and expects a response.",
-        },
-        {
-            title: "Hover Card",
-            href: "/docs/primitives/hover-card",
-            description:
-                "For sighted users to preview content available behind a link.",
-        },
-        {
-            title: "Progress",
-            href: "/docs/primitives/progress",
-            description:
-                "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
-        },
-        {
-            title: "Scroll-area",
-            href: "/docs/primitives/scroll-area",
-            description: "Visually or semantically separates content.",
-        },
-        {
-            title: "Tabs",
-            href: "/docs/primitives/tabs",
-            description:
-                "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
-        },
-        {
-            title: "Tooltip",
-            href: "/docs/primitives/tooltip",
-            description:
-                "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
-        },
-    ]
-
-    function NavigationMenuDemo() {
-        return (
-            <div className="flex justify-between w-[80vw] mx-auto">
-                <div className="flex-1">
-                    <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg mr-2"></div>
-                        <span className="text-2xl font-bold text-black">DeFi</span>
-                    </div>
-                </div>
-                <div className="flex-1">
-                    <NavigationMenu className="text-black">
-                        <NavigationMenuList>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
-                                <NavigationMenuContent>
-                                    <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                                        <li className="row-span-3">
-                                            <NavigationMenuLink asChild>
-                                                <a
-                                                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                                                    href="/"
-                                                >
-                                                    <div className="mb-2 mt-4 text-lg font-medium">
-                                                        shadcn/ui
-                                                    </div>
-                                                    <p className="text-sm leading-tight text-muted-foreground">
-                                                        Beautifully designed components built with Radix UI and
-                                                        Tailwind CSS.
-                                                    </p>
-                                                </a>
-                                            </NavigationMenuLink>
-                                        </li>
-                                        <ListItem href="/docs" title="Introduction">
-                                            Re-usable components built using Radix UI and Tailwind CSS.
-                                        </ListItem>
-                                        <ListItem href="/docs/installation" title="Installation">
-                                            How to install dependencies and structure your app.
-                                        </ListItem>
-                                        <ListItem href="/docs/primitives/typography" title="Typography">
-                                            Styles for headings, paragraphs, lists...etc
-                                        </ListItem>
-                                    </ul>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <NavigationMenuTrigger>Components</NavigationMenuTrigger>
-                                <NavigationMenuContent>
-                                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                        {components.map((component) => (
-                                            <ListItem
-                                                key={component.title}
-                                                title={component.title}
-                                                href={component.href}
-                                            >
-                                                {component.description}
-                                            </ListItem>
-                                        ))}
-                                    </ul>
-                                </NavigationMenuContent>
-                            </NavigationMenuItem>
-                            <NavigationMenuItem>
-                                <Link href="/docs" legacyBehavior passHref>
-                                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                        Documentation
-                                    </NavigationMenuLink>
-                                </Link>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
-                <div className="flex-1 items-center flex justify-end">
-                <Link href="/get-started" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-200 transform hover:scale-105">
-                    Get Started
-                </Link>
-                </div>
-            </div>
-        )
-    }
-
-    const ListItem = React.forwardRef<
-        React.ElementRef<"a">,
-        React.ComponentPropsWithoutRef<"a">
-    >(({ className, title, children, ...props }, ref) => {
-        return (
-            <li>
-                <NavigationMenuLink asChild>
-                    <a
-                        ref={ref}
-                        className={cn(
-                            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                            className
-                        )}
-                        {...props}
-                    >
-                        <div className="text-sm font-medium leading-none">{title}</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            {children}
-                        </p>
-                    </a>
-                </NavigationMenuLink>
-            </li>
-        )
-    })
-    ListItem.displayName = "ListItem"
-
+function NavbarDemo({ children }: { children: React.ReactNode }) {
     const navItems = [
-        { name: "Home", link: "/" },
-        { name: "Markets", link: "/markets" },
-        { name: "Lending", link: "/lending" },
+        {
+            name: "Lending",
+            link: "/borrow",
+        },
+        {
+            name: "Borrowing",
+            link: "/markets",
+        },
+        {
+            name: "Markets",
+            link: "/markets",
+        },
     ];
+
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     return (
-        <FloatingNav>
-            <NavigationMenuDemo />
-        </FloatingNav>
-    )
+        <div className="relative w-full">
+            <Navbar>
+                {/* Desktop Navigation */}
+                <NavBody>
+                    <NavbarLogo />
+                    <NavItems items={navItems} />
+                    <div className="flex items-center gap-4">
+                        {/* <ThemeToggle /> */}
+                        {/* <NavbarButton variant="secondary">Connect Wallet</NavbarButton> */}
+                        <NavbarButton variant="primary" onClick={() => {
+                            window.location.href = "/markets";
+                        }}>Launch App</NavbarButton>
+                    </div>
+                </NavBody>
+
+                {/* Mobile Navigation */}
+                <MobileNav>
+                    <MobileNavHeader>
+                        <NavbarLogo />
+                        <MobileNavToggle
+                            isOpen={isMobileMenuOpen}
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        />
+                    </MobileNavHeader>
+
+                    <MobileNavMenu
+                        isOpen={isMobileMenuOpen}
+                        onClose={() => setIsMobileMenuOpen(false)}
+                    >
+                        {navItems.map((item, idx) => (
+                            <a
+                                key={`mobile-link-${idx}`}
+                                href={item.link}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="relative text-neutral-600 dark:text-neutral-300"
+                            >
+                                <span className="block">{item.name}</span>
+                            </a>
+                        ))}
+                        <div className="flex w-full flex-col gap-4">
+                            {/* <NavbarButton
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                variant="primary"
+                                className="w-full"
+                            >
+                                Connect Wallet
+                            </NavbarButton> */}
+                            <NavbarButton
+                                onClick={() => {
+                                    // setIsMobileMenuOpen(false);
+                                    window.location.href = "/markets";
+                                }}
+                                variant="primary"
+                                className="w-full"
+                            >
+                                Launch App
+                            </NavbarButton>
+                        </div>
+                    </MobileNavMenu>
+                </MobileNav>
+            </Navbar>
+            {children}
+        </div>
+    );
 }
 
-// 1. Hero Section
+// Custom component to use HeroParallax with the products data
 function HeroSection() {
-    return (
-        <section className="relative w-full ">
-            <HeroHighlight containerClassName="h-screen bg-black">
+    const products = [
+        {
+            title: "Earn Interest on SOL",
+            link: "#lending",
+            thumbnail: "/app/screens/1.png",
+        },
+        {
+            title: "Borrow Against Collateral",
+            link: "#borrowing",
+            thumbnail: "/app/screens/2.png",
+        },
+        {
+            title: "Ultra-Fast Transactions",
+            link: "#features",
+            thumbnail: "/app/screens/3.png",
+        },
+        {
+            title: "Competitive APY Rates",
+            link: "#rates",
+            thumbnail: "/app/screens/4.png",
+        },
+        {
+            title: "Secure Smart Contracts",
+            link: "#security",
+            thumbnail: "/app/screens/5.png",
+        },
+        {
+            title: "Low Transaction Fees",
+            link: "#fees",
+            thumbnail: "/app/screens/6.png",
+        },
+        {
+            title: "Multi-Asset Support",
+            link: "#assets",
+            thumbnail: "/app/screens/7.png",
+        },
+        {
+            title: "Real-Time Monitoring",
+            link: "#dashboard",
+            thumbnail: "/app/screens/8.png",
+        },
+        {
+            title: "Liquidation Protection",
+            link: "#protection",
+            thumbnail: "/app/screens/9.png",
+        },
+        {
+            title: "Mobile Access",
+            link: "#mobile",
+            thumbnail: "/app/screens/10.png",
+        },
+        {
+            title: "Decentralized Governance",
+            link: "#governance",
+            thumbnail: "/app/screens/11.png",
+        },
+        {
+            title: "Enterprise-Grade Security",
+            link: "#security",
+            thumbnail: "/app/screens/12.png",
+        },
+        {
+            title: "Auto-Compounding Interest",
+            link: "#interest",
+            thumbnail: "/app/screens/13.png",
+        },
+        {
+            title: "Flash Loans",
+            link: "#flashloans",
+            thumbnail: "/app/screens/17.png",
+        },
+        {
+            title: "Community Rewards",
+            link: "#rewards",
+            thumbnail: "/app/screens/16.png",
+        },
+    ];
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                        Decentralized <Highlight>Solana Lending</Highlight>, Built for You.
-                    </h1>
-                    <p className="text-xl md:text-2xl mb-10 max-w-3xl">
-                        Seamlessly borrow and lend tokens with lightning-fast transactions and zero intermediaries.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Link href="/lending">
-                            <BackgroundGradient className="rounded-3xl">
-                                <button className="px-8 py-4 rounded-3xl bg-black text-white font-bold text-lg">
-                                    Start Lending
-                                </button>
-                            </BackgroundGradient>
-                        </Link>
-                        <Link href="/markets">
-                            <BackgroundGradient className="rounded-3xl">
-                                <button className="px-8 py-4 rounded-3xl bg-black text-white font-bold text-lg">
-                                    Explore Markets
-                                </button>
-                            </BackgroundGradient>
-                        </Link>
-                    </div>
-                </div>
-            </HeroHighlight>
-        </section>
-    );
+    return <HeroParallax products={products} />;
 }
 
 // 2. Featured Highlights
 function FeaturedHighlights() {
-    const features = [
-        {
-            title: "Low Fees & High APY",
-            description: "Earn competitive yields on your assets with minimal fees.",
-            icon: "💰",
-            link: "#",
-        },
-        {
-            title: "Instant Transactions",
-            description: "Leverage Solana's speed for near-instant token lending.",
-            icon: "⚡",
-            link: "#",
-        },
-        {
-            title: "Secure & Transparent",
-            description: "Smart contracts ensure full transparency and security.",
-            icon: "🔒",
-            link: "#",
-        },
-        {
-            title: "Permissionless Access",
-            description: "No sign-ups. Just connect and start lending.",
-            icon: "🔑",
-            link: "#",
-        },
-    ];
-
     return (
-        <section className="py-20 bg-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Why Choose Us?</h2>
-                <HoverEffect items={features.map(feature => ({
-                    title: feature.title,
-                    description: feature.description,
-                    link: feature.link,
-                }))} />
-
-                <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {features.slice(0, 2).map((feature, index) => (
-                        <CardContainer key={index} className="w-full h-64">
-                            <CardBody className="bg-zinc-900 relative group/card rounded-xl p-6 h-full w-full">
-                                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                                    <CardItem translateZ={50} className="text-4xl mb-4">
-                                        {feature.icon}
-                                    </CardItem>
-                                    <CardItem translateZ={60} className="text-xl font-bold mb-2">
-                                        {feature.title}
-                                    </CardItem>
-                                    <CardItem translateZ={40} className="text-gray-400">
-                                        {feature.description}
-                                    </CardItem>
-                                </div>
-                            </CardBody>
-                        </CardContainer>
-                    ))}
-                </div>
-            </div>
+        <section className="py-10 bg-card" id="features">
+            <FeaturesSectionDemo />
         </section>
     );
 }
 
 // 3. Live Market Stats
 function LiveMarketStats() {
-    const stats = [
-        {
-            title: "Total Value Locked",
-            value: "$123,456,789",
-            icon: "📊",
-        },
-        {
-            title: "Top Lending Pools",
-            value: "SOL, USDC, ETH, BTC",
-            icon: "🏆",
-        },
-        {
-            title: "Average APY",
-            value: "8.5%",
-            icon: "📈",
-        },
-        {
-            title: "Recent Transactions",
-            value: "User X borrowed 50 SOL from Pool A",
-            icon: "🔄",
-        },
-    ];
-
     return (
-        <section className="py-20 bg-zinc-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Live Market Stats</h2>
-
-                <BentoGrid className="max-w-6xl mx-auto">
-                    {stats.map((stat, i) => (
-                        <BentoGridItem
-                            key={i}
-                            title={stat.title}
-                            description={
-                                <AnimatedTooltip
-                                    items={[
-                                        {
-                                            id: i,
-                                            name: stat.title,
-                                            designation: stat.value,
-                                            image: `https://via.placeholder.com/150?text=${stat.icon}`,
-                                        },
-                                    ]}
-                                />
-                            }
-                            header={
-                                <div className="flex items-center justify-center w-full h-full bg-zinc-800 rounded-xl p-4">
-                                    <span className="text-4xl">{stat.icon}</span>
-                                </div>
-                            }
-                            className="bg-zinc-800"
-                        />
-                    ))}
-                </BentoGrid>
-
-                <div className="mt-16 text-center">
-                    <h3 className="text-2xl font-bold mb-4">Market Trends</h3>
-                    <FlipWords
-                        words={["Rising APYs", "Increasing TVL", "Growing User Base", "Expanding Markets"]}
-                        className="text-xl font-bold"
-                    />
-                </div>
-            </div>
-        </section>
+        <LayoutGridDemo />
     );
 }
 
 // 4. How It Works
 function HowItWorks() {
-    const steps = [
-        {
-            title: "Connect Your Wallet",
-            description: "Use Phantom, Solflare, or any Solana wallet.",
-            icon: "👛",
-        },
-        {
-            title: "Deposit Your Assets",
-            description: "Supply tokens to earn interest or use them as collateral.",
-            icon: "💎",
-        },
-        {
-            title: "Start Lending or Borrowing",
-            description: "Get instant liquidity or earn yield effortlessly.",
-            icon: "🔄",
-        },
-    ];
-
     return (
-        <section className="py-20 relative">
-            <Spotlight className="hidden sm:block" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <h2 className="text-4xl font-bold text-center mb-16">How It Works</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {steps.map((step, index) => (
-                        <TextRevealCard
-                            key={index}
-                            text={step.title}
-                            revealText={step.description}
-                            className="w-full h-64"
-                        />
-                    ))}
-                </div>
-            </div>
-        </section>
+        <TimelineDemo />
     );
 }
 
 // 5. Lending & Borrowing Simulator
 function LendingSimulator() {
-    // Sample cards for FocusCards
     const focusCardsData = [
         {
             title: "Lending Opportunities",
-            src: "https://via.placeholder.com/400x300?text=Lending",
+            src: "/app/screens/16.png",
         },
         {
             title: "Borrowing Options",
-            src: "https://via.placeholder.com/400x300?text=Borrowing",
+            src: "/app/screens/17.png",
         },
         {
             title: "Market Analysis",
-            src: "https://via.placeholder.com/400x300?text=Analysis",
+            src: "/app/screens/18.png",
         },
     ];
 
     return (
-        <section className="py-20 bg-zinc-900">
+        <section className="py-20 bg-zinc-900" id="calculator">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-4xl font-bold text-center mb-16">
                     Calculate Your Earnings & Borrowing Costs
@@ -492,7 +312,7 @@ function LendingSimulator() {
                             </div>
                             <div className="flex justify-between">
                                 <span>Amount:</span>
-                                <span>100 USDC</span>
+                                <span>1000 USDC</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Interest Rate:</span>
@@ -500,7 +320,7 @@ function LendingSimulator() {
                             </div>
                             <div className="flex justify-between font-bold">
                                 <span>Yearly Cost:</span>
-                                <span>3.8 USDC</span>
+                                <span>38 USDC</span>
                             </div>
                         </div>
                     </GlareCard>
@@ -511,7 +331,7 @@ function LendingSimulator() {
                 </div>
 
                 <div className="mt-16 text-center">
-                    <TextGenerateEffect words="Simulate your potential earnings and costs with our calculator." className="text-xl" />
+                    <TextGenerateEffect words="Simulate your potential earnings and costs with our advanced DeFi calculator." className="text-xl" />
                 </div>
             </div>
         </section>
@@ -522,19 +342,19 @@ function LendingSimulator() {
 function UserTestimonials() {
     const testimonials = [
         {
-            quote: "I never imagined DeFi lending could be this fast and secure!",
+            quote: "Rippner Labs revolutionized my passive income strategy. The high APY rates and lightning-fast transactions make it my top choice for DeFi lending.",
             name: "Alice M.",
             designation: "DeFi Enthusiast",
             src: "https://randomuser.me/api/portraits/women/1.jpg",
         },
         {
-            quote: "Solana's lending pools have transformed my passive income strategy.",
-            name: "Bob T.",
+            quote: "The ability to borrow against my SOL holdings without selling has been game-changing for my investment strategy. The platform's security gives me peace of mind.",
+            name: "Robert T.",
             designation: "Crypto Investor",
             src: "https://randomuser.me/api/portraits/men/1.jpg",
         },
         {
-            quote: "The instant transactions make this platform a game-changer.",
+            quote: "As a developer, I appreciate the platform's well-designed smart contracts and transparent liquidation processes. Their technical excellence sets them apart.",
             name: "Charlie K.",
             designation: "Blockchain Developer",
             src: "https://randomuser.me/api/portraits/men/2.jpg",
@@ -542,7 +362,7 @@ function UserTestimonials() {
     ];
 
     return (
-        <section className="py-20 bg-black">
+        <section className="py-20 bg-black" id="testimonials">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 className="text-4xl font-bold text-center mb-16">What Our Users Say</h2>
 
@@ -557,21 +377,21 @@ function SecuritySection() {
     const securityFeatures = [
         {
             id: 1,
-            name: "Security Audits",
+            name: "Audited Smart Contracts",
             designation: "Security Feature",
-            content: "Fully audited smart contracts for maximum security.",
+            content: "Our lending protocols undergo regular security audits by leading blockchain security firms to ensure maximum protection for user funds.",
         },
         {
             id: 2,
-            name: "No Middlemen",
+            name: "Decentralized Architecture",
             designation: "Security Feature",
-            content: "Direct peer-to-peer lending with no centralized control.",
+            content: "Our platform operates on a fully decentralized model with no central points of failure or control, ensuring users maintain custody of their assets.",
         },
         {
             id: 3,
-            name: "Transparent Governance",
+            name: "Transparent Liquidations",
             designation: "Security Feature",
-            content: "Decisions made via DAO voting.",
+            content: "Our liquidation processes are fully transparent and algorithmic, with fair liquidation thresholds and incentives for system stability.",
         },
     ];
 
@@ -591,7 +411,7 @@ function SecuritySection() {
     ];
 
     return (
-        <section className="py-20 bg-zinc-900 relative">
+        <section className="py-20 bg-zinc-900 relative" id="security">
             <LampContainer className="w-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <h2 className="text-4xl font-bold text-center mb-16">Security & Transparency</h2>
@@ -607,85 +427,64 @@ function SecuritySection() {
     );
 }
 
-// 8. Roadmap & Future Features
-function RoadmapSection() {
-    const roadmapItems = [
-        {
-            title: "NFT Collateral Support",
-            description: "Use your NFTs as collateral for borrowing.",
-            image: "https://via.placeholder.com/800x600?text=NFT+Collateral",
-        },
-        {
-            title: "Cross-Chain Lending",
-            description: "Borrow across Solana and Ethereum.",
-            image: "https://via.placeholder.com/800x600?text=Cross+Chain",
-        },
-        {
-            title: "Mobile App Integration",
-            description: "Access lending on the go.",
-            image: "https://via.placeholder.com/800x600?text=Mobile+App",
-        },
-    ];
+// // 8. Roadmap & Future Features
+// function RoadmapSection() {
+//     const roadmapItems = [
+//         {
+//             title: "NFT Collateral Support",
+//             description: "Use your NFTs as collateral for borrowing.",
+//             image: "https://via.placeholder.com/800x600?text=NFT+Collateral",
+//         },
+//         {
+//             title: "Cross-Chain Lending",
+//             description: "Borrow across Solana and Ethereum.",
+//             image: "https://via.placeholder.com/800x600?text=Cross+Chain",
+//         },
+//         {
+//             title: "Mobile App Integration",
+//             description: "Access lending on the go.",
+//             image: "https://via.placeholder.com/800x600?text=Mobile+App",
+//         },
+//     ];
 
-    return (
-        <section className="py-20 bg-black">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-bold text-center mb-16">Roadmap & Future Features</h2>
+//     return (
+//         <section className="py-20 bg-black">
+//             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+//                 <h2 className="text-4xl font-bold text-center mb-16">Roadmap & Future Features</h2>
 
-                <MacbookScroll
-                    title="Our Roadmap"
-                    showGradient={true}
-                    src="https://via.placeholder.com/1200x800?text=Roadmap"
-                />
+//                 <MacbookScroll
+//                     title="Our Roadmap"
+//                     showGradient={true}
+//                     src="https://via.placeholder.com/1200x800?text=Roadmap"
+//                 />
 
-                <div className="mt-20">
-                    <ImagesSlider images={roadmapItems.map(item => item.image)}>
-                        <div className="absolute inset-0 flex items-center justify-center text-white">
-                            <div className="text-center">
-                                <h3 className="text-2xl font-bold">Future Features</h3>
-                                <p className="text-lg">Swipe to explore our roadmap</p>
-                            </div>
-                        </div>
-                    </ImagesSlider>
-                </div>
+//                 <div className="mt-20">
+//                     <ImagesSlider images={roadmapItems.map(item => item.image)}>
+//                         <div className="absolute inset-0 flex items-center justify-center text-white">
+//                             <div className="text-center">
+//                                 <h3 className="text-2xl font-bold">Future Features</h3>
+//                                 <p className="text-lg">Swipe to explore our roadmap</p>
+//                             </div>
+//                         </div>
+//                     </ImagesSlider>
+//                 </div>
 
-                <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {roadmapItems.map((item, index) => (
-                        <HoverBorderGradient key={index} className="p-8 rounded-xl bg-zinc-900">
-                            <h3 className="text-xl font-bold mb-4">{item.title}</h3>
-                            <p className="text-gray-400">{item.description}</p>
-                        </HoverBorderGradient>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
+//                 <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+//                     {roadmapItems.map((item, index) => (
+//                         <HoverBorderGradient key={index} className="p-8 rounded-xl bg-zinc-900">
+//                             <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+//                             <p className="text-gray-400">{item.description}</p>
+//                         </HoverBorderGradient>
+//                     ))}
+//                 </div>
+//             </div>
+//         </section>
+//     );
+// }
 
 // 9. Get Started / Call to Action
 function CallToAction() {
     return (
-        <section className="py-20 relative">
-            <BackgroundBeams />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center">
-                    <h2 className="text-4xl font-bold mb-8">Ready to Lend or Borrow?</h2>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <HoverBorderGradient className="p-0.5 rounded-xl">
-                            <button className="px-8 py-4 rounded-xl bg-black text-white font-bold text-lg">
-                                Connect Wallet
-                            </button>
-                        </HoverBorderGradient>
-
-                        <HoverBorderGradient className="p-0.5 rounded-xl">
-                            <button className="px-8 py-4 rounded-xl bg-black text-white font-bold text-lg">
-                                Start Lending Now
-                            </button>
-                        </HoverBorderGradient>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <div className="relative overflow-hidden" id="contact"><section className="relative z-20 mx-auto my-20 grid w-full max-w-7xl grid-cols-1 justify-start bg-gradient-to-br from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-950 md:my-40 md:grid-cols-3"><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] top-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute left-[calc(var(--offset)/2*-1)] h-[var(height)] w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_left,var(background)_var(fade-stop),transparent),_linear-gradient(to_right,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_right,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] bottom-0 top-auto" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "1px", "width": "5px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(width)] bg-[linear-gradient(to_bottom,var(color),var(color)_50%,transparent_0,transparent)] [background-size:var(width)_var(height)] [mask:linear-gradient(to_top,var(background)_var(fade-stop),transparent),_linear-gradient(to_bottom,var(background)_var(fade-stop),transparent),_linear-gradient(black,black)] [mask-composite:exclude] z-30 dark:bg-[linear-gradient(to_bottom,var(color-dark),var(color-dark)_50%,transparent_0,transparent)] left-auto right-0" style={{ "background": "#ffffff", "color": "rgba(0, 0, 0, 0.2)", "height": "5px", "width": "1px", }} /><div className="p-8 md:col-span-2 md:p-14"><h2 className="text-left text-xl font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-3xl">Ready to start earning passive income with your Solana assets? &nbsp;<span className="font-bold text-black dark:text-white">Get started today</span></h2><p className="mt-4 max-w-lg text-left text-base font-medium tracking-tight text-neutral-500 dark:text-neutral-200 md:text-base">Join thousands of <span className="text-sky-700">users and investors</span> who are already earning competitive returns and accessing liquidity on the Solana blockchain.</p><div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-4"><div className="mt-6 flex justify-center"><a className="no-underline flex space-x-2 group cursor-pointer transition duration-200 p-px font-semibold px-4 py-2 w-full sm:w-44 h-10 rounded-lg text-sm text-center items-center justify-center relative z-20 bg-black dark:bg-white dark:text-black text-white">Launch App</a></div></div></div><div className="border-t border-dashed p-8 md:border-l md:border-t-0 md:p-14"><p className="text-base text-neutral-700 dark:text-neutral-200">Rippner labs has completely transformed how I manage my crypto portfolio. The ability to earn interest on my SOL while still having the option to borrow against it when needed has given me incredible financial flexibility.</p><div className="mt-4 flex flex-col items-start gap-1 text-sm"><p className="font-bold text-neutral-800 dark:text-neutral-200">Michael Chen</p><p className="text-neutral-500 dark:text-neutral-400">Crypto Investor & DeFi Enthusiast</p></div></div></section></div>
     );
 }

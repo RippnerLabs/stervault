@@ -13,9 +13,9 @@ import { BN } from '@coral-xyz/anchor'
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
-// SPL Token Program ID
+// SPL Token Program IDID
 const SPL_TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
 export function useBankProgram() {
@@ -126,15 +126,24 @@ export function useBankProgram() {
         );
         console.log('Bank Token Account PDA:', bankTokenAccountPDA.toString());
 
+        // Convert percentage-based fields to basis points (1% = 100) before passing to the program
+        const liquidationThresholdBps = Math.floor(liquidationThreshold * 100);
+        const liquidationBonusBps = Math.floor(liquidationBonus * 100);
+        const liquidationCloseFactorBps = Math.floor(liquidationCloseFactor * 100);
+        const maxLtvBps = Math.floor(maxLtv * 100);
+        
+        const depositInterestRateBps = Math.floor(depositInterestRate * 100);
+        const borrowInterestRateBps = Math.floor(borrowInterestRate * 100);
+
         // Convert values to BN (BigNumber) as required by the contract
         const tx = await program.methods
           .initBank(
-            new BN(liquidationThreshold),
-            new BN(liquidationBonus),
-            new BN(liquidationCloseFactor),
-            new BN(maxLtv),
-            new BN(depositInterestRate),
-            new BN(borrowInterestRate),
+            new BN(liquidationThresholdBps),
+            new BN(liquidationBonusBps),
+            new BN(liquidationCloseFactorBps),
+            new BN(maxLtvBps),
+            new BN(depositInterestRateBps),
+            new BN(borrowInterestRateBps),
             name,
             description,
             new BN(depositFee),
@@ -145,8 +154,6 @@ export function useBankProgram() {
           .accounts({
             signer: provider.publicKey,
             mint: tokenMint,
-            bank: bankPDA,
-            bankTokenAccount: bankTokenAccountPDA,
             tokenProgram: SPL_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           } as any)
@@ -165,6 +172,7 @@ export function useBankProgram() {
           
           // Check for specific error codes
           const errorMessage = error.message;
+          console.log("errorMessage", errorMessage);
           if (errorMessage.includes('custom program error: 0x1004')) {
             throw new Error('Error 4100: The declared program ID does not match the actual program ID. This has been fixed, please try again.');
           } else if (errorMessage.includes('AccountOwnedByWrongProgram') || errorMessage.includes('3007')) {
@@ -210,8 +218,6 @@ export function useBankProgram() {
           .initUserTokenState(mintAddress)
           .accounts({
             signer: provider.publicKey,
-            userAccount: userPDA,
-            userGlobalState: userGlobalStatePDA,
             systemProgram: SystemProgram.programId,
           })
           .rpc({ commitment: 'confirmed' });

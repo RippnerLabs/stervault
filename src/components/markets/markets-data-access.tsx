@@ -10,7 +10,7 @@ import { useAnchorProvider } from '../solana/solana-provider'
 import { BN } from '@coral-xyz/anchor'
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Raw bank account data from the program
 interface RawBankAccount {
@@ -66,10 +66,14 @@ export interface BankData {
 }
 
 // Helper function to convert BN to number
-const bnToNumber = (bn: BN | null | undefined): number => {
-  if (!bn) return 0;
+const bnToNumber = (bn: BN | number | null | undefined): number => {
+  if (bn === null || bn === undefined) return 0;
+
+  // Handle plain numbers directly
+  if (typeof bn === 'number') return bn;
+
   try {
-    return bn.toNumber();
+    return (bn as BN).toNumber();
   } catch (e) {
     // If the number is too large for a JavaScript number, return a safe large number
     console.warn('BN conversion overflow:', e);
@@ -77,13 +81,38 @@ const bnToNumber = (bn: BN | null | undefined): number => {
   }
 };
 
-// Calculate APY from interest rate
-const calculateApy = (interestRate: number): number => {
-  // Simple APY calculation: (1 + r)^n - 1
-  // where r is the interest rate per period and n is the number of periods
-  // For annual APY with daily compounding: (1 + r/365)^365 - 1
-  const dailyRate = interestRate / 100 / 365;
-  return ((1 + dailyRate) ** 365 - 1) * 100;
+/**
+ * Calculates the APY given:
+ * 1. The annualised interest rate expressed in basis points (e.g. 500 ⇢ 5%).
+ * 2. The interest accrual period in **seconds** defined by the protocol for the bank.
+ *
+ * Formula:
+ *   APY = (1 + r\_period) ^ periodsPerYear − 1
+ *
+ *   r\_period       – interest rate applied **per accrual period**
+ *   periodsPerYear  – number of accrual periods that fit into one year
+ */
+const SECONDS_IN_YEAR = 31_536_000; // 365 * 24 * 60 * 60
+
+const calculateApy = (
+  interestRateBasisPoints: number,
+  interestAccrualPeriodSecs: number
+): number => {
+  if (!interestRateBasisPoints || !interestAccrualPeriodSecs) return 0;
+
+  // Convert basis points ➜ decimal annual rate (e.g. 500 bps ➜ 0.05)
+  const annualRateDecimal = interestRateBasisPoints / 10_000;
+
+  // How many times interest is compounded per year
+  const periodsPerYear = SECONDS_IN_YEAR / interestAccrualPeriodSecs;
+
+  // Interest applied each period so that compounded it equals the annual rate
+  // r_period = annualRate / periodsPerYear
+  const ratePerPeriod = annualRateDecimal / periodsPerYear;
+
+  const apyDecimal = (1 + ratePerPeriod) ** periodsPerYear - 1;
+
+  return apyDecimal * 100; // convert to percentage
 };
 
 export function useMarketsBanks() {
@@ -114,8 +143,9 @@ export function useMarketsBanks() {
               // Convert BN values to numbers
               const depositInterestRate = bnToNumber(rawAccount.depositInterestRate);
               
-              // Calculate APY from interest rate
-              const apy = calculateApy(depositInterestRate);
+              // Calculate APY using the bank's accrual period (may come back as BN)
+              const accrualPeriodSeconds = bnToNumber(rawAccount.interestAccrualPeriod as any);
+              const apy = calculateApy(depositInterestRate, accrualPeriodSeconds);
               
               const convertedBank: BankData = {
                 publicKey: bank.publicKey,
@@ -127,7 +157,8 @@ export function useMarketsBanks() {
                   depositInterestRate: depositInterestRate,
                   borrowInterestRate: bnToNumber(rawAccount.borrowInterestRate),
                   lastCompoundTime: rawAccount.lastCompoundTime,
-                  interestAccrualPeriod: rawAccount.interestAccrualPeriod,
+                  // Store as plain number to avoid BN objects leaking into the UI
+                  interestAccrualPeriod: accrualPeriodSeconds,
                   liquidationThreshold: bnToNumber(rawAccount.liquidationThreshold),
                   liquidationBonus: bnToNumber(rawAccount.liquidationBonus),
                   liquidationCloseFactor: bnToNumber(rawAccount.liquidationCloseFactor),
@@ -141,9 +172,13 @@ export function useMarketsBanks() {
                 }
               };
 
-              // Fetch token metadata from tokens.json
-              const response = await fetch('/tokens.json');
+              // Fetch token metadata from `/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`
+              const response = await fetch(`/tokens_${process.env.NEXT_PUBLIC_SOLANA_ENV}.json`);
               const tokens = await response.json();
+              
+              // Add debug logging
+              console.log('Fetched token metadata, found', tokens.length, 'tokens');
+              console.log('Looking for mint address:', rawAccount.mintAddress.toString());
               
               // Find token info by mint address
               const tokenInfo = tokens.find(
@@ -151,11 +186,27 @@ export function useMarketsBanks() {
               );
               
               if (tokenInfo) {
+                console.log('Found token info:', tokenInfo.symbol, tokenInfo.name);
                 convertedBank.tokenInfo = {
                   symbol: tokenInfo.symbol,
                   name: tokenInfo.name,
                   logoURI: tokenInfo.logoURI,
                   decimals: tokenInfo.decimals
+                };
+              } else {
+                console.warn('No token info found for mint address:', rawAccount.mintAddress.toString());
+                
+                // Create a default token info from the bank's name or description
+                const defaultSymbol = rawAccount.name.split(' ')[0] || 'UNKNOWN';
+                const defaultName = rawAccount.description || rawAccount.name || 'Unknown Token';
+                
+                console.log('Creating default token info:', defaultSymbol, defaultName);
+                
+                convertedBank.tokenInfo = {
+                  symbol: defaultSymbol,
+                  name: defaultName,
+                  logoURI: '',  // No logo available
+                  decimals: 9   // Default to 9 decimals (like SOL)
                 };
               }
               

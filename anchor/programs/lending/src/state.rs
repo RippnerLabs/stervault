@@ -56,12 +56,14 @@ pub struct UserGlobalState {
     pub deposited_mints: Vec<Pubkey>,
     #[max_len(MAX_BORROW_POSITIONS)]
     pub active_positions: Vec<Pubkey>,
+    pub positions: u64,
     pub bump: u8,
 }
 
 #[account]
 #[derive(InitSpace)]
 pub struct BorrowPosition {
+    pub position_id: u64,
     pub owner: Pubkey,
     pub collateral_mint: Pubkey,
     pub borrow_mint: Pubkey,

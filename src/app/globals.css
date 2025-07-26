@@ -8,17 +8,6 @@ body {
     @apply bg-white text-black;
 }
 
-.wallet-adapter-button-trigger {
-    background: rgb(100, 26, 230) !important;
-    border-radius: 8px !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-}
-.wallet-adapter-dropdown-list,
-.wallet-adapter-button {
-    font-family: inherit !important;
-}
-
 @layer base {
   :root {
         --background: 0 0% 100%;
@@ -82,4 +71,105 @@ body {
   body {
     @apply bg-background text-foreground;
     }
+}
+
+/* Base Wallet Adapter Button Styles - Match shadcn Button */
+.wallet-adapter-button {
+  @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-800 !important;
+  /* Match header button styling with proper dark mode variants */
+  @apply bg-primary/20 text-gray-800 border border-gray-800 h-9 px-3 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-700 !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  @apply text-gray-800 !important; /* Use default foreground color on hover */
+}
+
+.wallet-adapter-button-trigger {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 !important;
+}
+
+/* Wallet Adapter Dropdown Styles - Match shadcn Dropdown/Popover */
+.wallet-adapter-dropdown-list {
+  @apply z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md animate-in data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 !important;
+}
+
+.wallet-adapter-dropdown-list-item {
+  @apply relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 !important;
+}
+
+/* Wallet Adapter Modal Styles - Match shadcn Dialog */
+.wallet-adapter-modal-container {
+  @apply fixed inset-0 z-50 flex items-start justify-center sm:items-center !important;
+}
+
+.wallet-adapter-modal-overlay {
+  @apply fixed inset-0 z-10 bg-background/80 backdrop-blur-sm transition-all duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  @apply fixed z-50 grid w-full gap-4 rounded-b-lg border border-border bg-background p-6 shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 sm:max-w-lg sm:rounded-lg sm:zoom-in-90 data-[state=open]:sm:slide-in-from-bottom-0 !important;
+  /* Remove default padding/margin which might interfere */
+  padding: 1.5rem !important; /* 24px */
+  margin: auto !important; /* Center */
+}
+
+.wallet-adapter-modal-button-close {
+  @apply bg-none hover:bg-none absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-10 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !important;
+  background-color: none !important;
+  background: none !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  color: #474646 !important;
+}
+
+.wallet-adapter-modal-button-close svg {
+  @apply h-4 w-4 !important;
+  background-color: none !important;
+  background: none !important;
+}
+
+.wallet-adapter-modal-title {
+  @apply text-lg font-semibold leading-none tracking-tight text-foreground mb-4 !important;
+}
+
+.wallet-adapter-modal-list {
+  @apply flex flex-col gap-2 p-0 m-0 list-none !important;
+}
+
+.wallet-adapter-modal-list li {
+  @apply w-full !important;
+}
+
+/* Style for each wallet button in the modal */
+.wallet-adapter-modal-list button {
+  @apply inline-flex items-center justify-between whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  /* Use secondary button style */
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  @apply h-11 px-4 py-2 w-full !important; /* Adjust height and ensure full width */
+}
+
+.wallet-adapter-button-start-icon {
+  @apply mr-3 h-6 w-6 flex-shrink-0 !important; /* Slightly larger icon */
+}
+
+.wallet-adapter-button-start-icon img {
+  @apply h-full w-full object-contain !important; /* Ensure image scales correctly */
+}
+
+/* Detected text */
+.wallet-adapter-modal-list button span {
+  @apply ml-auto pl-4 text-xs text-muted-foreground !important; /* Add padding left */
+}
+
+/* Styling for the button when a wallet is selected/connecting (if applicable) */
+/* You might need to inspect the DOM for specific classes added during connection states */
+
+/* Ensure high specificity to override defaults */
+:where(.wallet-adapter-button) {
+  line-height: normal !important; /* Reset line-height if needed */
+}
+
+:where(.wallet-adapter-modal-list button) {
+  line-height: normal !important; /* Reset line-height if needed */
 }

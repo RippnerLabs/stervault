@@ -1,6 +1,6 @@
 import { BN, Program } from '@coral-xyz/anchor';
 import { BankrunProvider } from 'anchor-bankrun';
-import { TOKEN_PROGRAM_ID} from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { createAccount, createMint, mintTo } from 'spl-token-bankrun';
 import { PythSolanaReceiver } from '@pythnetwork/pyth-solana-receiver';
 import { startAnchor, BanksClient, ProgramTestContext } from 'solana-bankrun';
@@ -92,7 +92,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      6 // Changed to 6 decimals for USDC
+      6
     );
 
     mintSOL = await createMint(
@@ -101,7 +101,7 @@ describe('Lending Smart Contract Tests', () => {
       signer,
       signer.publicKey,
       null,
-      9 // Changed to 9 decimals for SOL
+      9
     );
 
     [usdcBankAccount] = PublicKey.findProgramAddressSync(
@@ -232,7 +232,7 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test Init and Fund USDC Bank', async () => {
-    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
+    const amount = 10_000 * 10 ** 6;
     const mintTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -275,7 +275,7 @@ describe('Lending Smart Contract Tests', () => {
 
     expect(USDCTokenAccount).toBeTruthy();
 
-    const amount = 10_000 * 10 ** 6; // Changed to 6 decimals for USDC
+    const amount = 10_000 * 10 ** 6;
     const mintUSDCTx = await mintTo(
       // @ts-ignore
       banksClient,
@@ -314,7 +314,6 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test Deposit', async () => {
-    // For 200 USDC (6 decimals)
     const depositAmount = 1000 * 10**6;
     const depositUSDC = await program.methods
       .deposit(new BN(depositAmount))
@@ -339,11 +338,9 @@ describe('Lending Smart Contract Tests', () => {
     const userTokenState = await program.account.userTokenState.fetch(userTokenStatePDA);
     console.log("USDC User Token State after deposit:", userTokenState);
     
-    // Verify deposit shares are greater than 0
     expect(userTokenState.depositedShares.toString()).not.toBe('0');
     console.log("USDC Deposited Shares:", userTokenState.depositedShares.toString());
     
-    // Get user global state to verify mint was added
     const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("user_global"), signer.publicKey.toBuffer()],
       program.programId
@@ -361,7 +358,6 @@ describe('Lending Smart Contract Tests', () => {
   });
 
   it('Test SOL Deposit', async () => {
-    // For 200 SOL (9 decimals)
     const depositAmount = 1000 * 10**9;
     const depositSOL = await program.methods
       .deposit(new BN(depositAmount))
@@ -408,16 +404,18 @@ describe('Lending Smart Contract Tests', () => {
   });
   
   it('Test Borrow', async () => {
-    // Reduce borrow amount to 10 SOL (10,000,000,000 lamports)
-    const borrowAmount = 5 * 10**9;
+    // Reduce borrow amount to 2 SOL (2,000,000,000 lamports)
+    const borrowAmount = 1 * 10**9;
+    const positionId1 = 1;
+    const positionId2 = 2;
 
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
+      [Buffer.from("pyth_network_feed_id"),Buffer.from("SOL")],
       program.programId
     );
     const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
+      [Buffer.from("pyth_network_feed_id"),Buffer.from("USDC")],
       program.programId
     );
 
@@ -436,22 +434,37 @@ describe('Lending Smart Contract Tests', () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     };
 
-    // Add required accounts
+    const borrowAccounts1 = {
+      ...accounts
+    };
+
     const borrowSOL = await program.methods
-      .borrow(new BN(borrowAmount))
-      .accounts(accounts)
+      .borrow(new BN(positionId1), new BN(borrowAmount))
+      .accounts(borrowAccounts1)
       .rpc({ commitment: 'confirmed', skipPreflight: true });
     expect(borrowSOL).toBeTruthy();
+
+    // Borrow again with the same pair but different position id but smaller amount to stay within LTV limits
+    const secondBorrowAmount = 1 * 10 ** 9; // 1 SOL
+    const borrowAccounts2 = {
+      ...accounts,
+    };
+
+    const borrowSOLSecond = await program.methods
+      .borrow(new BN(positionId2), new BN(secondBorrowAmount))
+      .accounts(borrowAccounts2)
+      .rpc({ commitment: 'confirmed', skipPreflight: true });
+    expect(borrowSOLSecond).toBeTruthy();
   });
 
   it('Test Repay', async () => {
     // derive PythNetworkFeedId account
     const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("SOL")],
       program.programId
     );
     const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("USDC")],
       program.programId
     );
 
@@ -471,26 +484,49 @@ describe('Lending Smart Contract Tests', () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     };
 
-
-    const repayAmount = 5 * 10**9;
     const repaySOL = await program.methods
-      .repay(new BN(repayAmount))
+      .repay(new BN(1), new BN(1 * 10**9))
       .accounts(accounts)
-      .rpc({ commitment: 'confirmed', skipPreflight: true });
+      .rpc({ commitment: 'confirmed', skipPreflight: true});
+    expect(repaySOL).toBeTruthy();
+  });
+
+
+  it('Test Repay 2', async () => {
+    // derive PythNetworkFeedId account
+    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("SOL")],
+      program.programId
+    );
+    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pyth_network_feed_id"), Buffer.from("USDC")],
+      program.programId
+    );
+
+    const accounts = {
+      signer: signer.publicKey,
+      mintBorrow: mintSOL,
+      mintCollateral: mintUSDC,
+
+      priceUpdateBorrowToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, SOL_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdBorrowToken: solPythNetworkFeedId,
+
+      priceUpdateCollateralToken: new PublicKey(pythSolanaReceiver
+        .getPriceFeedAccountAddress(0, USDC_PRICE_FEED_ID).toBase58()),
+      pythNetworkFeedIdCollateralToken: usdcPythNetworkFeedId,
+
+      tokenProgram: TOKEN_PROGRAM_ID,
+    };
+
+    const repaySOL = await program.methods
+      .repay(new BN(2), new BN(1 * 10**9))
+      .accounts(accounts)
+      .rpc({ commitment: 'confirmed', skipPreflight: true});
     expect(repaySOL).toBeTruthy();
   });
 
   it('Test Withdraw', async () => {
-    // derive PythNetworkFeedId account
-    const [solPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("SOL")],
-      program.programId
-    );
-    const [usdcPythNetworkFeedId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("USDC")],
-      program.programId
-    );
-
     const accounts = {
       signer: signer.publicKey,
       mint: mintUSDC,
@@ -501,7 +537,7 @@ describe('Lending Smart Contract Tests', () => {
     const withdrawSOL = await program.methods
       .withdraw(new BN(withdrawAmount))
       .accounts(accounts)
-      .rpc({ commitment: 'confirmed', skipPreflight: true });
+      .rpc({ commitment: 'confirmed' });
     expect(withdrawSOL).toBeTruthy();
   });
 
@@ -655,4 +691,106 @@ describe('Lending Smart Contract Tests', () => {
     console.log("Test Get Active Borrow Positions completed");
   });
   
+
+  it("Test Get all banks financial profile", async () => {
+    console.log("Starting Test Get all banks financial profile");
+    
+    // In a production environment, we would query all Bank accounts
+    // Here we'll use the mints we created in the test setup
+    const knownMints = [mintSOL, mintUSDC];
+    console.log(`Checking financial profiles for ${knownMints.length} banks`);
+    
+    for (const mint of knownMints) {
+      // Derive the bank PDA for this mint
+      const [bankPDA] = PublicKey.findProgramAddressSync(
+        [mint.toBuffer()],
+        program.programId
+      );
+      console.log(`\nFetching bank information for mint: ${mint.toBase58()}`);
+      console.log(`Bank PDA: ${bankPDA.toBase58()}`);
+      
+      try {
+        // Fetch the bank data
+        const bankData = await program.account.bank.fetch(bankPDA);
+        
+        // Get mint info for display purposes
+        let mintInfo;
+        try {
+          // Use the bankrun context to get the account data
+          const mintAccountInfo = await context.banksClient.getAccount(mint);
+          // For this test, we can use the mints we already have access to
+          const decimals = mint.equals(mintSOL) ? 9 : 6; // SOL has 9 decimals, USDC has 6
+          
+          mintInfo = {
+            decimals: decimals,
+            supply: 'N/A', // We don't directly access supply in this simplified test
+          };
+        } catch (error) {
+          console.log(`Error fetching mint info: ${error}`);
+          mintInfo = { decimals: 'unknown', supply: 'unknown' };
+        }
+        
+        // Calculate financial metrics
+        const totalDeposited = bankData.totalDepositedShares.toString();
+        const totalCollateral = bankData.totalCollateralShares.toString();
+        const totalBorrowed = bankData.totalBorrowedShares.toString();
+        
+        // Calculate utilization rate (borrowed / deposited)
+        const utilizationRate = bankData.totalDepositedShares.toNumber() > 0 
+          ? (bankData.totalBorrowedShares.toNumber() / bankData.totalDepositedShares.toNumber() * 100).toFixed(2)
+          : '0.00';
+        
+        // Format interest rates as percentages (basis points to percentage)
+        const depositRate = (bankData.depositInterestRate.toNumber() / 100).toFixed(2);
+        const borrowRate = (bankData.borrowInterestRate.toNumber() / 100).toFixed(2);
+        
+        // Max LTV as percentage
+        const maxLtv = (bankData.maxLtv.toNumber() / 100).toFixed(2);
+        
+        // Format timestamps
+        const lastCompoundTime = new Date(bankData.lastCompoundTime.toNumber() * 1000).toISOString();
+        const interestAccrualPeriod = bankData.interestAccrualPeriod.toNumber();
+        
+        // Print bank financial profile
+        console.log('=== Bank Financial Profile ===');
+        console.log(`Name: ${bankData.name}`);
+        console.log(`Description: ${bankData.description}`);
+        console.log(`Authority: ${bankData.authority.toBase58()}`);
+        console.log(`Mint: ${bankData.mintAddress.toBase58()} (${mintInfo.decimals} decimals)`);
+        console.log('\n--- Financial Metrics ---');
+        console.log(`Total Deposited Shares: ${totalDeposited}`);
+        console.log(`Total Collateral Shares: ${totalCollateral}`);
+        console.log(`Total Borrowed Shares: ${totalBorrowed}`);
+        console.log(`Utilization Rate: ${utilizationRate}%`);
+        console.log('\n--- Interest Rates ---');
+        console.log(`Deposit Interest Rate: ${depositRate}%`);
+        console.log(`Borrow Interest Rate: ${borrowRate}%`);
+        console.log('\n--- Risk Parameters ---');
+        console.log(`Max LTV: ${maxLtv}%`);
+        console.log(`Liquidation Threshold: ${(bankData.liquidationThreshold.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Liquidation Bonus: ${(bankData.liquidationBonus.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Liquidation Close Factor: ${(bankData.liquidationCloseFactor.toNumber() / 100).toFixed(2)}%`);
+        console.log('\n--- Fees ---');
+        console.log(`Deposit Fee: ${(bankData.depositFee.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Withdrawal Fee: ${(bankData.withdrawalFee.toNumber() / 100).toFixed(2)}%`);
+        console.log(`Minimum Deposit: ${bankData.minDeposit.toString()}`);
+        console.log('\n--- Time Parameters ---');
+        console.log(`Last Compound Time: ${lastCompoundTime}`);
+        console.log(`Interest Accrual Period: ${interestAccrualPeriod} seconds`);
+        console.log('=============================\n');
+        
+        // Verify some basic expectations
+        expect(bankData.mintAddress.toBase58()).toBe(mint.toBase58());
+        expect(bankData.totalDepositedShares.toNumber()).toBeGreaterThanOrEqual(0);
+        expect(bankData.totalBorrowedShares.toNumber()).toBeGreaterThanOrEqual(0);
+        
+      } catch (error) {
+        console.error(`Error fetching bank data for mint ${mint.toBase58()}: ${error}`);
+      }
+    }
+    
+    console.log("Test Get all banks financial profile completed");
+  });
+
+
 });

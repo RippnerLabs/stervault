@@ -4,7 +4,7 @@ import { getLendingProgram } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, SystemProgram } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState, useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
@@ -34,7 +34,7 @@ function stripHexPrefix(id: string): string {
 }
 
 // Use the deployed program ID from the anchor deploy output
-const LENDING_PROGRAM_ID = new PublicKey('EZqPMxDtbaQbCGMaxvXS6vGKzMTJvt7p8xCPaBT6155G');
+const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
 
 // Borrow position interface
 export interface BorrowPositionData {
@@ -128,6 +128,52 @@ export function useActiveBorrowPositions() {
   // Get banks for token info
   const { banks } = useMarketsBanks();
   
+  // State to hold price feed IDs for batch Pyth price requests
+  const [activePriceFeedIds, setActivePriceFeedIds] = useState<string[]>([]);
+  
+  // Get real-time prices from Pyth for all relevant tokens
+  const pythPrices = useBatchPythPrices(activePriceFeedIds);
+  
+  // Local helper to remove optional 0x prefix from hex strings
+  const stripHexPrefixLocal = (id: string): string => id.startsWith('0x') ? id.slice(2) : id;
+  
+  // Helper to get current token price from Pyth or fallback
+  const getPythTokenPrice = useMemo(() => {
+    const cache: Record<string, number> = {};
+    
+    return (symbol?: string): number => {
+      if (!symbol) return 0;
+      
+      // Check cache first
+      if (cache[symbol]) return cache[symbol];
+      
+      // Try to find price from Pyth data
+      if (pythPrices.data) {
+        // Look for matching price feed by symbol
+        const feedId = priceFeedIdsMap[symbol as keyof typeof priceFeedIdsMap];
+        if (feedId) {
+          const cleanId = stripHexPrefixLocal(feedId);
+          const priceData = pythPrices.data[cleanId] || pythPrices.data[feedId];
+          if (priceData?.price) {
+            cache[symbol] = priceData.price;
+            return priceData.price;
+          }
+        }
+      }
+      
+      // Fallback to minimal static prices if Pyth unavailable
+      const fallbackPrices: Record<string, number> = {
+        'SOL': 60,
+        'USDC': 1,
+        'USDT': 1,
+      };
+      
+      const price = fallbackPrices[symbol.toUpperCase()] || 0;
+      if (price > 0) cache[symbol] = price;
+      return price;
+    };
+  }, [pythPrices.data]);
+  
   // Borrow positions query
   const borrowPositions = useQuery({
     queryKey: ['user-borrow-positions', { cluster, wallet: provider.publicKey?.toString() }],
@@ -136,6 +182,9 @@ export function useActiveBorrowPositions() {
       
       try {
         console.log('Fetching user borrow positions for wallet:', provider.publicKey.toString());
+        
+        // Collect price feed IDs for tokens we'll need prices for
+        const feedIds: string[] = [];
         
         // First, get the UserGlobalState PDA
         const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
@@ -166,10 +215,37 @@ export function useActiveBorrowPositions() {
         let tokenMetadataMap: Record<string, TokenMetadata> = {};
         if (tokenMetadata.data) {
           tokenMetadataMap = tokenMetadata.data.reduce((acc, token) => {
+            // Collect price feed IDs while building the map
+            if (token.pythPriceFeed) {
+              const cleanId = stripHexPrefixLocal(token.pythPriceFeed);
+              if (cleanId.length === 64 && !feedIds.includes(cleanId)) {
+                feedIds.push(cleanId);
+              }
+            }
+            
             acc[token.address] = token;
             return acc;
           }, {} as Record<string, TokenMetadata>);
         }
+        
+        // Also collect price feed IDs from banks
+        if (banks.data) {
+          banks.data.forEach(bank => {
+            const symbol = bank.tokenInfo?.symbol;
+            if (symbol) {
+              const feedId = priceFeedIdsMap[symbol as keyof typeof priceFeedIdsMap];
+              if (feedId) {
+                const cleanId = stripHexPrefixLocal(feedId);
+                if (cleanId.length === 64 && !feedIds.includes(cleanId)) {
+                  feedIds.push(cleanId);
+                }
+              }
+            }
+          });
+        }
+        
+        // Update price feed IDs for batch fetching
+        setActivePriceFeedIds(feedIds);
         
         // Process each borrow position
         const positions = await Promise.all(
@@ -192,8 +268,8 @@ export function useActiveBorrowPositions() {
                 banks.data?.find(b => b.account.mintAddress.toString() === borrowMintStr)?.tokenInfo;
               
               // Get decimals for collateral and borrow tokens
-              const collateralDecimals = collateralTokenInfo?.decimals || 9;
-              const borrowDecimals = borrowTokenInfo?.decimals || 9;
+              const collateralDecimals = collateralTokenInfo?.decimals;
+              const borrowDecimals = borrowTokenInfo?.decimals;
               
               // Convert shares to amounts
               // This is a simple conversion - in a real system you'd need to use the conversion rate from the bank
@@ -218,32 +294,14 @@ export function useActiveBorrowPositions() {
                 console.error('Error converting shares to amounts:', error);
               }
               
-              // Get USD values (if token info available)
+              // Get USD values using real-time prices
               let collateralUsdValue = 0;
               let borrowUsdValue = 0;
               let ltvRatio = 0;
               
-              // Try to get price info for tokens
-              const getTokenPrice = (symbol?: string): number => {
-                if (!symbol) return 0;
-                // These are fallback prices - in production, you'd use Pyth price feeds
-                const defaultPrices: Record<string, number> = {
-                  'SOL': 60,
-                  'USDC': 1,
-                  'USDT': 1,
-                  'BTC': 50000,
-                  'ETH': 3000,
-                  'mSOL': 65,
-                  'stSOL': 65,
-                  'RAY': 0.5,
-                  'SRM': 0.5,
-                  'BONK': 0.00000005,
-                };
-                return defaultPrices[symbol.toUpperCase()] || 0;
-              };
-              
-              const collateralPrice = getTokenPrice(collateralTokenInfo?.symbol);
-              const borrowPrice = getTokenPrice(borrowTokenInfo?.symbol);
+              // Get real-time prices from Pyth
+              const collateralPrice = getPythTokenPrice(collateralTokenInfo?.symbol);
+              const borrowPrice = getPythTokenPrice(borrowTokenInfo?.symbol);
               
               if (collateralPrice && collateralAmount) {
                 collateralUsdValue = collateralAmount * collateralPrice;
@@ -279,7 +337,6 @@ export function useActiveBorrowPositions() {
                   : parseInt(positionAccount.borrowedShares.toString()),
                 lastUpdated,
                 active: positionAccount.active,
-                // Additional UI fields
                 collateralTokenInfo,
                 borrowTokenInfo,
                 collateralAmount,
@@ -306,7 +363,14 @@ export function useActiveBorrowPositions() {
     },
     enabled: !!provider.publicKey && !!banks.data && tokenMetadata.isSuccess,
   });
-  
+
+  // Once we have fresh Pyth prices, refetch borrow positions so USD values update
+  useEffect(() => {
+    if (pythPrices.data && Object.keys(pythPrices.data).length > 0) {
+      borrowPositions.refetch();
+    }
+  }, [pythPrices.data]);
+ 
   return borrowPositions;
 }
 
@@ -329,15 +393,6 @@ export function useDeposits() {
   
   // Get prices from Pyth for all relevant tokens
   const pythPrices = useBatchPythPrices(priceFeedIds);
-
-  // Get mint info
-  const getMintInfo = useQuery({
-    queryKey: ['mint-info'],
-    queryFn: async ({ queryKey }) => {
-      return {}; // This is a placeholder, we'll use the function directly
-    },
-    enabled: false, // Don't run automatically
-  });
 
   // Fetch mint info function
   const fetchMintInfo = async (mintAddress: PublicKey) => {
