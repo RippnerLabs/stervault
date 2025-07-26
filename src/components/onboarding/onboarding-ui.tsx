@@ -81,7 +81,7 @@ export default function OnboardingUI() {
         <DialogHeader>
           <DialogTitle className="text-xl">Welcome to Solana Lending</DialogTitle>
           <DialogDescription>
-            Start your journey in decentralized finance
+            This application runs on <strong>Solana Devnet</strong>. To begin, head over to the <code>Get&nbsp;Test&nbsp;Assets</code> page (<code>/faucet</code>) to fund your wallet and explore the amazing app <strong>Stervault</strong>.
           </DialogDescription>
         </DialogHeader>
         

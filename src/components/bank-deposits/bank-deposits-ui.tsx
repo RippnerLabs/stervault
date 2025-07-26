@@ -97,7 +97,6 @@ function BankFinancials() {
     // State for token metadata
     const [tokenMetadata, setTokenMetadata] = useState<Record<string, TokenMetadata>>({});
     const [activePriceFeedIds, setActivePriceFeedIds] = useState<string[]>([]);
-    const [enhancedDeposits, setEnhancedDeposits] = useState<EnhancedUserDeposit[]>([]);
     const [enhancedBanks, setEnhancedBanks] = useState<EnhancedBankData[]>([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<BankCategory | 'all'>('all');
@@ -179,7 +178,8 @@ function BankFinancials() {
             // Random mock data for 24h changes and volume (would be replaced with real data in production)
             const change24h = Math.random() * 10 * (Math.random() > 0.5 ? 1 : -1);
             const volumeUsd24h = Math.random() * 1000000 + 100000;
-            
+            console.log('bank', bank);
+
             return {
                 ...bank,
                 // Calculate USD values using token decimals
@@ -199,14 +199,6 @@ function BankFinancials() {
         setEnhancedBanks(enhanced);
         setIsRefreshing(false);
     }, [banks.data, pythPrices.data, tokenMetadata]);
-    
-    // Format functions
-    const formatNumber = (num: number) => {
-        return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 6
-        }).format(num);
-    };
     
     const formatCompactNumber = (num: number) => {
         return new Intl.NumberFormat('en-US', {

@@ -131,6 +131,7 @@ export function useBankProgram() {
         const liquidationBonusBps = Math.floor(liquidationBonus * 100);
         const liquidationCloseFactorBps = Math.floor(liquidationCloseFactor * 100);
         const maxLtvBps = Math.floor(maxLtv * 100);
+        
         const depositInterestRateBps = Math.floor(depositInterestRate * 100);
         const borrowInterestRateBps = Math.floor(borrowInterestRate * 100);
 

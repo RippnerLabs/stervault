@@ -239,6 +239,7 @@ export function useUserTokenBalances() {
           
           if (tokenAmount.uiAmount > 0) {
             const tokenInfo = tokenMap.get(mint);
+            if (tokenInfo?.symbol)
             balances.push({
               symbol: tokenInfo?.symbol || 'Unknown',
               name: tokenInfo?.name || 'Unknown Token',
