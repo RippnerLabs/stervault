@@ -27,6 +27,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "../solana/solana-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useBatchPythPrices } from "../pyth/pyth-data-access";
+import { priceFeedIds as priceFeedIdsMap } from "../../lib/constants";
 
 // Dynamically import the CardSpotlight component with no SSR
 const CardSpotlight = dynamic(
@@ -96,10 +98,31 @@ const formatApy = (apy: number) => {
   return `${apy.toFixed(2)}%`;
 };
 
+const formatUsd = (num: number, decimals = 2) => {
+  return `$${num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: decimals })}`;
+};
+
 function Markets() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBanks, setFilteredBanks] = useState<BankData[]>([]);
   const { banks } = useMarketsBanks();
+  // Build the set of price feed IDs we need for these banks
+  const feedIds = banks.data ? Array.from(new Set(banks.data.map(b => {
+    const sym = b.tokenInfo?.symbol as string | undefined;
+    return sym && priceFeedIdsMap[sym as keyof typeof priceFeedIdsMap];
+  }).filter(Boolean))) as string[] : [];
+
+  const pythPrices = useBatchPythPrices(feedIds);
+
+  // Helper to get USD price for a symbol
+  const getUsdPrice = (symbol?: string): number => {
+    if (!symbol) return 0;
+    const id = priceFeedIdsMap[symbol as keyof typeof priceFeedIdsMap];
+    if (!id || !pythPrices.data) return 0;
+    const cleaned = id.startsWith("0x") ? id.slice(2) : id;
+    const pd = pythPrices.data[cleaned] || pythPrices.data[id];
+    return pd?.price || 0;
+  };
   const { connected } = useWallet();
   const router = useRouter();
   
@@ -121,7 +144,24 @@ function Markets() {
   }, [searchTerm, banks.data]);
 
   // Calculate total TVL and average APY
-  const totalTvl = filteredBanks.reduce((sum, bank) => sum + bank.account.totalDepositedShares, 0);
+  const totalTvl = filteredBanks.reduce((sum, bank) => {
+    const price = getUsdPrice(bank.tokenInfo?.symbol);
+    const amountTokens = bank.account.totalDepositedShares / Math.pow(10, bank.tokenInfo?.decimals || 0);
+    const tvlValue = price ? amountTokens * price : 0;
+    
+    console.log('TVL calculation for bank:', {
+      bankName: bank.account.name,
+      symbol: bank.tokenInfo?.symbol,
+      price,
+      totalDepositedShares: bank.account.totalDepositedShares,
+      decimals: bank.tokenInfo?.decimals,
+      amountTokens,
+      tvlValue,
+      runningSum: sum + tvlValue
+    });
+    
+    return sum + tvlValue;
+  }, 0);
   const avgApy = filteredBanks.length > 0 
     ? filteredBanks.reduce((sum, bank) => sum + bank.account.apy, 0) / filteredBanks.length
     : 0;
@@ -157,7 +197,12 @@ function Markets() {
             </div>
             <div className="bg-neutral-100 dark:bg-neutral-800 p-3 rounded-lg">
               <p className="text-sm text-neutral-500">TVL</p>
-              <p className="text-xl font-bold text-gray-600">{formatNumber(bank.account.totalDepositedShares)}</p>
+              {(() => {
+                const price = getUsdPrice(tokenSymbol);
+                const amountTokens = bank.account.totalDepositedShares / Math.pow(10, bank.tokenInfo?.decimals || 0);
+                const tvlUsd = price ? amountTokens * price : 0;
+                return <p className="text-xl font-bold text-gray-600">{formatUsd(tvlUsd)}</p>;
+              })()}
             </div>
           </div>
           <div className="space-y-2">
@@ -191,7 +236,12 @@ function Markets() {
   // Create hover effect items
   const hoverItems = filteredBanks.map((bank, index) => ({
     title: bank.account.name,
-    description: `${bank.tokenInfo?.symbol || 'TOKEN'} • ${formatApy(bank.account.apy)} APY • ${formatNumber(bank.account.totalDepositedShares)} TVL`,
+    description: (() => {
+      const price = getUsdPrice(bank.tokenInfo?.symbol);
+      const amountTokens = bank.account.totalDepositedShares / Math.pow(10, bank.tokenInfo?.decimals || 0);
+      const tvlUsd = price ? amountTokens * price : 0;
+      return `${bank.tokenInfo?.symbol || 'TOKEN'} • ${formatApy(bank.account.apy)} APY • ${formatUsd(tvlUsd)} TVL`;
+    })(),
     link: `#bank-${bank.publicKey.toString()}`
   }));
 
@@ -289,7 +339,7 @@ function Markets() {
             <IconWallet className="h-6 w-6 text-blue-500" />
             <h3 className="text-lg font-bold">Total Value Locked</h3>
           </div>
-          <p className="text-3xl font-bold">{formatNumber(totalTvl)}</p>
+          <p className="text-3xl font-bold">{formatUsd(totalTvl)}</p>
           <p className="text-sm text-neutral-500 mt-1">Across all token banks</p>
         </SimpleSpotlightCard>
 
@@ -353,11 +403,16 @@ function Markets() {
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">TVL</p>
-                        <p className="text-xl font-bold text-gray-600">{formatNumber(bank.account.totalDepositedShares)}</p>
+                        {(() => {
+                          const price = getUsdPrice(tokenSymbol);
+                          const amountTokens = bank.account.totalDepositedShares / Math.pow(10, bank.tokenInfo?.decimals || 0);
+                          const tvlUsd = price ? amountTokens * price : 0;
+                          return <p className="text-xl font-bold text-gray-600">{formatUsd(tvlUsd)}</p>;
+                        })()}
                       </div>
                       <div>
                         <p className="text-sm text-neutral-500">Max LTV</p>
-                        <p className="text-xl font-bold text-gray-600">{bank.account.maxLtv}%</p>
+                        <p className="text-xl font-bold text-gray-600">{bank.account.maxLtv / 100}%</p>
                       </div>
                     </div>
                     
