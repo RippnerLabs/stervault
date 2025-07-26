@@ -161,6 +161,12 @@ function Deposits() {
     const { userDeposits } = useDeposits();
     const router = useRouter();
     const [expandedDepositId, setExpandedDepositId] = useState<string | null>(null);
+    // Auto-expand the very first deposit card once when the data arrives
+    useEffect(() => {
+      if (!expandedDepositId && userDeposits.data && userDeposits.data.length > 0) {
+        setExpandedDepositId(userDeposits.data[0].publicKey.toString())
+      }
+    }, [userDeposits.data, expandedDepositId])
     const [errorDetails, setErrorDetails] = useState<string | null>(null);
     const [showUsdValues, setShowUsdValues] = useState<boolean>(true);
     
@@ -506,46 +512,6 @@ function Deposits() {
                 </Card>
             </div>
             
-            {/* Token Distribution */}
-            {userDeposits.data && userDeposits.data.length > 0 && (
-                <div className="mb-12">
-                    <h2 className="text-2xl font-semibold mb-6">Deposits by Token</h2>
-                    <div className="">
-                        {(() => {
-                            try {
-                                // Make sure we have valid data
-                                const sanitizedCards = focusCardsData.map(card => ({
-                                    title: typeof card.title === 'string' ? card.title : String(card.title),
-                                    subtitle: card.subtitle !== undefined && typeof card.subtitle !== 'object' ? card.subtitle : undefined,
-                                    // Ensure src is always a string, use a default if needed
-                                    src: typeof card.src === 'string' ? card.src : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#f0f0f0"/><text x="20" y="25" font-size="16" text-anchor="middle" fill="#666">?</text></svg>'
-                                }));
-                                
-                                return <FocusCards cards={sanitizedCards} />;
-                            } catch (error) {
-                                console.error('Error rendering FocusCards:', error);
-                                return <div className="p-4 bg-red-50 text-red-500 rounded">Error displaying token cards</div>;
-                            }
-                        })()}
-                    </div>
-                    <div className="flex justify-center mt-8">
-                        <Button 
-                            onClick={() => router.push('/deposit-tokens')}
-                            variant="outline"
-                            className="group"
-                        >
-                            <IconPlus className="mr-2 h-4 w-4" />
-                            <span>Add New Token</span>
-                        </Button>
-                    </div>
-                </div>
-            )}
-            
-            {/* Active Borrow Positions - Replace with reusable component */}
-            <div className="mb-12">
-                <ActiveBorrowPositions />
-            </div>
-            
             {/* Detailed Deposits List */}
             <div className="mb-12">
                 <h2 className="text-2xl font-semibold mb-6">All Deposits</h2>
@@ -696,7 +662,7 @@ function Deposits() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
                                                             <div className="text-sm text-neutral-600 dark:text-neutral-400">Interest Rate</div>
-                                                            <div className="font-medium">{safeFormatPercent(deposit.bank?.depositInterestRate || 0)}</div>
+                                                            <div className="font-medium">{safeFormatPercent(deposit.bank?.depositInterestRate / 100 || 0)}</div>
                                                         </div>
                                                         <div>
                                                             <div className="text-sm text-neutral-600 dark:text-neutral-400">Accrual Period</div>
@@ -732,7 +698,42 @@ function Deposits() {
                     })}
                 </div>
             </div>
-            
+
+            {/* Token Distribution */}
+            {userDeposits.data && userDeposits.data.length > 0 && (
+                <div className="mb-12">
+                    <h2 className="text-2xl font-semibold mb-6">Deposits by Token</h2>
+                    <div className="">
+                        {(() => {
+                            try {
+                                // Make sure we have valid data
+                                const sanitizedCards = focusCardsData.map(card => ({
+                                    title: typeof card.title === 'string' ? card.title : String(card.title),
+                                    subtitle: card.subtitle !== undefined && typeof card.subtitle !== 'object' ? card.subtitle : undefined,
+                                    // Ensure src is always a string, use a default if needed
+                                    src: typeof card.src === 'string' ? card.src : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#f0f0f0"/><text x="20" y="25" font-size="16" text-anchor="middle" fill="#666">?</text></svg>'
+                                }));
+                                
+                                return <FocusCards cards={sanitizedCards} />;
+                            } catch (error) {
+                                console.error('Error rendering FocusCards:', error);
+                                return <div className="p-4 bg-red-50 text-red-500 rounded">Error displaying token cards</div>;
+                            }
+                        })()}
+                    </div>
+                    <div className="flex justify-center mt-8">
+                        <Button 
+                            onClick={() => router.push('/deposit-tokens')}
+                            variant="outline"
+                            className="group"
+                        >
+                            <IconPlus className="mr-2 h-4 w-4" />
+                            <span>Add New Token</span>
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Add New Deposit Button */}
             <div className="flex justify-center mt-8 mb-12">
                 <Button 

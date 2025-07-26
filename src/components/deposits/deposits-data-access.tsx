@@ -363,7 +363,14 @@ export function useActiveBorrowPositions() {
     },
     enabled: !!provider.publicKey && !!banks.data && tokenMetadata.isSuccess,
   });
-  
+
+  // Once we have fresh Pyth prices, refetch borrow positions so USD values update
+  useEffect(() => {
+    if (pythPrices.data && Object.keys(pythPrices.data).length > 0) {
+      borrowPositions.refetch();
+    }
+  }, [pythPrices.data]);
+ 
   return borrowPositions;
 }
 

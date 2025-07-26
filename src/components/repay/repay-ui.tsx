@@ -11,7 +11,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
-import toast, { Toaster } from "react-hot-toast";
 import {
   IconCoin,
   IconLoader2,
@@ -238,8 +237,6 @@ function Repay() {
       setConfirmationStep(false);
       setRepayAmount(0);
       
-      // Show success message
-      toast.success("Loan repaid successfully!");
     } catch (error) {
       console.error("Repayment error:", error);
       setError(error instanceof Error ? error.message : "An unknown error occurred");
@@ -699,7 +696,6 @@ export default function RepayUI() {
     return (
         <SidebarUI>
             <Repay />
-      <Toaster position="bottom-right" />
         </SidebarUI>
     );
 }

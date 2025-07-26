@@ -243,7 +243,7 @@ function TransactionHistory() {
   
   return (
     <div className="container mx-auto px-0 sm:px-4 py-6">
-      {!connected ? (
+    {!connected ? (
         <div className="flex flex-col items-center justify-center mt-10">
           <Card className="w-full max-w-md">
             <CardHeader>

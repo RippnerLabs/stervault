@@ -165,6 +165,8 @@ export function ActiveBorrowPositions({
 
     const containerStyle = maxHeight ? { maxHeight, overflowY: 'auto' } : {};
     
+    console.log('activeBorrowPositions', activeBorrowPositions);
+
     return (
         <div className="w-full">
             {showTitle && (
@@ -245,7 +247,7 @@ export function ActiveBorrowPositions({
                                         sum + (position.collateralUsdValue || 0), 0))}
                                 </p>
                             </Card>
-                            
+
                             <Card className="p-4 bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-950/30 dark:to-fuchsia-950/20 border-purple-200 dark:border-purple-800/50">
                                 <div className="flex items-center gap-3 mb-1">
                                     <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full">

@@ -13,6 +13,7 @@ import { BN } from '@coral-xyz/anchor'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { useDeposits, UserDeposit } from '../deposits/deposits-data-access'
 import { useTokenMetadata, TokenMetadata } from '../pyth/pyth-data-access'
+import bs58 from 'bs58'
 
 // Use the deployed program ID from the anchor deploy output
 const LENDING_PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_LENDING_PROGRAM_ID || "");
@@ -106,7 +107,11 @@ function determineTransactionType(
 
   // Check the instruction data's first 8 bytes to determine the instruction type
   if (instruction.data && instruction.data.length >= 8) {
-    const discriminator = Array.from(Buffer.from(instruction.data, 'base64')).slice(0, 8);
+    // The `data` field in a PartiallyDecodedInstruction is base-58 encoded, not base-64.
+    // Using base-64 here produced incorrect discriminator bytes and prevented us from
+    // recognising deposit / withdraw / etc.  Switching to `bs58` decoding fixes this.
+    const raw = bs58.decode(instruction.data);
+    const discriminator = Array.from(raw.slice(0, 8));
     
     if (JSON.stringify(discriminator) === JSON.stringify(depositDiscriminator)) {
       return TransactionType.DEPOSIT;
@@ -142,55 +147,49 @@ async function extractTokenDetails(
     let tokenMint: string | undefined;
     let tokenInfo: any = undefined;
     
-    // Look for token program instructions - these would have transfer/mint/burn instructions
-    const tokenInstructions = transaction.transaction.message.instructions.filter(
-      ix => ix.programId.toString() === TOKEN_PROGRAM_ID.toString()
-    );
-    
-    if (tokenInstructions.length > 0) {
-      // This is a simplified approach - a real implementation would decode the exact instruction
-      // to get precise token amount and mint details
-      
-      // For test purposes, let's assume the first post token balance change
-      if (transaction.meta.postTokenBalances && transaction.meta.postTokenBalances.length > 0) {
-        const tokenChange = transaction.meta.postTokenBalances[0];
-        tokenMint = tokenChange.mint;
-        // Get tokenInfo early
-        tokenInfo = tokenMetadataMap[tokenMint] ?? undefined;
+    // Even if the top-level instruction list does *not* contain a SPL-Token instruction (e.g. it is emitted as an inner instruction),
+    // the `preTokenBalances` / `postTokenBalances` arrays will still reflect the net changes.
+    // Therefore we rely first and foremost on those balance arrays rather than searching the primary instruction list.
+    if (transaction.meta.postTokenBalances && transaction.meta.postTokenBalances.length > 0) {
+      // Iterate over all token balance changes to find the most relevant delta
+      let bestDelta: number | undefined = undefined
+      let chosenChange: typeof transaction.meta.postTokenBalances[0] | undefined = undefined
 
-        // Calculate approximate amount from pre/post balances
-        if (transaction.meta.preTokenBalances) {
-          const preBalance = transaction.meta.preTokenBalances.find(
-            b => b.accountIndex === tokenChange.accountIndex
-          );
-          
-          if (preBalance) {
-            // Prefer decimals from token metadata or token balance object
-            const decimals = tokenInfo?.decimals ?? tokenChange.uiTokenAmount.decimals ?? preBalance?.uiTokenAmount.decimals ?? 9;
-            
-            // Fallback to 0 if no preBalance exists (e.g. brand-new associated token account)
-            const preAmountRaw = preBalance ? Number(preBalance.uiTokenAmount.amount) : 0;
-            const postAmountRaw = Number(tokenChange.uiTokenAmount.amount);
+      for (const postBalance of transaction.meta.postTokenBalances) {
+        const preBalance = transaction.meta.preTokenBalances?.find(b => b.accountIndex === postBalance.accountIndex)
 
-            const preAmount = preAmountRaw / Math.pow(10, decimals);
-            const postAmount = postAmountRaw / Math.pow(10, decimals);
+        // Prefer decimals from token metadata or balance objects
+        const decimals =
+          tokenMetadataMap[postBalance.mint]?.decimals ??
+          postBalance.uiTokenAmount.decimals ??
+          preBalance?.uiTokenAmount.decimals ??
+          9
 
-            /*
-             * Determine the net amount moved, with semantics:
-             *  - DEPOSIT / BORROW   → positive delta (post ‑ pre)
-             *  - WITHDRAW / REPAY   → positive delta (pre  ‑ post)
-             *  - UNKNOWN / others   → absolute delta |post ‑ pre|  (generic transfer)
-             */
-            if (transactionType === TransactionType.DEPOSIT || transactionType === TransactionType.BORROW) {
-              amount = Math.max(0, postAmount - preAmount);
-            } else if (transactionType === TransactionType.WITHDRAW || transactionType === TransactionType.REPAY) {
-              amount = Math.max(0, preAmount - postAmount);
-            } else {
-              amount = Math.abs(postAmount - preAmount);
-            }
-          }
+        const preRaw = preBalance ? Number(preBalance.uiTokenAmount.amount) : 0
+        const postRaw = Number(postBalance.uiTokenAmount.amount)
+
+        const pre = preRaw / Math.pow(10, decimals)
+        const post = postRaw / Math.pow(10, decimals)
+
+        let delta: number
+        if (transactionType === TransactionType.DEPOSIT || transactionType === TransactionType.BORROW) {
+          delta = post - pre // expect positive
+        } else if (transactionType === TransactionType.WITHDRAW || transactionType === TransactionType.REPAY) {
+          delta = pre - post // expect positive
+        } else {
+          delta = Math.abs(post - pre)
+        }
+
+        if (delta > 0 && (bestDelta === undefined || delta > bestDelta)) {
+          bestDelta = delta
+          chosenChange = postBalance
+          amount = parseFloat(delta.toFixed(6)) // keep sensible precision
+          tokenMint = postBalance.mint
+          tokenInfo = tokenMetadataMap[postBalance.mint] ?? undefined
         }
       }
+    } else {
+      // Fallback: no token balance arrays (should be rare) => leave undefined
     }
     
     // If we found a token mint, get token info from metadata

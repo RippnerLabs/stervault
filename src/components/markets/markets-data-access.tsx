@@ -157,7 +157,8 @@ export function useMarketsBanks() {
                   depositInterestRate: depositInterestRate,
                   borrowInterestRate: bnToNumber(rawAccount.borrowInterestRate),
                   lastCompoundTime: rawAccount.lastCompoundTime,
-                  interestAccrualPeriod: rawAccount.interestAccrualPeriod,
+                  // Store as plain number to avoid BN objects leaking into the UI
+                  interestAccrualPeriod: accrualPeriodSeconds,
                   liquidationThreshold: bnToNumber(rawAccount.liquidationThreshold),
                   liquidationBonus: bnToNumber(rawAccount.liquidationBonus),
                   liquidationCloseFactor: bnToNumber(rawAccount.liquidationCloseFactor),
