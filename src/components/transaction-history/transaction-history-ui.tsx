@@ -183,6 +183,38 @@ function TransactionHistory() {
 
   console.log('filteredTransactions', filteredTransactions);
   
+  // Automatically fetch detailed info for each summary row once summaries are loaded.
+  useEffect(() => {
+    if (isLoading || transactionHistory.length === 0) return;
+
+    // Identify transactions that still need details
+    const pending = transactionHistory.filter(tx => tx.type === TransactionType.UNKNOWN || tx.amount === undefined).map(tx => tx.id);
+    if (pending.length === 0) return;
+
+    let cancelled = false;
+
+    const fetchLoop = async () => {
+      for (const sig of pending) {
+        if (cancelled) break;
+        try {
+          setLoadingSig(sig);
+          const detail = await fetchTransactionDetails(sig);
+          if (detail) {
+            setDetailsMap(prev => ({ ...prev, [sig]: detail }));
+          }
+        } catch (e) {
+          console.error('Auto-detail fetch error', e);
+        }
+        await new Promise(res => setTimeout(res, 800)); // small delay to avoid rate limits
+      }
+      setLoadingSig(null);
+    };
+
+    fetchLoop();
+
+    return () => { cancelled = true; };
+  }, [isLoading, transactionHistory]);
+
   // Function to reset all filters
   const resetFilters = () => {
     setStartDate(null);

@@ -94,22 +94,15 @@ function determineTransactionType(
     return TransactionType.UNKNOWN;
   }
 
-  // We need to use the instruction data to determine type
-  // This requires knowledge of the anchor program's instruction discriminators
-  
-  // These are the actual discriminators from the lending.json IDL
   const depositDiscriminator = [242, 35, 198, 137, 82, 225, 242, 182];
   const withdrawDiscriminator = [183, 18, 70, 156, 148, 109, 161, 34];
-  const borrowDiscriminator = [47, 86, 47, 204, 142, 160, 81, 28]; // init_borrow_position
+  const borrowDiscriminator = [228, 253, 131, 202, 207, 116, 89, 18];
+  const initBorrowPositionDiscriminator = [47, 86, 47, 204, 142, 160, 81, 28];
   const repayDiscriminator = [234, 103, 67, 82, 208, 234, 219, 166];
-  const initUserDiscriminator = [93, 39, 255, 186, 239, 199, 197, 123]; // init_user_token_state
+  const initUserDiscriminator = [93, 39, 255, 186, 239, 199, 197, 123];
   const initUserTokenStateDiscriminator = [93, 39, 255, 186, 239, 199, 197, 123];
 
-  // Check the instruction data's first 8 bytes to determine the instruction type
   if (instruction.data && instruction.data.length >= 8) {
-    // The `data` field in a PartiallyDecodedInstruction is base-58 encoded, not base-64.
-    // Using base-64 here produced incorrect discriminator bytes and prevented us from
-    // recognising deposit / withdraw / etc.  Switching to `bs58` decoding fixes this.
     const raw = bs58.decode(instruction.data);
     const discriminator = Array.from(raw.slice(0, 8));
     
@@ -117,7 +110,10 @@ function determineTransactionType(
       return TransactionType.DEPOSIT;
     } else if (JSON.stringify(discriminator) === JSON.stringify(withdrawDiscriminator)) {
       return TransactionType.WITHDRAW;
-    } else if (JSON.stringify(discriminator) === JSON.stringify(borrowDiscriminator)) {
+    } else if (
+      JSON.stringify(discriminator) === JSON.stringify(borrowDiscriminator) ||
+      JSON.stringify(discriminator) === JSON.stringify(initBorrowPositionDiscriminator)
+    ) {
       return TransactionType.BORROW;
     } else if (JSON.stringify(discriminator) === JSON.stringify(repayDiscriminator)) {
       return TransactionType.REPAY;

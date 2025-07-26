@@ -77,9 +77,11 @@ const defaultBankImages = [
   "https://images.unsplash.com/photo-1582139329536-e7284fece509?q=80&w=2757&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 ];
 
-// Helper function to get a random image
-const getRandomBankImage = () => {
-  return defaultBankImages[Math.floor(Math.random() * defaultBankImages.length)];
+const getBankImageForSymbol = (symbol: string) => {
+  if (!symbol) return defaultBankImages[0];
+  const hash = symbol.toUpperCase().split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const index = hash % defaultBankImages.length;
+  return defaultBankImages[index];
 };
 
 // Format numbers for display
@@ -168,7 +170,7 @@ function Markets() {
 
   // Create featured banks for the carousel
   const featuredBanks = filteredBanks.slice(0, Math.min(4, filteredBanks.length)).map((bank, index) => {
-    const bankImage = getRandomBankImage();
+    const bankImage = getBankImageForSymbol(bank.tokenInfo?.symbol || 'TOKEN');
     const tokenSymbol = bank.tokenInfo?.symbol || 'TOKEN';
     const tokenIcon = bank.tokenInfo?.logoURI 
       ? <div className="relative h-8 w-8 rounded-full overflow-hidden">
@@ -373,6 +375,7 @@ function Markets() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBanks.map((bank) => {
               const tokenSymbol = bank.tokenInfo?.symbol || 'TOKEN';
+              const bankImage = getBankImageForSymbol(tokenSymbol);
               const tokenIcon = bank.tokenInfo?.logoURI 
                 ? <div className="relative h-8 w-8 rounded-full overflow-hidden">
                     <Image src={bank.tokenInfo.logoURI} alt={tokenSymbol} fill className="object-cover" />
