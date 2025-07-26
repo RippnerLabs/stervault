@@ -583,7 +583,6 @@ export default function TransactionHistoryUI() {
   return (
     <SidebarUI>
       <TransactionHistory />
-      <Toaster position="bottom-right" />
     </SidebarUI>
   );
 }

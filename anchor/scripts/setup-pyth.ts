@@ -25,10 +25,10 @@ async function main() {
         "JLP": "0xc811abc82b4bad1f9bd711a2773ccaa935b03ecef974236942cec5e0eb845a3a",
         "JitoSOL": "0x67be9f519b95cf24338801051f9a808eff0a578ccb388db73b7f6fe1de019ffb",
         "JUP": "0x0a0408d619e9380abad35060f9192039ed5042fa6f82301d0e48bb52be830996",
-        "USDS": "0x6968a8641208463d17ae3b9cfa0e4841a7aa7a5d54122b9f692b84fe9ce3409f",
+        // "USDS": "0x77f0971af11cc8bac224917275c1bf55f2319ed5c654a1ca955c82fa2d297ea1",
         "WBTC": "0xc9d8b075a5c69303365ae23633d4e085199bf5c520a3b90fed1322a0342ffc33",
         "ETH": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
-        "Fartcoin": "0x89fa109abd89f62776032713216d8692e4c33b446ec405a8252c8975345c1788",
+        "Fartcoin": "0x58cd29ef0e714c5affc44f269b2c1899a52da4169d7acc147b9da692e6953608",
     }
 
     // Directory for storing price feed data
@@ -160,7 +160,7 @@ solana-test-validator \\
   -r &
 
 # Wait for validator to start
-sleep 10
+sleep 20
 
 # Configure solana CLI to use local validator and signer keypair
 solana config set --url http://localhost:8899 --keypair \${SIGNER_KEYPAIR}

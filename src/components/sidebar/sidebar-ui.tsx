@@ -49,11 +49,17 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
     
     const links: SidebarLinkType[] = [
         {
-            label: "Dashboard",
-            href: "/dashboard",
-            icon: <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            breadcrumbText: "Overview"
+            label: "Token Banks",
+            href: "/markets",
+            icon: <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            breadcrumbText: "Available Markets"
         },
+        // {
+        //     label: "Dashboard",
+        //     href: "/dashboard",
+        //     icon: <IconHome className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+        //     breadcrumbText: "Overview"
+        // },
         {
             label: "Deposits",
             href: "/deposits",
@@ -88,12 +94,6 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             parent: "Borrowing"
         },
         {
-            label: "Token Banks",
-            href: "/markets",
-            icon: <IconBuildingBank className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            breadcrumbText: "Available Markets"
-        },
-        {
             label: "Transaction History",
             href: "/transaction-history",
             icon: <IconHistory className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
@@ -105,12 +105,12 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             icon: <IconWallet className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
             breadcrumbText: "Token Faucet"
         },
-        {
-            label: "Settings",
-            href: "/settings",
-            icon: <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            breadcrumbText: "Settings"
-        },
+        // {
+        //     label: "Settings",
+        //     href: "/settings",
+        //     icon: <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+        //     breadcrumbText: "Settings"
+        // },
         {
             label: "Add Bank",
             href: "/add-bank",
@@ -119,7 +119,7 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
             parent: "Token Banks"
         },
     ];
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     
     // Find the current active link based on pathname
     const currentLink = links.find(link => link.href === pathname);
@@ -182,8 +182,8 @@ export function SidebarUI({ children }: { children: React.ReactNode }) {
                             <BreadcrumbList>
                                 {/* Home breadcrumb */}
                                 <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="/dashboard">
-                                        Dashboard
+                                    <BreadcrumbLink href="/markets">
+                                        Markets
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 

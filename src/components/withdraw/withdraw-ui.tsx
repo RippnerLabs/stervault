@@ -419,7 +419,6 @@ export default function WithdrawUI() {
     return (
         <SidebarUI>
             <WithdrawForm />
-            <Toaster position="bottom-right" />
         </SidebarUI>
     );
 }

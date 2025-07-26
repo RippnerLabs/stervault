@@ -104,7 +104,7 @@ export function useDepositTokens() {
           supply: mintInfo.supply.toString(),
         });
 
-        // Find the PDA for the user account
+        // Derive PDA for the user token state account (userAccount)
         const [userAccountPDA] = PublicKey.findProgramAddressSync(
           [provider.publicKey.toBuffer(), mintAddress.toBuffer()],
           programId
@@ -117,6 +117,29 @@ export function useDepositTokens() {
           programId
         );
         console.log('Bank Token Account PDA:', bankTokenAccountPDA.toString());
+
+        // 1️⃣ Ensure the on-chain UserTokenState account exists. If not, initialise it.
+        const userAccountInfo = await connection.getAccountInfo(userAccountPDA);
+        if (!userAccountInfo) {
+          console.log('UserAccount not initialised – calling initUserTokenState');
+
+          const [userGlobalStatePDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from('user_global'), provider.publicKey.toBuffer()],
+            programId
+          );
+
+          await program.methods
+            .initUserTokenState(mintAddress)
+            .accounts({
+              signer: provider.publicKey,
+              userAccount: userAccountPDA,
+              userGlobalState: userGlobalStatePDA,
+              systemProgram: SystemProgram.programId,
+            })
+            .rpc({ commitment: 'confirmed' });
+
+          console.log('initUserTokenState succeeded');
+        }
 
         // Get the user's associated token account
         const userTokenAccount = (await getUserTokenAccounts.refetch()).data?.find(
@@ -139,7 +162,7 @@ export function useDepositTokens() {
             tokenProgram: TOKEN_PROGRAM_ID,
           } as any)
           .preInstructions([computeBudgetIx])
-          .rpc({ commitment: 'confirmed' });
+          .rpc({ commitment: 'confirmed', skipPreflight: true });
         
         console.log('Deposit transaction:', tx);
         console.log('Solana Explorer URL:', `https://explorer.solana.com/tx/${tx}?cluster=devnet`);

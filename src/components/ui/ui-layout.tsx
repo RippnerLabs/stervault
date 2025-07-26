@@ -48,7 +48,6 @@ export function UiLayout({ children, links }: { children: ReactNode; links: { la
         >
           {children}
         </Suspense>
-        <Toaster position="bottom-right" />
       </div>
       <footer className="footer footer-center p-4 bg-base-300 text-base-content">
         <aside>

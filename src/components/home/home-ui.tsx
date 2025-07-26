@@ -76,8 +76,8 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
             link: "/markets",
         },
         {
-            name: "Dashboard",
-            link: "/dashboard",
+            name: "Markets",
+            link: "/markets",
         },
     ];
 
@@ -94,7 +94,7 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                         {/* <ThemeToggle /> */}
                         {/* <NavbarButton variant="secondary">Connect Wallet</NavbarButton> */}
                         <NavbarButton variant="primary" onClick={() => {
-                            window.location.href = "/dashboard";
+                            window.location.href = "/markets";
                         }}>Launch App</NavbarButton>
                     </div>
                 </NavBody>
@@ -134,7 +134,7 @@ function NavbarDemo({ children }: { children: React.ReactNode }) {
                             <NavbarButton
                                 onClick={() => {
                                     // setIsMobileMenuOpen(false);
-                                    window.location.href = "/dashboard";
+                                    window.location.href = "/markets";
                                 }}
                                 variant="primary"
                                 className="w-full"

@@ -36,11 +36,12 @@ solana-test-validator \
   --clone 7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5 \
   --clone 9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG \
   --clone 42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC \
+  --clone 2t8eUbYKjidMs3uSeYM9jXM9uudYZwGkSeTB4TKjmvnC \
   -u devnet \
   -r &
 
 # Wait for validator to start
-sleep 10
+sleep 20
 
 # Configure solana CLI to use local validator and signer keypair
 solana config set --url http://localhost:8899 --keypair ${SIGNER_KEYPAIR}
@@ -60,3 +61,4 @@ echo "- JitoSOL Price Feed: https://explorer.solana.com/address/AxaxyeDT8JnWERSa
 echo "- JUP Price Feed: https://explorer.solana.com/address/7dbob1psH1iZBS7qPsm3Kwbf5DzSXK8Jyg31CTgTnxH5?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
 echo "- WBTC Price Feed: https://explorer.solana.com/address/9gNX5vguzarZZPjTnE1hWze3s6UsZ7dsU3UnAmKPnMHG?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
 echo "- ETH Price Feed: https://explorer.solana.com/address/42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"
+echo "- Fartcoin Price Feed: https://explorer.solana.com/address/2t8eUbYKjidMs3uSeYM9jXM9uudYZwGkSeTB4TKjmvnC?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899"

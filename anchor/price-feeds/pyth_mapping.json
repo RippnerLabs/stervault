@@ -45,6 +45,11 @@
       "symbol": "ETH",
       "feedId": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
       "address": "42amVS4KgzR9rA28tkVYqVXjq9Qa8dcZQMbH5EYFX6XC"
+    },
+    "Fartcoin": {
+      "symbol": "Fartcoin",
+      "feedId": "0x58cd29ef0e714c5affc44f269b2c1899a52da4169d7acc147b9da692e6953608",
+      "address": "2t8eUbYKjidMs3uSeYM9jXM9uudYZwGkSeTB4TKjmvnC"
     }
   }
 }
